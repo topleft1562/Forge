@@ -1,0 +1,70 @@
+import CoinStatus from "../models/CoinsStatus";
+import { ResultType } from "../program/web3";
+import Coin from "../models/Coin";
+import User from "../models/User";
+
+
+export const setCoinStatus = async (data: ResultType) => {
+    const coinId = await Coin.findOne({ token: data.mint }).select('_id');
+    const userId = await User.findOne({ wallet: data.owner }).select('_id');
+
+    const solAmount = data.reserve2 / 1e9; // Convert SOL from lamports (9 decimals)
+    const tokenAmount = data.reserve1 / 1e6; // Convert tokens from raw amount (6 decimals)
+
+    const priceInSol = tokenAmount !== 0 ? solAmount / tokenAmount : 0;
+
+    const newTx = {
+        holder: userId?._id,
+        holdingStatus: data.swapType,
+        amount: data.swapAmount,
+        tx: data.tx,
+        price: priceInSol,
+        time: new Date() // Add timestamp if required for tracking
+    };
+
+    console.log('Price calculation:', {
+        solReserve: solAmount,
+        tokenReserve: tokenAmount,
+        calculatedPrice: priceInSol
+    });
+
+    // Update transaction record
+    await CoinStatus.findOneAndUpdate(
+        { coinId: coinId?._id },
+        { $push: { record: newTx } },
+        { new: true, upsert: true }
+    );
+
+    const tokenAddress = data.mint ? data.mint.trim() : "UNDEFINED";
+    console.log("🔍 Querying MongoDB for token:", tokenAddress);
+
+    if (tokenAddress === "UNDEFINED") {
+        console.error("❌ `data.mint` is undefined! Fix this.");
+        return;
+    }
+
+    const updateCoin = await Coin.findOneAndUpdate(
+        { token: tokenAddress },
+        { 
+            $set: {
+                reserveOne: data.reserve1,
+                reserveTwo: data.reserve2,
+                date: new Date(),
+                name: data.name || 'Unknown',               // Update name if available
+                ticker: data.ticker || 'N/A',               // Update ticker if available
+                description: data.description || 'N/A',     // Update description if available
+                url: data.url || '',                        // Update URL if available
+                creator: data.creator || null               // Update creator if available
+            }
+        },
+        { new: true, upsert: true }
+    );
+
+    if (!updateCoin) {
+        console.error(`❌ Token not found in MongoDB: [${tokenAddress}]`);
+    } else {
+        console.log("✅ Updated coin reserves:", updateCoin);
+    }
+};
+
+
