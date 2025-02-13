@@ -29,21 +29,12 @@ pub mod bonding_curve {
     // ✅ Corrected swap function
     pub fn swap(ctx: Context<Swap>, amount: u64, style: u64) -> Result<()> {
         match style {
-            0 => {
-                instructions::buy(
-                    Context::new(ctx.program_id, &mut ctx.accounts), 
-                    amount
-                )
+            0 => instructions::buy(ctx, amount),
+            _ => {
+                let bump = ctx.accounts.pool.bump; // Get the bump from the pool account
+                instructions::sell(ctx, amount, bump)
             }
-            1 => {
-                let bump = *ctx.bumps.get("pool").ok_or(ErrorCode::MissingBump)?;
-                instructions::sell(
-                    Context::new(ctx.program_id, &mut ctx.accounts), 
-                    amount, 
-                    bump
-                )
-            }
-            _ => Err(ErrorCode::InvalidSwapStyle.into()),
+           
         }
     }
 }
