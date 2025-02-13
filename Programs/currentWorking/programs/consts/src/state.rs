@@ -438,14 +438,6 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             }
         } else {  // Token to SOL swap
         
-        // Calculate SOL out before fees
-            let sol_out = ((amount as f64 / 1_000_000.0) * effective_price) as u64;
-            
-            // Calculate SOL fees
-            let fee_amount = (sol_out as f64 * bonding_configuration_account.fees / 100.0) as u64;
-            let sol_out_after_fee = sol_out.checked_sub(fee_amount)
-                .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-       
         let bought_amount = (self.total_supply as f64 - self.reserve_one as f64) / 1_000_000.0 / 1_000_000_000.0;
         msg!("bought_amount: {}", bought_amount);
 
@@ -464,13 +456,17 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             return err!(CustomError::NotEnoughSolInVault);
         }
 
-        self.reserve_two += sol_out;
-        self.reserve_one -= amount_out;
+       
 
-        // Calculate SOL fees
+      
+            
+            // Calculate SOL fees
             let fee_amount = (amount_out as f64 * bonding_configuration_account.fees / 100.0) as u64;
             let sol_out_after_fee = amount_out.checked_sub(fee_amount)
                 .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        self.reserve_two += amount_out;
+        self.reserve_one -= amount;
         
         // Transfer tokens to pool
             self.transfer_token_to_pool(
@@ -485,7 +481,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             self.transfer_sol_from_pool(
                 token_two_accounts.1,
                 token_two_accounts.2,
-                sol_out_after_fee,
+                amount_out,
                 system_program,
                 bump
             )?;
