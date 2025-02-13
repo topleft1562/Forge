@@ -29,6 +29,7 @@ router.get('/user/:userId', (req, res) => {
 // @access  Public
 router.post('/', async (req, res) => {
     const { body } = req;
+    console.log(body)
     try {
         const newMsg = new Message(body);
         const messages = await newMsg.save()

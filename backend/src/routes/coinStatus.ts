@@ -5,6 +5,7 @@ import User from "../models/User";
 
 
 export const setCoinStatus = async (data: ResultType) => {
+    console.log("DATA", data)
     const coinId = await Coin.findOne({ token: data.mint }).select('_id');
     const userId = await User.findOne({ wallet: data.owner }).select('_id');
 
@@ -50,11 +51,6 @@ export const setCoinStatus = async (data: ResultType) => {
                 reserveOne: data.reserve1,
                 reserveTwo: data.reserve2,
                 date: new Date(),
-                name: data.name || 'Unknown',               // Update name if available
-                ticker: data.ticker || 'N/A',               // Update ticker if available
-                description: data.description || 'N/A',     // Update description if available
-                url: data.url || '',                        // Update URL if available
-                creator: data.creator || null               // Update creator if available
             }
         },
         { new: true, upsert: true }

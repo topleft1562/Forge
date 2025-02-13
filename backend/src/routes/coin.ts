@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
             reserveTwo: Joi.number().default(0),    // Add this line
             token: Joi.string().allow('', null)     // Add this line
         });
-
+        console.log(UserSchema)
         const inputValidation = UserSchema.validate(body);
         if (inputValidation.error) {
             return res.status(400).json({ error: inputValidation.error.details[0].message });
@@ -100,7 +100,6 @@ router.post('/', async (req, res) => {
 router.post('/:coinId', (req, res) => {
     const { body } = req;
     const coinId = req.params.coinId;
-    console.log(body)
     Coin.updateOne({ _id: coinId }, { $set: body })
         .then((updateCoin) => {
             console.log(updateCoin)

@@ -1,15 +1,3 @@
-use anchor_lang::prelude::*;
-
-pub mod errors;
-pub mod utils;
-pub mod instructions;
-pub mod state;
-pub mod consts;
-
-use crate::instructions::*;
-
-declare_id!("5mdPUgyK9mqosLtqZvfpY5pcpCqQBWHuS3XoU34CrJK3");
-
 #[program]
 pub mod bonding_curve {
     use super::*;
@@ -22,9 +10,7 @@ pub mod bonding_curve {
         instructions::create_pool(ctx)
     }
 
-    pub fn add_liquidity(
-        ctx: Context<AddLiquidity>,
-    ) -> Result<()> {
+    pub fn add_liquidity(ctx: Context<AddLiquidity>) -> Result<()> {
         instructions::add_liquidity(ctx)
     }
 
@@ -39,6 +25,25 @@ pub mod bonding_curve {
     pub fn sell(ctx: Context<Sell>, amount: u64, bump: u8) -> Result<()> {
         instructions::sell(ctx, amount, bump)
     }
-    
-}
 
+    // ✅ Corrected swap function
+    pub fn swap(ctx: Context<Swap>, amount: u64, style: u64) -> Result<()> {
+        match style {
+            0 => {
+                instructions::buy(
+                    Context::new(ctx.program_id, &mut ctx.accounts), 
+                    amount
+                )
+            }
+            1 => {
+                let bump = *ctx.bumps.get("pool").ok_or(ErrorCode::MissingBump)?;
+                instructions::sell(
+                    Context::new(ctx.program_id, &mut ctx.accounts), 
+                    amount, 
+                    bump
+                )
+            }
+            _ => Err(ErrorCode::InvalidSwapStyle.into()),
+        }
+    }
+}

@@ -329,7 +329,7 @@ export default function Page() {
                                         {formatFullNumber(coin.reserveOne)}{" "}
                                         {coin.ticker} available for sale in the
                                         bonding curve and there is{" "}
-                                        {formatSOL(coin.reserveTwo - 30e9)} SOL
+                                        {formatSOL(coin.reserveTwo - 30e6)} SOL
                                         in the pool.
                                     </p>
                                 </div>

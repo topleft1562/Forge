@@ -14,12 +14,7 @@ import corsConfig from './config/cors';
 
 const app = express();
 
-const corsOptions = {
-  origin: "*",
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: false, 
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
+
 
 // Health check endpoint - make it lightweight
 app.get('/health', (req, res) => {
@@ -31,11 +26,11 @@ app.get('/health', (req, res) => {
   
 
 // Enable pre-flight requests
-app.options('*', cors(corsOptions));
+app.options('*', cors(corsConfig));
 
 // Apply CORS middleware
 
-app.use(cors(corsOptions));
+app.use(cors(corsConfig));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 

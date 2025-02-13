@@ -1,13 +1,14 @@
 import { Server, Socket } from 'socket.io';
 import { logger } from './logger';
+import corsConfig from '../config/cors';
 
 const socketio = (server: any): Server => {
   try {
     const io = new Server(server, {
       cors: {
-        origin: "*", // Allow all origins
-        methods: ["GET", "POST"],
-        credentials: true
+        origin: corsConfig.origin,
+        methods: corsConfig.methods,
+        credentials: corsConfig.credentials
       },
       transports: ['websocket', 'polling'],
       pingTimeout: 60000,
