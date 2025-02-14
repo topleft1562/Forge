@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/pump.json`.
  */
 export type Pump = {
-  address: "71R7VKSbwJ4YbXrGGviwVouL9f4zGkLSaV2Yu1nUcMm9";
+  address: "Gxx6soiZaYfD7BfHpJmbw26QKB22pDuBENhZYSzaU3F9";
   metadata: {
       name: "pump";
       version: "0.1.0";
@@ -1105,7 +1105,7 @@ export type Pump = {
 };
 
 export const IDL: Pump = {
-  address: "71R7VKSbwJ4YbXrGGviwVouL9f4zGkLSaV2Yu1nUcMm9",
+  address: "Gxx6soiZaYfD7BfHpJmbw26QKB22pDuBENhZYSzaU3F9",
   metadata: {
       name: "pump",
       version: "0.1.0",
