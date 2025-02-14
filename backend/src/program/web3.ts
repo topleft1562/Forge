@@ -301,10 +301,10 @@ export const swapTx = async (
                 const feeRecipientBytes = configAccountInfo.data.slice(-32);
                 feeRecipient = new PublicKey(feeRecipientBytes);
             } else {
-                feeRecipient = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
+                feeRecipient = new PublicKey("CYCoVZaWUhWJU1dE219Ny4nXDje4fg1tDbXJr4amDZqf");
             }
         } catch (e) {
-            feeRecipient = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
+            feeRecipient = new PublicKey("CYCoVZaWUhWJU1dE219Ny4nXDje4fg1tDbXJr4amDZqf");
         }
 
         // Get pool token account

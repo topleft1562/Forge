@@ -82,7 +82,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                 );
             }
             const ADMIN_PUBKEY = new PublicKey(
-                "8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF"
+                "CYCoVZaWUhWJU1dE219Ny4nXDje4fg1tDbXJr4amDZqf"
             );
 
             // Add the swap instruction
