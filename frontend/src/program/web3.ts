@@ -28,7 +28,7 @@ const POOL_SEED_PREFIX = "liquidity_pool"
 // Add these constants at the top of the file
 
 // const TEST_MINT = new PublicKey("wkw1s3a2MvzgUqpba74vQL9REruUEigbXWG2oxR2nXr");
-// const feeRecipientAdmin = new PublicKey("CYCoVZaWUhWJU1dE219Ny4nXDje4fg1tDbXJr4amDZqf");
+// const feeRecipientAdmin = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
 
 export const connection = new Connection("https://devnet.helius-rpc.com/?api-key=ae50d21e-ae63-43d3-a23f-02cd8c93098c", 'confirmed');
 
@@ -138,7 +138,7 @@ export const swapTx = async (
           style: new anchor.BN(type)
       };
 
-      const ADMIN_PUBKEY = new PublicKey("CYCoVZaWUhWJU1dE219Ny4nXDje4fg1tDbXJr4amDZqf");
+      const ADMIN_PUBKEY = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
 
       const acc: SwapAccounts = {
           dexConfigurationAccount: curveConfig,

@@ -1,1 +1,2 @@
-pub const SCALEFACTOR: f64 = 40_000.0;
+pub const INITIAL_PRICE_ADJUSTMENT: f64 = 0.033;
+pub const BASE_FACTOR: f64 = 1_000_000;
