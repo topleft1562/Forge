@@ -1,5 +1,9 @@
-use crate::consts::BASE_FACTOR;
 use crate::consts::INITIAL_PRICE_ADJUSTMENT;
+use crate::consts::BASE_FACTOR;
+use crate::consts::k;
+use crate::consts::BASE_SCALE_FACTOR;
+use crate::consts::MIN_SCALE_FACTOR;
+use crate::consts::MAX_SCALE_FACTOR;
 use crate::errors::CustomError;
 use crate::utils::convert_from_float;
 use crate::utils::convert_to_float;
@@ -376,127 +380,81 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             return err!(CustomError::InvalidAmount);
         }
 
-        if style == 0 {  // SOL to Token swap
-            
-    // Calculate SOL fees
-    let fee_amount = (amount as f64 * 0.001) as u64;
-    let amount_after_fee: u64 = amount.checked_sub(fee_amount)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+       let token_reserve = self.reserve_one as f64 - ((self.total_supply as f64 / BASE_FACTOR) * INITIAL_PRICE_ADJUSTMENT);
 
-    let token_reserve = self.reserve_one as f64 - ((self.reserve_one as f64 / BASE_FACTOR) * INITIAL_PRICE_ADJUSTMENT);
-        
-    // Compute dynamic scale factor using logarithmic scaling
-    let raw_scale_factor = BASE_FACTOR as f64 * (1.0 + INITIAL_PRICE_ADJUSTMENT * (self.reserve_two as f64 / token_reserve).ln_1p());
-    let scale_factor = raw_scale_factor.clamp(15_000.0, 75_000.0) as u64;
+    // Compute dynamic SCALE_FACTOR using logarithmic scaling
+    let raw_scale_factor = BASE_FACTOR * (1.0 + k as f64 * (self.reserve_two as f64 / token_reserve).ln_1p());
+    let scale_factor = raw_scale_factor.clamp(MIN_SCALE_FACTOR as f64, MAX_SCALE_FACTOR as f64) as u64;
 
-    // Ensure correct calculation of token output
-    let raw_tokens_out = ((amount_after_fee as f64) * token_reserve) / ((self.reserve_two as f64) + (amount_after_fee as f64));
-    let tokens_out: u64 = raw_tokens_out.round() as u64;
+    if style == 0 {  // SOL to Token swap (BUY)
+        let fee_amount = (amount as f64 * 0.001) as u64;
+        let amount_after_fee = amount.checked_sub(fee_amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
 
-    // Update reserves
-    self.reserve_two = self.reserve_two
-        .checked_add(amount_after_fee)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-    
-    self.reserve_one = self.reserve_one
-        .checked_sub(tokens_out)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+        // PancakeSwap getAmountOut formula for buying tokens
+        let raw_tokens_out = ((amount_after_fee as f64) * token_reserve) / ((self.reserve_two as f64) + (amount_after_fee as f64));
+        let tokens_out = raw_tokens_out.round() as u64;
 
-    // Transfer SOL from user to pool
-    self.transfer_sol_to_pool(
-        token_two_accounts.2,
-        token_two_accounts.1,
-        amount,
-        system_program,
-    )?;
+        // Update reserves
+        self.reserve_two = self.reserve_two.checked_add(amount_after_fee).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+        self.reserve_one = self.reserve_one.checked_sub(tokens_out).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
 
-    // Transfer tokens from pool to user
-    self.transfer_token_from_pool(
-        token_one_accounts.1,
-        token_one_accounts.2,
-        tokens_out,
-        token_program,
-        token_two_accounts.1,
-        bump
-    )?;
+        // Transfer SOL from user to pool
+        self.transfer_sol_to_pool(token_two_accounts.2, token_two_accounts.1, amount, system_program)?;
 
-    // Transfer SOL fees
-    if fee_amount > 0 {
-        system_program::transfer(
-            CpiContext::new_with_signer(
-                system_program.to_account_info(),
-                system_program::Transfer {
-                    from: token_two_accounts.1.to_account_info(),
-                    to: fee_recipient.to_account_info(),
-                },
-                &[&[
-                    b"global",
-                    &[bump],
-                ]],
-            ),
-            fee_amount,
-        )?;
+        // Transfer tokens from pool to user
+        self.transfer_token_from_pool(token_one_accounts.1, token_one_accounts.2, tokens_out, token_program, token_two_accounts.1, bump)?;
+
+        // Transfer SOL fees
+        if fee_amount > 0 {
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: fee_recipient.to_account_info(),
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                fee_amount,
+            )?;
+        }
+    } else {  // Token to SOL swap (SELL)
+        let raw_scale_factor = BASE_FACTOR * (1.0 + k as f64 * (self.reserve_two as f64 / self.reserve_one as f64).ln_1p());
+        let scale_factor = raw_scale_factor.clamp(MIN_SCALE_FACTOR as f64, MAX_SCALE_FACTOR as f64) as u64;
+
+        // Ensure safe division to prevent errors
+        let amount_out = (amount * self.reserve_two)
+            .checked_div(self.reserve_one.checked_add(amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?)
+            .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        let fee_amount = (amount_out as f64 * 0.001) as u64;
+        let sol_out_after_fee = amount_out.checked_sub(fee_amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        // Update reserves
+        self.reserve_one = self.reserve_one.checked_add(amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+        self.reserve_two = self.reserve_two.checked_sub(amount_out).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        // Transfer tokens to pool
+        self.transfer_token_to_pool(token_one_accounts.2, token_one_accounts.1, amount, authority, token_program)?;
+
+        // Transfer SOL to user
+        self.transfer_sol_from_pool(token_two_accounts.1, token_two_accounts.2, sol_out_after_fee, system_program, bump)?;
+
+        // Transfer SOL fees
+        if fee_amount > 0 {
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: fee_recipient.to_account_info(),
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                fee_amount,
+            )?;
+        }
     }
-} else {  // Token to SOL swap
-
-    let raw_scale_factor = (BASE_FACTOR as f64) * (1.0 + INITIAL_PRICE_ADJUSTMENT * (self.reserve_two as f64 / self.reserve_one as f64).ln_1p());
-    let scale_factor = raw_scale_factor.clamp(15_000.0, 75_000.0) as u64;
-
-    // Ensure safe division to prevent errors
-    let amount_out = (amount * self.reserve_two)
-        .checked_div(self.reserve_one.checked_add(amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-
-    // Calculate SOL fees
-    let fee_amount: u64 = (amount_out as f64 * 0.001) as u64;
-    let sol_out_after_fee: u64 = amount_out.checked_sub(fee_amount)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-
-    // Update reserves
-    self.reserve_one = self.reserve_one
-        .checked_add(amount)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-    
-    self.reserve_two = self.reserve_two
-        .checked_sub(amount_out)
-        .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-
-    // Transfer tokens to pool
-    self.transfer_token_to_pool(
-        token_one_accounts.2,
-        token_one_accounts.1,
-        amount,
-        authority,
-        token_program,
-    )?;
-
-    // Transfer SOL to user
-    self.transfer_sol_from_pool(
-        token_two_accounts.1,
-        token_two_accounts.2,
-        sol_out_after_fee,
-        system_program,
-        bump
-    )?;
-
-    // Transfer SOL fees
-    if fee_amount > 0 {
-        system_program::transfer(
-            CpiContext::new_with_signer(
-                system_program.to_account_info(),
-                system_program::Transfer {
-                    from: token_two_accounts.1.to_account_info(),
-                    to: fee_recipient.to_account_info(),
-                },
-                &[&[
-                    b"global",
-                    &[bump],
-                ]],
-            ),
-            fee_amount,
-        )?;
-    }
-}
 
     
         Ok(())
