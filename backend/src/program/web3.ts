@@ -450,7 +450,7 @@ const logTx = connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (logs.logs[1].includes('AddLiquidity')) {
         return undefined
     }
-    console.log(logs)
+    console.log(logs.logs)
     
     const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
     console.log('Current reserves:', {
