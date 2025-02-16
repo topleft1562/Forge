@@ -1,6 +1,6 @@
-pub const INITIAL_PRICE_ADJUSTMENT: f64 = 0.033;
-pub const BASE_FACTOR: f64 = 1_000_000.0;
-pub const k: f64 = 0.3;
-pub const BASE_SCALE_FACTOR: f64 = 40_000.0;
-pub const MIN_SCALE_FACTOR: u64 = 15_000;
-pub const MAX_SCALE_FACTOR: u64 = 75_000;
+// Constants
+pub const FEE_PERCENTAGE: f64 = 0.001; // 0.1% fee
+pub const PRICE_INCREMENT_STEP: u128 = 1_000_000; // Price increases every 1M tokens
+pub const INITIAL_PRICE: f64 = 10.0; // Starting price per token
+pub const PRICE_INCREMENT: f64 = 0.0001; // Increase per step
+pub const SELL_REDUCTION: f64 = 0.99; // percent to reduce final sale price by
