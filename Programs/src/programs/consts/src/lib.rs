@@ -9,7 +9,7 @@ pub mod utils;
 use crate::instructions::*;
 use crate::state::LiquidityPool;
 
-declare_id!("2xg8jrfHCse7nM8TDif2odViura3rE1mg7WJUzEvtXWT");
+declare_id!("442rgBqgRMck4JihhAFxKmu3WeLY5H9uwyJtYvcXhNu8");
 
 #[program]
 pub mod pump {

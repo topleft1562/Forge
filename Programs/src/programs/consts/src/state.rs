@@ -31,6 +31,23 @@ impl CurveConfiguration {
     }
 }
 
+pub struct SwapData {
+    pub mint: Pubkey,
+    pub amount: u64,
+    pub style: u64,
+    pub post_reserve1: u64,
+    pub post_reserve2: u64,
+}
+
+impl SwapData {
+    pub fn log(&self) {
+        msg!(
+            "SwapData: Mint: {}, Amount: {}, Style: {}, PostReserve1: {}, PostReserve2: {}",
+            self.mint, self.amount, self.style, self.post_reserve1, self.post_reserve2
+        );
+    }
+}
+
 #[account]
 pub struct LiquidityProvider {
     pub shares: u64, // The number of shares this provider holds in the liquidity pool
@@ -447,6 +464,15 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                     fee_amount,
                 )?;
             }
+            let swap_data = SwapData {
+                mint: self.token_one,
+                amount,
+                style,
+                post_reserve1: self.reserve_one,
+                post_reserve2: self.reserve_two,
+            };
+             // Log swap data
+            swap_data.log();
         } else {  // Token to SOL swap
     
     // Use the last recorded price for continuity instead of recalculating from reserves
@@ -514,6 +540,15 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                     fee_amount,
                 )?;
             }
+            let swap_data = SwapData {
+                mint: self.token_one,
+                amount,
+                style,
+                post_reserve1: self.reserve_one,
+                post_reserve2: self.reserve_two,
+            };
+             // Log swap data
+            swap_data.log();
 
         }
     
