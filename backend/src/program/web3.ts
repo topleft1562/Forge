@@ -457,11 +457,11 @@ const logTx = connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     console.log('Current reserves:', {
         solReserve: parsedData.reserve2 / 1e9, // Display in SOL for clarity
         threshold: 3,
-        willMigrate: parsedData.reserve2 > 3_000_000_000
+        willMigrate: parsedData.reserve2 > 300_000_000
     });
 
     // Changed from 80 SOL to 3 SOL (3_000_000_000 lamports)
-    if (parsedData.reserve2 > 3_000_000_000) {
+    if (parsedData.reserve2 > 300_000_000) {
         console.log('🚀 Migration threshold reached! Moving to Raydium...');
         try {
             const result = await createRaydium(new PublicKey(parsedData.mint));
@@ -480,7 +480,7 @@ export const createRaydium = async (mint1: PublicKey) => {
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);
-        const requiredBalance = 3_000_000_000; // 3 SOL to be safe
+        const requiredBalance = 300_000_000; // 3 SOL to be safe
         
         if (balance < requiredBalance) {
             throw new Error(`Insufficient SOL balance. Have: ${balance/1e9} SOL, Need: ${requiredBalance/1e9} SOL`);
