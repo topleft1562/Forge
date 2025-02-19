@@ -8,7 +8,6 @@ import { WalletContextState, useConnection, useWallet } from '@solana/wallet-ada
 import { IDL } from "./cli/idl";
 import { Program } from "@coral-xyz/anchor";
 
-const curveSeed = "CurveConfiguration"
 const POOL_SEED_PREFIX = "liquidity_pool"
 
 // import adminSecret from "./cli/admin.json";
@@ -82,10 +81,6 @@ export const swapTx = async (
       console.log("Mint account verified:", mint1.toBase58());
 
       // Get PDAs
-      const [curveConfig] = PublicKey.findProgramAddressSync(
-          [Buffer.from(curveSeed)],
-          PROGRAM_ID
-      );
       const [poolPda] = PublicKey.findProgramAddressSync(
           [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
           PROGRAM_ID
@@ -141,7 +136,6 @@ export const swapTx = async (
       const ADMIN_PUBKEY = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
 
       const acc: SwapAccounts = {
-          dexConfigurationAccount: curveConfig,
           pool: poolPda,
           globalAccount,
           mintTokenOne: mint1,

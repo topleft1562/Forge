@@ -9,7 +9,6 @@ export interface SwapArgs {
 }
 
 export interface SwapAccounts {
-  dexConfigurationAccount: PublicKey
   pool: PublicKey
   /** CHECK */
   globalAccount: PublicKey
@@ -32,11 +31,6 @@ export function swap(
   programId: PublicKey = PROGRAM_ID
 ) {
   const keys: Array<AccountMeta> = [
-    {
-      pubkey: accounts.dexConfigurationAccount,
-      isSigner: false,
-      isWritable: true,
-    },
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
     { pubkey: accounts.globalAccount, isSigner: false, isWritable: true },
     { pubkey: accounts.feeRecipient, isSigner: false, isWritable: true }, 
