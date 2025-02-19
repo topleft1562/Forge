@@ -1,29 +1,62 @@
 import * as anchor from "@coral-xyz/anchor"
 import { PROGRAM_ID } from "./cli/programId"
-import { ComputeBudgetProgram, Connection, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, } from "@solana/web3.js"
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAssociatedTokenAddressSync, } from "@solana/spl-token"
+import { ComputeBudgetProgram, clusterApiUrl, Connection, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, } from "@solana/web3.js"
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createSyncNativeInstruction } from "@solana/spl-token"
 import { AddLiquidityAccounts, AddLiquidityArgs, InitializeAccounts, InitializeArgs, InitializePoolAccounts, RemoveLiquidityAccounts, RemoveLiquidityArgs, SwapAccounts, SwapArgs, addLiquidity, initialize, initializePool, removeLiquidity, swap } from "./cli/instructions"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token"
-import {
-  MarketV2,
-  Liquidity,
-  Token,
+import { 
+  Raydium, TxVersion, WSOLMint, FEE_DESTINATION_ID,
   DEVNET_PROGRAM_ID,
-  TxVersion,
-  LOOKUP_TABLE_CACHE,
-  buildSimpleTransaction,
-  Spl,
-  parseBigNumberish,
-  InstructionType
-} from '@raydium-io/raydium-sdk';
-import { adminKeypair } from "./web3"
+  MARKET_STATE_LAYOUT_V3,
+  OPEN_BOOK_PROGRAM,
+} from '@raydium-io/raydium-sdk-v2'
+import bs58 from 'bs58'
+import BN from 'bn.js'
 
 
-// mainnet  const RAYDIUM_AMM_PROGRAM_ID = new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
-const RAYDIUM_AMM_PROGRAM_ID = new PublicKey("CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW");
+const pkey = process.env.PRIVATE_KEY
+export const owner: Keypair = Keypair.fromSecretKey(bs58.decode(pkey))
+// export const connection = new Connection('<YOUR_RPC_URL>') //<YOUR_RPC_URL>
+export const connection = new Connection(clusterApiUrl('devnet')) //<YOUR_RPC_URL>
+export const txVersion = TxVersion.V0 // or TxVersion.LEGACY
+const cluster = 'devnet' // 'mainnet' | 'devnet'
+
 const POOL_SEED_PREFIX = "liquidity_pool"
 
+let raydium: Raydium | undefined
+export const initSdk = async (params?: { loadToken?: boolean }) => {
+  if (raydium) return raydium
+  if (connection.rpcEndpoint === clusterApiUrl('mainnet-beta'))
+    console.warn('using free rpc node might cause unexpected error, strongly suggest uses paid rpc node')
+  console.log(`connect to rpc ${connection.rpcEndpoint} in ${cluster}`)
+  raydium = await Raydium.load({
+    owner,
+    connection,
+    cluster,
+    disableFeatureCheck: true,
+    disableLoadToken: !params?.loadToken,
+    blockhashCommitment: 'finalized',
+    // urlConfigs: {
+    //   BASE_HOST: '<API_HOST>', // api url configs, currently api doesn't support devnet
+    // },
+  })
 
+  /**
+   * By default: sdk will automatically fetch token account data when need it or any sol balace changed.
+   * if you want to handle token account by yourself, set token account data after init sdk
+   * code below shows how to do it.
+   * note: after call raydium.account.updateTokenAccount, raydium will not automatically fetch token account
+   */
+
+  /*  
+  raydium.account.updateTokenAccount(await fetchTokenAccountData())
+  connection.onAccountChange(owner.publicKey, async () => {
+    raydium!.account.updateTokenAccount(await fetchTokenAccountData())
+  })
+  */
+
+  return raydium
+}
 
 export const createLPIx = async (
   mintToken: PublicKey,
@@ -351,10 +384,7 @@ export const initializePoolIx = async (
 // }
 export const removeLiquidityIx = async (
   mintToken: PublicKey,
-  amountOne: anchor.BN,
-  amountTwo: anchor.BN,
   payer: PublicKey,
-  connection: Connection
 ) => {
   console.log("Preparing Remove Liquidity Call")
   const ixs: TransactionInstruction[] = [];
@@ -362,7 +392,6 @@ export const removeLiquidityIx = async (
 
   // ✅ Token Mint Addresses
     const coinMint = mintToken;
-    const pcMint = new PublicKey("So11111111111111111111111111111111111111112"); // SOL Mint Address
 
     // ✅ Compute Pool PDA
     const [poolPda] = PublicKey.findProgramAddressSync(
@@ -384,66 +413,6 @@ export const removeLiquidityIx = async (
       mintToken, payer
     );
 
-    // ✅ Derive additional required PDAs
-    const [ammAuthority] = PublicKey.findProgramAddressSync(
-      [poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [ammOpenOrders] = PublicKey.findProgramAddressSync(
-      [Buffer.from("open_orders"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [lpMint] = PublicKey.findProgramAddressSync(
-      [Buffer.from("lp_mint"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [coinVault] = PublicKey.findProgramAddressSync(
-      [Buffer.from("coin_vault"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [pcVault] = PublicKey.findProgramAddressSync(
-      [Buffer.from("pc_vault"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [ammTargetOrders] = PublicKey.findProgramAddressSync(
-      [Buffer.from("target_orders"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [ammConfigId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("config"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    const [feeDestinationId] = PublicKey.findProgramAddressSync(
-      [Buffer.from("fees"), poolPda.toBuffer()],
-      RAYDIUM_AMM_PROGRAM_ID
-    );
-
-    // ✅ Fetch Serum Market ID dynamically
-    const marketId = await fetchMarketId(mintToken, connection);
-    console.log("✅ Found Serum Market ID:", marketId.toString());
-
-    console.log("🔹 Creating Raydium Pool...");
-
-    const marketProgramId = new PublicKey("9xQeWvG816bUx9EPXyAC2w4kQQ9zMEyCfmSZTQhF7w5");
-
-    const userWallet = payer;
-    const userCoinVault = await getAssociatedTokenAddress(coinMint, userWallet);
-    const userPcVault = await getAssociatedTokenAddress(pcMint, userWallet);
-    const userLpVault = await getAssociatedTokenAddress(lpMint, userWallet);
-
-    const nonce = 255; // Adjust if necessary
-    const openTime = new anchor.BN(Date.now() / 1000);
-    const coinAmount = amountOne; // Amount of Token A
-    const pcAmount = amountTwo; // Amount of SOL
-
-    // ✅ Remove Liquidity Transaction
   try {
     console.log("🔹 Adding Remove Liquidity Instruction...");
     const acc = {
@@ -462,61 +431,183 @@ export const removeLiquidityIx = async (
     console.log("❌ Error adding remove liquidity instruction:", error);
   }
 
-  // ✅ Create Raydium Pool Transaction
-  try {
-    console.log("🔹 Creating Raydium Pool...");
-    const raydiumTx = await Liquidity.makeCreatePoolV4InstructionV2({
-      programId: RAYDIUM_AMM_PROGRAM_ID,
-      ammId: poolPda,
-      ammAuthority,
-      ammOpenOrders,
-      lpMint,
-      coinMint,
-      pcMint,
-      coinVault,
-      pcVault,
-      ammTargetOrders,
-      marketProgramId,
-      marketId,
-      userWallet,
-      userCoinVault,
-      userPcVault,
-      userLpVault,
-      ammConfigId,
-      feeDestinationId,
-      nonce,
-      openTime,
-      coinAmount,
-      pcAmount,
-    });
-
-   // ✅ Extract `TransactionInstruction`s and signers
-   ixs.push(...raydiumTx.innerTransaction.instructions);
-   signers.push(...raydiumTx.innerTransaction.signers);
-   
-    console.log("✅ Raydium Pool Created:", poolPda.toBase58());
-  } catch (error) {
-    console.log("❌ Failed pool creation:", error);
-  }
-
-  // ✅ Return proper data for transaction execution
   return { ixs, signers };
 };
 
 
+export const createMarket = async (tokenMint: any) => {
+  const raydium = await initSdk()
 
-// ✅ Helper function to fetch Serum Market ID
-async function fetchMarketId(tokenMint: PublicKey, connection: Connection) {
-  const response = await fetch("https://api.raydium.io/v2/sdk/liquidity/mainnet.json");
-  const pools = await response.json();
+  // check mint info here: https://api-v3.raydium.io/mint/list
+  // or get mint info by api: await raydium.token.getTokenInfo('mint address')
 
-  for (const pool of pools) {
-    if (pool.baseMint === tokenMint.toString() || pool.quoteMint === tokenMint.toString()) {
-      return new PublicKey(pool.market);
-    }
+  const { execute, extInfo, transactions } = await raydium.marketV2.create({
+    baseInfo: {
+      // create market doesn't support token 2022
+      mint: tokenMint,
+      decimals: 6,
+    },
+    quoteInfo: {
+      // create market doesn't support token 2022
+      mint: WSOLMint,
+      decimals: 9,
+    },
+    lotSize: 1,
+    tickSize: 0.01,
+    dexProgramId: OPEN_BOOK_PROGRAM,
+    // dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
+
+    // requestQueueSpace: 5120 + 12, // optional
+    // eventQueueSpace: 262144 + 12, // optional
+    // orderbookQueueSpace: 65536 + 12, // optional
+
+    txVersion,
+    // optional: set up priority fee here
+    // computeBudgetConfig: {
+    //   units: 600000,
+    //   microLamports: 46591500,
+    // },
+  })
+
+  console.log(
+    `create market total ${transactions.length} txs, market info: `,
+    Object.keys(extInfo.address).reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur]: extInfo.address[cur as keyof typeof extInfo.address].toBase58(),
+      }),
+      {}
+    )
+  )
+
+  const txIds = await execute({
+    // set sequentially to true means tx will be sent when previous one confirmed
+    sequentially: true,
+  })
+
+  // console.log('create market txIds:', txIds)
+  console.log("Market Address:", extInfo.address.marketId);
+
+  return extInfo.address.marketId
+}
+
+export const createAmmPool = async (marketId: any, amount1: any, amount2: any) => {
+  const raydium = await initSdk()
+
+  // if you are confirmed your market info, don't have to get market info from rpc below
+  const marketBufferInfo = await raydium.connection.getAccountInfo(new PublicKey(marketId))
+  const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo!.data)
+
+  // check mint info here: https://api-v3.raydium.io/mint/list
+  // or get mint info by api: await raydium.token.getTokenInfo('mint address')
+
+  // amm pool doesn't support token 2022
+  const baseMintInfo = await raydium.token.getTokenInfo(baseMint)
+  const quoteMintInfo = await raydium.token.getTokenInfo(quoteMint)
+  const baseAmount = new BN(amount1)
+  const quoteAmount = new BN(amount2)
+
+  if (
+    baseMintInfo.programId !== TOKEN_PROGRAM_ID.toBase58() ||
+    quoteMintInfo.programId !== TOKEN_PROGRAM_ID.toBase58()
+  ) {
+    throw new Error(
+      'amm pools with openbook market only support TOKEN_PROGRAM_ID mints, if you want to create pool with token-2022, please create cpmm pool instead'
+    )
   }
 
-  throw new Error("❌ Serum Market ID not found.");
+  if (baseAmount.mul(quoteAmount).lte(new BN(1).mul(new BN(10 ** baseMintInfo.decimals)).pow(new BN(2)))) {
+    throw new Error('initial liquidity too low, try adding more baseAmount/quoteAmount')
+  }
+
+  const { execute, extInfo } = await raydium.liquidity.createPoolV4({
+    // programId: AMM_V4,
+    programId: DEVNET_PROGRAM_ID.AmmV4, // devnet
+    marketInfo: {
+      marketId,
+      // programId: OPEN_BOOK_PROGRAM,
+      programId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devent
+    },
+    baseMintInfo: {
+      mint: baseMint,
+      decimals: baseMintInfo.decimals, // if you know mint decimals here, can pass number directly
+    },
+    quoteMintInfo: {
+      mint: quoteMint,
+      decimals: quoteMintInfo.decimals, // if you know mint decimals here, can pass number directly
+    },
+    // baseAmount: new BN(1000),
+    // quoteAmount: new BN(1000),
+
+    // sol devnet faucet: https://faucet.solana.com/
+    baseAmount: new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9
+    quoteAmount: new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9
+
+    startTime: new BN(0), // unit in seconds
+    ownerInfo: {
+      useSOLBalance: true,
+    },
+    associatedOnly: false,
+    txVersion,
+    feeDestinationId: FEE_DESTINATION_ID,
+    // feeDestinationId: DEVNET_PROGRAM_ID.FEE_DESTINATION_ID, // devnet
+    // optional: set up priority fee here
+    // computeBudgetConfig: {
+    //   units: 600000,
+    //   microLamports: 4659150,
+    // },
+  })
+
+  // don't want to wait confirm, set sendAndConfirm to false or don't pass any params to execute
+  const { txId } = await execute()
+  
+  console.log(
+    'amm pool created! txId: ',
+    txId,
+    ', poolKeys:',
+    Object.keys(extInfo.address).reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur]: extInfo.address[cur as keyof typeof extInfo.address].toBase58(),
+      }),
+      {}
+    )
+  )
+    
 }
+
+export async function wrapSOLToWSOL(connection: Connection, user: Keypair, amountLamports: number) {
+  const wsolMint = new PublicKey("So11111111111111111111111111111111111111112"); // WSOL Mint Address
+  
+  // Get the user's WSOL Associated Token Account (ATA)
+  const userWSOLAccount = await getAssociatedTokenAddress(
+    wsolMint, 
+    user.publicKey
+  );
+
+  const tx = new Transaction().add(
+    // 1️⃣ Create WSOL ATA if it does not exist
+    createAssociatedTokenAccountInstruction(
+      user.publicKey, 
+      userWSOLAccount, 
+      user.publicKey, 
+      wsolMint
+    ),
+    // 2️⃣ Transfer SOL to the WSOL Account
+    SystemProgram.transfer({
+      fromPubkey: user.publicKey,
+      toPubkey: userWSOLAccount,
+      lamports: amountLamports,
+    }),
+    // 3️⃣ Sync WSOL Balance
+    createSyncNativeInstruction(userWSOLAccount)
+  );
+
+  const txId = await connection.sendTransaction(tx, [user]);
+  console.log("✅ Wrapped SOL. Transaction:", txId);
+
+  return userWSOLAccount;
+}
+
 
 export const makeTxVersion = TxVersion.LEGACY; // LEGACY

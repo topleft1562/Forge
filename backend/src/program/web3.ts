@@ -5,7 +5,7 @@ import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SYSVAR_RENT_PUBKE
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
-import { createLPIx, initializeIx, initializePoolIx, removeLiquidityIx } from "./web3Provider";
+import { createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { PROGRAM_ID } from "./cli/programId";
@@ -444,16 +444,26 @@ const getATokenAccountsNeedCreate = async (
     };
 };
 
-const logTx = connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
+const processedSignatures = new Set<string>(); // Track already processed transactions
+
+connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (logs.err !== null) {
-        return undefined
+        return;
     }
+
+    // Prevent duplicate processing
+    if (processedSignatures.has(logs.signature)) {
+        return; // Skip if already processed
+    }
+    processedSignatures.add(logs.signature);
+
+    // console.log("RAW:", logs);
+    // console.log("LOGS:", logs.logs, logs.signature);
+
     if (logs.logs[1].includes('AddLiquidity')) {
-        return undefined
+        return;
     }
-    console.log("RAW:", logs)
-    console.log("LOGS:", logs.logs, logs.signature)
-    
+
     const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
     console.log('Current reserves:', {
         solReserve: parsedData.reserve2 / 1e9, // Display in SOL for clarity
@@ -461,18 +471,18 @@ const logTx = connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         willMigrate: parsedData.reserve2 > 300_000_000
     });
 
-    // Changed from 80 SOL to 3 SOL (3_000_000_000 lamports)
     if (parsedData.reserve2 > 300_000_000) {
         console.log('🚀 Migration threshold reached! Moving to Raydium...');
         try {
             const result = await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
             console.log('Migration transaction:', result);
-        } catch (error) {
+        } catch (error:any) {
             console.error('Migration failed:', error);
         }
         return;
     }
-    await setCoinStatus(parsedData)
+    
+    await setCoinStatus(parsedData);
 });
 
 // Remove liquidity pool and Create Raydium Pool
@@ -487,47 +497,40 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
             throw new Error(`Insufficient SOL balance. Have: ${balance/1e9} SOL, Need: ${requiredBalance/1e9} SOL`);
         }
 
-    const amountOne = new anchor.BN(r1);    // tokens to raydium
-    const amountTwo = new anchor.BN(r2 - 1000);   // sol to raydium minus fee
+    const amountOne = r1;    // tokens to raydium
+    const amountTwo = r2 - 1000;   // sol to raydium minus fee
     // 🔹 Fetch remove liquidity instructions (returns structured output)
-const removeLiquidityTX = await removeLiquidityIx(mint1, amountOne, amountTwo, adminKeypair.publicKey, connection);
+const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
 
-// 🔹 Initialize transaction and set compute unit limit
 const tx = new Transaction().add(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
 );
 
-// ✅ Add all instructions
-// ✅ Assign payer and blockhash before simulation
 tx.feePayer = adminKeypair.publicKey;
 tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
 // ✅ Simulate transaction before sending
 console.log("🔹 Simulating Transaction...");
-const ret = await simulateTransaction(connection, tx);
-
-if (!ret.value.logs) {
-    console.error("❌ Transaction simulation failed: No logs found.");
-    return "";
-}
-
-console.log("✅ Transaction Simulation Logs:");
-ret.value.logs.forEach((log, i) => console.log(`${i}: ${log}`));
-
-// ✅ Check for simulation errors before submitting
-if (ret.value.err) {
-    console.error("❌ Simulation Error:", ret.value.err);
-    return "";
-}
+await simulateTransaction(connection, tx);
 
 // ✅ Send transaction with preflight check
 const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair, ...removeLiquidityTX.signers], {
     commitment: "finalized", // Ensures transaction is fully confirmed
 });
 
-console.log("✅ Transaction Confirmed!");
-    // await sendAndConfirmTransaction(connection, tx, [adminKeypair], { skipPreflight: true })
-
+console.log("✅ LIQUIDITY REMOVED!");
+console.log("🔹 Creating Raydium Market...");
+const marketId = await createMarket(mint1)
+console.log(marketId.toString())
+try {
+    console.log("🔹 Converting to WSOL...");
+    wrapSOLToWSOL(connection, adminKeypair, amountTwo )
+} catch{console.log("failed conversion or already converted?...")}
+console.log("SLEEPING");
+await sleep(20000)
+console.log("🔹 Creating Raydium AMM Pool...");
+await createAmmPool(marketId, amountOne, amountTwo)
+    
     return sig;
 }
 
@@ -536,7 +539,7 @@ function sleep(ms: number): Promise<void> {
 }
 // Get swap(buy and sell)
 function parseLogs(logs: string[], tx: string): ResultType {
-    console.log("📜 Raw logs received:", logs);
+    // console.log("📜 Raw logs received:", logs);
 
     const result: ResultType = {
         tx,
@@ -575,6 +578,7 @@ function parseLogs(logs: string[], tx: string): ResultType {
     console.log("✅ Parsed Result:", result);
     return result;
 }
+
 
 
 export interface CoinInfo {
