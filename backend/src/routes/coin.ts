@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
     console.log("GET /coin route hit"); // Add this line
     try {
         const coins = await Coin.find({}).populate('creator');
-        console.log("Found coins:", coins); // Add this line
+        // console.log("Found coins:", coins); // Add this line
         return res.status(200).send(coins);
     } catch (error) {
         console.error("Error fetching coins:", error); // Add this line

@@ -49,7 +49,7 @@ umi.use(mplTokenMetadata());
 export const uploadMetadata = async (data: CoinInfo): Promise<any> => {
     // const url = data.url;
     const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS/'
-    console.log(data)
+    // console.log(data)
     const metadata = {
         name: data.name,
         ticker: data.ticker,
@@ -344,7 +344,6 @@ export const swapTx = async (
         };
 
         const acc: SwapAccounts = {
-            dexConfigurationAccount: curveConfig,
             pool: poolPda,
             globalAccount,
             mintTokenOne: mint1,
