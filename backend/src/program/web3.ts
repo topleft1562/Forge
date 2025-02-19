@@ -86,10 +86,10 @@ export const createToken = async (data: CoinInfo) => {
     try {
         console.log("Starting token creation for:", data.name);
         const uri = await uploadMetadata(data);
-        console.log("Metadata uploaded:", uri);
+        // console.log("Metadata uploaded:", uri);
 
         const mint = generateSigner(umi);
-        console.log("Mint address generated:", mint.publicKey);
+        // console.log("Mint address generated:", mint.publicKey);
 
         const tx = createAndMint(umi, {
             mint,
@@ -105,34 +105,36 @@ export const createToken = async (data: CoinInfo) => {
         });
 
         const mintTx = await tx.sendAndConfirm(umi);
-        console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
-        console.log("Mint transaction:", mintTx);
+        // console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
+        // console.log("Mint transaction:", mintTx);
 
         await sleep(5000);
-        console.log("Starting LP creation...");
+        // console.log("Starting LP creation...");
 
         try {
-            console.log("Checking if curve config needs initialization...");
-            const [curveConfig] = PublicKey.findProgramAddressSync(
-                [Buffer.from(curveSeed)],
+            console.log("Checking if Program needs initialization...");
+           
+            const [globalAccount] = PublicKey.findProgramAddressSync(
+                [Buffer.from("global")],
                 PROGRAM_ID
-            );
-            const accountInfo = await connection.getAccountInfo(curveConfig);
+              );
+            console.log("Global Account:", globalAccount.toBase58());
+            const accountInfo = await connection.getAccountInfo(globalAccount);
             
-            // First initialize curve config if needed
+            // First initialize Program config if Needed
             if (!accountInfo) {
-                console.log("Initializing curve configuration...");
+                console.log("Initializing Program.....");
                 const initTx = await initializeIx(adminKeypair.publicKey);
                 const initCreateTx = new Transaction().add(initTx.ix);
                 initCreateTx.feePayer = adminWallet.publicKey;
                 initCreateTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
                 
                 const initTxId = await sendAndConfirmTransaction(connection, initCreateTx, [adminKeypair]);
-                console.log("Curve configuration txId:", initTxId);
+                console.log("Initial Setup txId:", initTxId);
                 
                 await sleep(2000);
             } else {
-                console.log("Curve config already initialized");
+                console.log("Program is Initialized");
             }
         
             // Then initialize the pool for this specific token
@@ -173,7 +175,7 @@ export const createToken = async (data: CoinInfo) => {
             const urlSeg = data.url.split('/');
             const gatewayUrl = process.env.PINATA_GATEWAY_URL || 'https://gateway.pinata.cloud/ipfs';
             const url = `${gatewayUrl}/${urlSeg[urlSeg.length - 1]}`;
-            console.log('Constructed URL:', url);
+            // console.log('Constructed URL:', url);
 
             const newCoin = new Coin({
                 creator: data.creator,
@@ -183,10 +185,10 @@ export const createToken = async (data: CoinInfo) => {
                 token: mint.publicKey,
                 url,
             });
-            console.log("Saving coin to database:", newCoin);
+           // console.log("Saving coin to database:", newCoin);
 
             const response = await newCoin.save();
-            console.log("Coin saved successfully");
+            // console.log("Coin saved successfully");
 
             const newCoinStatus = new CoinStatus({
                 coinId: response._id,
@@ -201,7 +203,7 @@ export const createToken = async (data: CoinInfo) => {
                 ]
             });
             await newCoinStatus.save();
-            console.log("Coin status saved successfully");
+            // console.log("Coin status saved successfully");
 
             return response;
         } catch (err: unknown) {
@@ -464,7 +466,7 @@ const logTx = connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (parsedData.reserve2 > 300_000_000) {
         console.log('🚀 Migration threshold reached! Moving to Raydium...');
         try {
-            const result = await createRaydium(new PublicKey(parsedData.mint));
+            const result = await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
             console.log('Migration transaction:', result);
         } catch (error) {
             console.error('Migration failed:', error);
@@ -475,7 +477,7 @@ const logTx = connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 });
 
 // Remove liquidity pool and Create Raydium Pool
-export const createRaydium = async (mint1: PublicKey) => {
+export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) => {
     console.log('Starting Raydium migration for token:', mint1.toBase58());
 
         // Check wallet balance first
@@ -486,44 +488,46 @@ export const createRaydium = async (mint1: PublicKey) => {
             throw new Error(`Insufficient SOL balance. Have: ${balance/1e9} SOL, Need: ${requiredBalance/1e9} SOL`);
         }
 
-    const amountOne = 1000_000_000_000;
-    const amountTwo = 1000_000_000_000;
-    const radyiumIx = await removeLiquidityIx(mint1, adminKeypair.publicKey, connection);
+    const amountOne = new anchor.BN(r1);    // tokens to raydium
+    const amountTwo = new anchor.BN(r2 - 1000);   // sol to raydium minus fee
+    // 🔹 Fetch remove liquidity instructions (returns structured output)
+const removeLiquidityTX = await removeLiquidityIx(mint1, amountOne, amountTwo, adminKeypair.publicKey, connection);
 
-    if (radyiumIx == undefined) return;
-    for (const iTx of radyiumIx.willSendTx) {
-        if (iTx instanceof VersionedTransaction) {
-            iTx.sign([adminKeypair]);
-            await connection.sendTransaction(iTx, {
-                skipPreflight: true
-            });
-        } else {
-            await sendAndConfirmTransaction(connection, iTx, [adminKeypair], {
-                skipPreflight: true
-            });
-        }
-    }
-    // console.log(await connection.simulateTransaction(radyiumIx.tx1))
-    // await connection.sendTransaction(radyiumIx.tx1, [adminKeypair]);
+// 🔹 Initialize transaction and set compute unit limit
+const tx = new Transaction().add(
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
+);
 
+// ✅ Add all instructions
+// ✅ Assign payer and blockhash before simulation
+tx.feePayer = adminKeypair.publicKey;
+tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-    const tx = new Transaction().add(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }));
+// ✅ Simulate transaction before sending
+console.log("🔹 Simulating Transaction...");
+const ret = await simulateTransaction(connection, tx);
 
-    for (let i = 0; i < radyiumIx.ixs.length; i++) {
-        tx.add(radyiumIx.ixs[i]);
-    }
+if (!ret.value.logs) {
+    console.error("❌ Transaction simulation failed: No logs found.");
+    return "";
+}
 
-    tx.feePayer = adminKeypair.publicKey;
-    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+console.log("✅ Transaction Simulation Logs:");
+ret.value.logs.forEach((log, i) => console.log(`${i}: ${log}`));
 
-    console.dir((await simulateTransaction(connection, tx)), { depth: null })
-    const ret = await simulateTransaction(connection, tx);
+// ✅ Check for simulation errors before submitting
+if (ret.value.err) {
+    console.error("❌ Simulation Error:", ret.value.err);
+    return "";
+}
 
-    if (!ret.value.logs) return "";
-    for (let i = 0; i < ret.value.logs?.length; i++)
-        console.log(ret.value.logs[i]);
+// ✅ Send transaction with preflight check
+const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair, ...removeLiquidityTX.signers], {
+    commitment: "finalized", // Ensures transaction is fully confirmed
+});
 
-    const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair], { skipPreflight: true })
+console.log("✅ Transaction Confirmed!");
+    // await sendAndConfirmTransaction(connection, tx, [adminKeypair], { skipPreflight: true })
 
     return sig;
 }

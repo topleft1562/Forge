@@ -1,11 +1,12 @@
 import * as anchor from "@coral-xyz/anchor"
 import { PROGRAM_ID } from "./cli/programId"
-import { ComputeBudgetProgram, Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, } from "@solana/web3.js"
+import { ComputeBudgetProgram, Connection, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, } from "@solana/web3.js"
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAssociatedTokenAddressSync, } from "@solana/spl-token"
 import { AddLiquidityAccounts, AddLiquidityArgs, InitializeAccounts, InitializeArgs, InitializePoolAccounts, RemoveLiquidityAccounts, RemoveLiquidityArgs, SwapAccounts, SwapArgs, addLiquidity, initialize, initializePool, removeLiquidity, swap } from "./cli/instructions"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token"
 import {
   MarketV2,
+  Liquidity,
   Token,
   DEVNET_PROGRAM_ID,
   TxVersion,
@@ -17,9 +18,10 @@ import {
 } from '@raydium-io/raydium-sdk';
 import { adminKeypair } from "./web3"
 
-const curveSeed = "CurveConfiguration"
+
+// mainnet  const RAYDIUM_AMM_PROGRAM_ID = new PublicKey("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+const RAYDIUM_AMM_PROGRAM_ID = new PublicKey("CPMDWBwJDtYax9qW7AyRuVC19Cc4L4Vcy4n2BHAbHkCW");
 const POOL_SEED_PREFIX = "liquidity_pool"
-const LP_SEED_PREFIX = "LiqudityProvider"
 
 
 
@@ -36,29 +38,23 @@ export const createLPIx = async (
     [Buffer.from(POOL_SEED_PREFIX), mintToken.toBuffer()],
     PROGRAM_ID
   );
-  console.log("Pool PDA:", poolPda.toBase58());
+  // console.log("Pool PDA:", poolPda.toBase58());
 
   const [globalAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("global")],
     PROGRAM_ID
   );
-  console.log("Global Account:", globalAccount.toBase58());
-
-  const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
-    [Buffer.from(LP_SEED_PREFIX), poolPda.toBuffer(), payer.toBuffer()],
-    PROGRAM_ID
-  );
-  console.log("LP Account:", liquidityProviderAccount.toBase58());
+  // console.log("Global Account:", globalAccount.toBase58());
 
   const poolTokenOne = await getAssociatedTokenAddress(
     mintToken, globalAccount, true
   );
-  console.log("Pool Token Account:", poolTokenOne.toBase58());
+  // console.log("Pool Token Account:", poolTokenOne.toBase58());
 
   const userAta1 = await getAssociatedTokenAddress(
     mintToken, payer
   );
-  console.log("User ATA:", userAta1.toBase58());
+  // console.log("User ATA:", userAta1.toBase58());
 
   const acc: AddLiquidityAccounts = {
     pool: poolPda,
@@ -66,12 +62,12 @@ export const createLPIx = async (
     mintTokenOne: mintToken,
     poolTokenAccountOne: poolTokenOne,
     userTokenAccountOne: userAta1,
-    liquidityProviderAccount: liquidityProviderAccount,
     user: payer,
     tokenProgram: TOKEN_PROGRAM_ID,
     associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
     systemProgram: SystemProgram.programId
   };
+  /*
   console.log("AddLiquidity Accounts:", {
     ...acc,
     pool: acc.pool.toBase58(),
@@ -79,10 +75,9 @@ export const createLPIx = async (
     mintTokenOne: acc.mintTokenOne.toBase58(),
     poolTokenAccountOne: acc.poolTokenAccountOne.toBase58(),
     userTokenAccountOne: acc.userTokenAccountOne.toBase58(),
-    liquidityProviderAccount: acc.liquidityProviderAccount.toBase58(),
     user: acc.user.toBase58(),
   });
-
+*/
   const args: AddLiquidityArgs = {
     amountOne: new anchor.BN(1000000000000000),
     amountTwo: new anchor.BN(30000000)
@@ -93,7 +88,7 @@ export const createLPIx = async (
   });
 
   const ix = addLiquidity(args, acc);
-  console.log("AddLiquidity instruction created");
+  // console.log("AddLiquidity instruction created");
 
   return { ix, acc }
 }
@@ -103,38 +98,26 @@ export const initializeIx = async (
 ) => {
   console.log("Starting initializeIx with payer:", payer.toBase58());
 
-  const [curveConfig] = PublicKey.findProgramAddressSync(
-    [Buffer.from(curveSeed)],
-    PROGRAM_ID
-  );
-  console.log("Curve Config PDA:", curveConfig.toBase58());
-
   const [globalAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("global")],
     PROGRAM_ID
   );
-  console.log("Global Account:", globalAccount.toBase58());
+  // console.log("Global Account:", globalAccount.toBase58());
 
   const acc: InitializeAccounts = {
-    dexConfigurationAccount: curveConfig,
     globalAccount,
     admin: payer,
     rent: SYSVAR_RENT_PUBKEY,
     systemProgram: SystemProgram.programId
   };
+  /*
   console.log("Initialize Accounts:", {
-    dexConfigurationAccount: acc.dexConfigurationAccount.toBase58(),
     globalAccount: acc.globalAccount.toBase58(),
     admin: acc.admin.toBase58(),
   });
-
-  const args: InitializeArgs = {
-    fee: 1
-  };
-  console.log("Initialize Args:", args);
-
-  const ix = initialize(args, acc);
-  console.log("Initialize instruction created");
+*/
+  const ix = initialize(acc);
+  // console.log("Initialize instruction created");
 
   return { ix, acc }
 }
@@ -144,11 +127,12 @@ export const initializePoolIx = async (
   mintToken: PublicKey,
   payer: PublicKey
 ) => {
+  /*
   console.log("Starting initializePoolIx with:", {
     mintToken: mintToken.toBase58(),
     payer: payer.toBase58()
   });
-
+*/
   const [poolPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("liquidity_pool"), mintToken.toBuffer()],
     PROGRAM_ID
@@ -163,7 +147,7 @@ export const initializePoolIx = async (
   };
 
   const ix = initializePool(acc);
-  console.log("Pool initialization instruction created");
+  // console.log("Pool initialization instruction created");
 
   return { ix, acc };
 };
@@ -367,158 +351,123 @@ export const initializePoolIx = async (
 // }
 export const removeLiquidityIx = async (
   mintToken: PublicKey,
-  // amountOne: anchor.BN,
-  // amountTwo: anchor.BN,
+  amountOne: anchor.BN,
+  amountTwo: anchor.BN,
   payer: PublicKey,
   connection: Connection
 ) => {
-  try {
-    const ammProgram = new PublicKey("HWy1jotHpo6UqeQxx49dpYYdQB8wj9Qk9MdxwjLvDHB8");
+  console.log("Preparing Remove Liquidity Call")
+  const ixs: TransactionInstruction[] = [];
+  const signers: any[] = [];
 
-    console.log("Remove::::::::")
-    //  coin mint address
+  // ✅ Token Mint Addresses
     const coinMint = mintToken;
-    console.log("coinMint: ", coinMint.toBase58());
-    //  coin mint address
-    const pcMint = new PublicKey("So11111111111111111111111111111111111111112");
-    console.log("pcMint: ", pcMint.toBase58());
-    //  market address
-    const createMarketInstruments = await MarketV2.makeCreateMarketInstructionSimple({
-      connection,
-      wallet: payer,
-      baseInfo: {mint: mintToken, decimals: 9},
-      quoteInfo: {mint: pcMint, decimals: 9},
-      lotSize: 1, // default 1
-      tickSize: 0.01, // default 0.01
-      dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET,
-      makeTxVersion,
-    })
-    
-    const willSendTx = await buildSimpleTransaction({
-      connection,
-      makeTxVersion,
-      payer,
-      innerTransactions: createMarketInstruments.innerTransactions,
-    })
+    const pcMint = new PublicKey("So11111111111111111111111111111111111111112"); // SOL Mint Address
 
-
-    const market = createMarketInstruments.address.marketId;
-
+    // ✅ Compute Pool PDA
     const [poolPda] = PublicKey.findProgramAddressSync(
       [Buffer.from("liquidity_pool"), mintToken.toBuffer()],
       PROGRAM_ID
-    )
+    );
+
+    // ✅ Compute Global Account PDA
     const [globalAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("global")],
       PROGRAM_ID
-    )
-
-    console.log("globalAccount: ", globalAccount.toBase58())
-    const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from("LiqudityProvider"), poolPda.toBuffer(), payer.toBuffer()],
-      PROGRAM_ID
-    )
-
-    console.log(poolPda, "===================")
-
-    const [amm] = PublicKey.findProgramAddressSync(
-      [ammProgram.toBuffer(), market.toBuffer(), Buffer.from("amm_associated_seed")],
-      ammProgram
     );
-    console.log("amm: ", amm.toBase58());
 
+    // ✅ Get Token Accounts
+    const poolTokenOne = await getAssociatedTokenAddress(
+      mintToken, globalAccount, true
+    );
+    const userAta1 = await getAssociatedTokenAddress(
+      mintToken, payer
+    );
+
+    // ✅ Derive additional required PDAs
     const [ammAuthority] = PublicKey.findProgramAddressSync(
-      [Buffer.from("amm authority")],
-      ammProgram
+      [poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("ammAuthority: ", ammAuthority.toBase58());
 
     const [ammOpenOrders] = PublicKey.findProgramAddressSync(
-      [ammProgram.toBuffer(), market.toBuffer(), Buffer.from("open_order_associated_seed")],
-      ammProgram
+      [Buffer.from("open_orders"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("ammOpenOrders: ", ammOpenOrders.toBase58());
 
     const [lpMint] = PublicKey.findProgramAddressSync(
-      [ammProgram.toBuffer(), market.toBuffer(), Buffer.from("lp_mint_associated_seed")],
-      ammProgram
+      [Buffer.from("lp_mint"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("lpMint: ", lpMint.toBase58());
-
-    console.log("coinMint: ", coinMint.toBase58());
-    console.log("pcMint: ", pcMint.toBase58());
 
     const [coinVault] = PublicKey.findProgramAddressSync(
-      [ammProgram.toBuffer(), market.toBuffer(), Buffer.from("coin_vault_associated_seed")],
-      ammProgram
+      [Buffer.from("coin_vault"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("coinVault: ", coinVault.toBase58());
 
     const [pcVault] = PublicKey.findProgramAddressSync(
-      [ammProgram.toBuffer(), market.toBuffer(), Buffer.from("pc_vault_associated_seed")],
-      ammProgram
+      [Buffer.from("pc_vault"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("pcVault: ", pcVault.toBase58());
 
-    //  fee destination
-    const feeDestination = new PublicKey("3XMrhbv989VxAMi3DErLV9eJht1pHppW5LbKxe9fkEFR");
-    console.log("feeDestination: ", feeDestination.toBase58());
-
-    const [targetOrders] = PublicKey.findProgramAddressSync(
-      [ammProgram.toBuffer(), market.toBuffer(), Buffer.from("target_associated_seed")],
-      ammProgram
+    const [ammTargetOrders] = PublicKey.findProgramAddressSync(
+      [Buffer.from("target_orders"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("targetOrders: ", targetOrders.toBase58());
 
-    const [ammConfig] = PublicKey.findProgramAddressSync(
-      [Buffer.from("amm_config_account_seed")],
-      ammProgram
+    const [ammConfigId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("config"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
     );
-    console.log("ammConfig: ", ammConfig.toBase58());
 
-    console.log("serumProgram: ", "EoTcMgcDRTJVZDMZWBoU6rhYHZfkNTVEAfz3uUJRcYGj");
-    console.log("serumMarket: ", market.toBase58());
+    const [feeDestinationId] = PublicKey.findProgramAddressSync(
+      [Buffer.from("fees"), poolPda.toBuffer()],
+      RAYDIUM_AMM_PROGRAM_ID
+    );
 
-    const userWallet = new PublicKey("EmPsWiBxEy6rXNj3VVtHLNAmP5hUaVUrDH3QXiTttDgy");
-    console.log("userWallet: ", userWallet.toBase58());
+    // ✅ Fetch Serum Market ID dynamically
+    const marketId = await fetchMarketId(mintToken, connection);
+    console.log("✅ Found Serum Market ID:", marketId.toString());
 
-    const userTokenCoin = await getAssociatedTokenAddress(
-      coinMint, globalAccount, true
-    )
-    console.log("userTokenCoin: ", userTokenCoin.toBase58());
+    console.log("🔹 Creating Raydium Pool...");
 
-    const userTokenPc = await getAssociatedTokenAddress(
-      pcMint, globalAccount, true
-    )
-    console.log("userTokenPc: ", userTokenPc.toBase58());
+    const marketProgramId = new PublicKey("9xQeWvG816bUx9EPXyAC2w4kQQ9zMEyCfmSZTQhF7w5");
 
-    const userTokenLp = await getAssociatedTokenAddress(
-      lpMint, globalAccount, true
-    )
-    console.log("userTokenLp: ", userTokenLp.toBase58());
+    const userWallet = payer;
+    const userCoinVault = await getAssociatedTokenAddress(coinMint, userWallet);
+    const userPcVault = await getAssociatedTokenAddress(pcMint, userWallet);
+    const userLpVault = await getAssociatedTokenAddress(lpMint, userWallet);
 
-    const ixs: TransactionInstruction[] = [];
-    const newTokenAccount = await Spl.insertCreateWrappedNativeAccount({
-      connection,
-      owner: globalAccount,
-      payer,
-      instructions: ixs,
-      instructionsType: [],
-      signers: [adminKeypair],
-      amount: new anchor.BN(1000000000),
-    });
+    const nonce = 255; // Adjust if necessary
+    const openTime = new anchor.BN(Date.now() / 1000);
+    const coinAmount = amountOne; // Amount of Token A
+    const pcAmount = amountTwo; // Amount of SOL
 
-    const nonce = 252;
-
-    const acc: RemoveLiquidityAccounts = {
+    // ✅ Remove Liquidity Transaction
+  try {
+    console.log("🔹 Adding Remove Liquidity Instruction...");
+    const acc = {
       pool: poolPda,
       globalAccount,
-      ammProgram,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      mintTokenOne: coinMint,
+      poolTokenAccountOne: poolTokenOne,
+      userTokenAccountOne: userAta1,
+      user: payer,
       systemProgram: SystemProgram.programId,
-      sysvarRent: SYSVAR_RENT_PUBKEY,
-      amm,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,  
+    };
+    ixs.push(removeLiquidity(acc));
+  } catch (error) {
+    console.log("❌ Error adding remove liquidity instruction:", error);
+  }
+
+  // ✅ Create Raydium Pool Transaction
+  try {
+    console.log("🔹 Creating Raydium Pool...");
+    const raydiumTx = await Liquidity.makeCreatePoolV4InstructionV2({
+      programId: RAYDIUM_AMM_PROGRAM_ID,
+      ammId: poolPda,
       ammAuthority,
       ammOpenOrders,
       lpMint,
@@ -526,35 +475,48 @@ export const removeLiquidityIx = async (
       pcMint,
       coinVault,
       pcVault,
-      targetOrders,
-      ammConfig,
-      feeDestination,
-      marketProgram: new PublicKey("EoTcMgcDRTJVZDMZWBoU6rhYHZfkNTVEAfz3uUJRcYGj"),
-      market,
-      userWallet: payer,
-      userTokenCoin,
-      userTokenPc: newTokenAccount,
-      userTokenLp,
-    } 
-    const args: RemoveLiquidityArgs = {
+      ammTargetOrders,
+      marketProgramId,
+      marketId,
+      userWallet,
+      userCoinVault,
+      userPcVault,
+      userLpVault,
+      ammConfigId,
+      feeDestinationId,
       nonce,
-      initPcAmount: new anchor.BN(880000),
-    }
+      openTime,
+      coinAmount,
+      pcAmount,
+    });
 
-    ixs.push(removeLiquidity(args, acc));
-
-    // ixs.push(Spl.makeCloseAccountInstruction({
-    //   programId: TOKEN_PROGRAM_ID,
-    //   tokenAccount: newTokenAccount,
-    //   owner: payer,
-    //   payer,
-    //   instructionsType: [],
-    // }));
-
-    return { ixs, acc, willSendTx }
+   // ✅ Extract `TransactionInstruction`s and signers
+   ixs.push(...raydiumTx.innerTransaction.instructions);
+   signers.push(...raydiumTx.innerTransaction.signers);
+   
+    console.log("✅ Raydium Pool Created:", poolPda.toBase58());
   } catch (error) {
-    console.log("Error in removing liquidity", error)
+    console.log("❌ Failed pool creation:", error);
   }
+
+  // ✅ Return proper data for transaction execution
+  return { ixs, signers };
+};
+
+
+
+// ✅ Helper function to fetch Serum Market ID
+async function fetchMarketId(tokenMint: PublicKey, connection: Connection) {
+  const response = await fetch("https://api.raydium.io/v2/sdk/liquidity/mainnet.json");
+  const pools = await response.json();
+
+  for (const pool of pools) {
+    if (pool.baseMint === tokenMint.toString() || pool.quoteMint === tokenMint.toString()) {
+      return new PublicKey(pool.market);
+    }
+  }
+
+  throw new Error("❌ Serum Market ID not found.");
 }
 
 export const makeTxVersion = TxVersion.LEGACY; // LEGACY
