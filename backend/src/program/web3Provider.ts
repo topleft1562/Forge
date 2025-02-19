@@ -9,9 +9,16 @@ import {
   DEVNET_PROGRAM_ID,
   MARKET_STATE_LAYOUT_V3,
   OPEN_BOOK_PROGRAM,
+  ApiV3PoolInfoStandardItem,
+  TokenAmount,
+  toToken,
+  Percent,
+  AmmV4Keys,
+  AmmV5Keys,
 } from '@raydium-io/raydium-sdk-v2'
 import bs58 from 'bs58'
 import BN from 'bn.js'
+import Decimal from "decimal.js";
 
 
 const pkey = process.env.PRIVATE_KEY
@@ -540,8 +547,8 @@ export const createAmmPool = async (marketId: any, amount1: any, amount2: any) =
     // quoteAmount: new BN(1000),
 
     // sol devnet faucet: https://faucet.solana.com/
-    baseAmount: new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9
-    quoteAmount: new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9
+    baseAmount, // : new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9
+    quoteAmount, // : new BN(4 * 10 ** 9), // if devent pool with sol/wsol, better use amount >= 4*10**9
 
     startTime: new BN(0), // unit in seconds
     ownerInfo: {
@@ -573,8 +580,71 @@ export const createAmmPool = async (marketId: any, amount1: any, amount2: any) =
       {}
     )
   )
-    
+   return extInfo.address.ammId.toBase58()
 }
+
+export const addLiquidityRaydium = async (poolId: string, baseAmount: number, quoteAmount: number) => {
+  try {
+    console.log("✅ Initializing Raydium SDK...");
+    const raydium = await initSdk();
+    let poolKeys: AmmV4Keys | AmmV5Keys | undefined;
+    let poolInfo: ApiV3PoolInfoStandardItem;
+
+    console.log(`🔹 Fetching Pool Info for Pool ID: ${poolId}`);
+    if (raydium.cluster === "devnet") {
+      const data = await raydium.api.fetchPoolById({ ids: poolId });
+      poolInfo = data[0] as ApiV3PoolInfoStandardItem;
+    } else {
+      const data = await raydium.liquidity.getPoolInfoFromRpc({ poolId });
+      poolInfo = data.poolInfo;
+      poolKeys = data.poolKeys;
+    }
+
+    if (!poolInfo) {
+      throw new Error("❌ Pool not found! Ensure AMM is initialized first.");
+    }
+    console.log("✅ Pool Info Fetched Successfully");
+
+    console.log(`🔹 Base Mint: ${poolInfo.mintA}`);
+    console.log(`🔹 Quote Mint: ${poolInfo.mintB}`);
+
+    // ✅ Compute Required Pair Amount
+    const computedAmounts = raydium.liquidity.computePairAmount({
+      poolInfo,
+      amount: baseAmount.toString(),
+      baseIn: true,
+      slippage: new Percent(1, 100), // 1% slippage
+    });
+
+    console.log("🔹 Computed Amounts:", computedAmounts);
+
+    // ✅ Ensure we use **exact baseAmount & quoteAmount** for first-time liquidity
+    const { execute } = await raydium.liquidity.addLiquidity({
+      poolInfo,
+      poolKeys,
+      amountInA: new TokenAmount(
+        toToken(poolInfo.mintA),
+        new Decimal(baseAmount).mul(10 ** poolInfo.mintA.decimals).toFixed(0)
+      ),
+      amountInB: new TokenAmount(
+        toToken(poolInfo.mintB),
+        new Decimal(quoteAmount).mul(10 ** poolInfo.mintB.decimals).toFixed(0)
+      ),
+      otherAmountMin: computedAmounts.minAnotherAmount,
+      fixedSide: "a", // Ensuring base token amount is the fixed side
+      txVersion,
+    });
+
+    // ✅ Execute Transaction
+    const { txId } = await execute({ sendAndConfirm: true });
+
+    console.log(`✅ Liquidity Added! TX: https://explorer.solana.com/tx/${txId}`);
+    return txId;
+  } catch (error) {
+    console.error("❌ Error in `addLiquidity`: ", error);
+    throw error;
+  }
+};
 
 export async function wrapSOLToWSOL(connection: Connection, user: Keypair, amountLamports: number) {
   const wsolMint = new PublicKey("So11111111111111111111111111111111111111112"); // WSOL Mint Address

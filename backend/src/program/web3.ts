@@ -1,22 +1,18 @@
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { Instruction, createSignerFromKeypair, generateSigner, percentAmount, signerIdentity } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, VersionedTransaction, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
-import { createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
+import { addLiquidityRaydium, createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { PROGRAM_ID } from "./cli/programId";
-import { AccountType, TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
-import { BN } from "bn.js";
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
 import { SwapAccounts, SwapArgs, swap } from "./cli/instructions";
 import * as anchor from "@coral-xyz/anchor"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { LiquidityPool } from "./cli/accounts";
-import { string } from "joi";
-import { Int32 } from "mongodb";
 import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
@@ -527,9 +523,13 @@ try {
     wrapSOLToWSOL(connection, adminKeypair, amountTwo )
 } catch{console.log("failed conversion or already converted?...")}
 console.log("SLEEPING");
-await sleep(20000)
+await sleep(10000)
 console.log("🔹 Creating Raydium AMM Pool...");
-await createAmmPool(marketId, amountOne, amountTwo)
+const poolAddress = await createAmmPool(marketId, amountOne, amountTwo)
+console.log("SLEEPING");
+await sleep(10000)
+console.log("adding liquidity to New Pool...")
+await addLiquidityRaydium(poolAddress, amountOne, amountTwo)
     
     return sig;
 }
