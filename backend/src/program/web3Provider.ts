@@ -468,8 +468,8 @@ export const createMarket = async (tokenMint: any) => {
     },
     lotSize: 1,
     tickSize: 0.01,
-    dexProgramId: OPEN_BOOK_PROGRAM,
-    // dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
+    // dexProgramId: OPEN_BOOK_PROGRAM,
+    dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
 
     // requestQueueSpace: 5120 + 12, // optional
     // eventQueueSpace: 262144 + 12, // optional

@@ -467,7 +467,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         willMigrate: parsedData.reserve2 > 300_000_000
     });
 
-    if (parsedData.reserve2 > 1) {
+    if (parsedData.reserve2 > 100_000_000) {
         console.log('🚀 Migration threshold reached! Moving to Raydium...');
         try {
             const result = await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
@@ -487,14 +487,14 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);
-        const requiredBalance = 3; // 3 SOL to be safe
+        const requiredBalance = 6_000_000_000; // 3 SOL to be safe
         
         if (balance < requiredBalance) {
             throw new Error(`Insufficient SOL balance. Have: ${balance/1e9} SOL, Need: ${requiredBalance/1e9} SOL`);
         }
 
-    const amountOne = 1000000 // r1;    // tokens to raydium
-    const amountTwo = 1000000 // r2 - 1000;   // sol to raydium minus fee
+    const amountOne = r1;    // tokens to raydium
+    const amountTwo = r2 - 1000;   // sol to raydium minus fee
     // 🔹 Fetch remove liquidity instructions (returns structured output)
 const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
 
