@@ -193,6 +193,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             );
         self.reserve_one = 0;
         self.reserve_two = 0;
+        self.is_migrated = true;
         Ok(())
     }
 
