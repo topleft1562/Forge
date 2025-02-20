@@ -1,5 +1,5 @@
 export const ourFeeToKeep = 100_000_000
-export const willMigrateAt = 10_000_000
+export const willMigrateAt = 500_000_000
 export const cluster = 'devnet'
 export const INITIAL_PRICE = 10.0;
 export const PRICE_INCREMENT_STEP = 1_000_000;
