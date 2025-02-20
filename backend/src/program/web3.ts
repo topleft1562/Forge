@@ -457,7 +457,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     }
 
     const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
-    const willMigrateAt = 300_000_000
+    const willMigrateAt = 500_000_000
 
     console.log('Current reserves:', {
         solReserve: parsedData.reserve2 / 1e9,
@@ -480,7 +480,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 // Remove liquidity pool and Create Raydium Pool
 export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) => {
     console.log('Starting Raydium migration for token:', mint1.toBase58());
-    const ourFeeToKeep = 31_000_000
+    const ourFeeToKeep = 100_000_000
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);
