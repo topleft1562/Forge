@@ -10,9 +10,8 @@ export interface SwapArgs {
 
 export interface SwapAccounts {
   pool: PublicKey
-  /** CHECK */
-  globalAccount: PublicKey
   feeRecipient: PublicKey 
+  globalAccount: PublicKey
   mintTokenOne: PublicKey
   poolTokenAccountOne: PublicKey
   userTokenAccountOne: PublicKey
@@ -32,8 +31,8 @@ export function swap(
 ) {
   const keys: Array<AccountMeta> = [
     { pubkey: accounts.pool, isSigner: false, isWritable: true },
-    { pubkey: accounts.globalAccount, isSigner: false, isWritable: true },
-    { pubkey: accounts.feeRecipient, isSigner: false, isWritable: true }, 
+    { pubkey: accounts.feeRecipient, isSigner: false, isWritable: true },
+    { pubkey: accounts.globalAccount, isSigner: false, isWritable: true },     
     { pubkey: accounts.mintTokenOne, isSigner: false, isWritable: true },
     { pubkey: accounts.poolTokenAccountOne, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenAccountOne, isSigner: false, isWritable: true },

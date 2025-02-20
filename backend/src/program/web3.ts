@@ -467,7 +467,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         willMigrate: parsedData.reserve2 > 300_000_000
     });
 
-    if (parsedData.reserve2 > 300_000_000) {
+    if (parsedData.reserve2 > 1) {
         console.log('🚀 Migration threshold reached! Moving to Raydium...');
         try {
             const result = await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
@@ -487,49 +487,51 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);
-        const requiredBalance = 300_000_000; // 3 SOL to be safe
+        const requiredBalance = 3; // 3 SOL to be safe
         
         if (balance < requiredBalance) {
             throw new Error(`Insufficient SOL balance. Have: ${balance/1e9} SOL, Need: ${requiredBalance/1e9} SOL`);
         }
 
-    const amountOne = r1;    // tokens to raydium
-    const amountTwo = r2 - 1000;   // sol to raydium minus fee
+    const amountOne = 1000000 // r1;    // tokens to raydium
+    const amountTwo = 1000000 // r2 - 1000;   // sol to raydium minus fee
     // 🔹 Fetch remove liquidity instructions (returns structured output)
 const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
 
 const tx = new Transaction().add(
     ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
 );
+tx.add(removeLiquidityTX.ixs[0])
 
 tx.feePayer = adminKeypair.publicKey;
 tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
 // ✅ Simulate transaction before sending
 console.log("🔹 Simulating Transaction...");
-await simulateTransaction(connection, tx);
+// await simulateTransaction(connection, tx);
 
 // ✅ Send transaction with preflight check
-const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair, ...removeLiquidityTX.signers], {
+const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair], {
     commitment: "finalized", // Ensures transaction is fully confirmed
 });
 
+// await sleep(20000)
 console.log("✅ LIQUIDITY REMOVED!");
 console.log("🔹 Creating Raydium Market...");
 const marketId = await createMarket(mint1)
-console.log(marketId.toString())
-try {
-    console.log("🔹 Converting to WSOL...");
-    wrapSOLToWSOL(connection, adminKeypair, amountTwo )
-} catch{console.log("failed conversion or already converted?...")}
+// const marketId = "5u9SKW6W9gpHyBuiU7tZXWBs8H7cM5YxbV95tdoAqD1H"
+console.log("marketID", marketId.toString())
+console.log("🔹 Converting to WSOL...");
+wrapSOLToWSOL(connection, adminKeypair, amountTwo )
 console.log("SLEEPING");
-await sleep(10000)
+await sleep(20000)
 console.log("🔹 Creating Raydium AMM Pool...");
-const poolAddress = await createAmmPool(marketId, amountOne, amountTwo)
+const poolAddress = await createAmmPool(mint1, marketId, amountOne, amountTwo)
+// const poolAddress = "8RvRdvWJpwwb8qyP41iWcvoeaMBvVnco64YrfYMZ81sx"
 console.log("SLEEPING");
-await sleep(10000)
+await sleep(20000)
 console.log("adding liquidity to New Pool...")
-await addLiquidityRaydium(poolAddress, amountOne, amountTwo)
+await addLiquidityRaydium(poolAddress)
     
     return sig;
 }

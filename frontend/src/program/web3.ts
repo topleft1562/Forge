@@ -137,18 +137,30 @@ export const swapTx = async (
 
       const acc: SwapAccounts = {
           pool: poolPda,
+          feeRecipient: ADMIN_PUBKEY,
           globalAccount,
           mintTokenOne: mint1,
           poolTokenAccountOne: poolTokenOne,
           userTokenAccountOne: destinationAccounts[0],
           user: wallet.publicKey,
+          rent: SYSVAR_RENT_PUBKEY,
           tokenProgram: TOKEN_PROGRAM_ID,
           associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-          rent: SYSVAR_RENT_PUBKEY,
-          systemProgram: SystemProgram.programId,
-          feeRecipient: ADMIN_PUBKEY
+          systemProgram: SystemProgram.programId,  
       };
-
+        console.log("SwapAccounts:", 
+          poolPda.toString(),
+          ADMIN_PUBKEY.toString(),
+          globalAccount.toString(),
+          mint1.toString(),
+          poolTokenOne.toString(),
+          destinationAccounts[0].toString(),
+          wallet.publicKey.toString(),
+          SYSVAR_RENT_PUBKEY.toString(),
+          TOKEN_PROGRAM_ID.toString(),
+          ASSOCIATED_PROGRAM_ID.toString(),
+          SystemProgram.programId.toString(), 
+        )
       // Build transaction
       const dataIx = swap(args, acc, PROGRAM_ID);
       const tx = new Transaction();

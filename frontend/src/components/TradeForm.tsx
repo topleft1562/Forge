@@ -54,8 +54,14 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
 
     const handlTrade = async () => {
         setIsLoading(true);
-        console.log(program);
+        console.log("here")
+        
         try {
+            /*
+            const mint = new PublicKey(coin.token);
+            swapTx(mint, wallet, (parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)).toString(),  isBuy )
+            */
+            
             const mint = new PublicKey(coin.token);
             const userWallet = new PublicKey(user.wallet);
 
@@ -102,6 +108,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                 });
 
             console.log({ txHash });
+            
         } catch (error) {
             console.error("Trade failed:", error);
         } finally {

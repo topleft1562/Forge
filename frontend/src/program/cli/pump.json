@@ -6,11 +6,6 @@
         "name": "initialize",
         "accounts": [
           {
-            "name": "dexConfigurationAccount",
-            "isMut": true,
-            "isSigner": false
-          },
-          {
             "name": "globalAccount",
             "isMut": true,
             "isSigner": false,
@@ -198,11 +193,6 @@
       {
         "name": "swap",
         "accounts": [
-          {
-            "name": "dexConfigurationAccount",
-            "isMut": true,
-            "isSigner": false
-          },
           {
             "name": "pool",
             "isMut": true,

@@ -288,37 +288,6 @@ export type Pump = {
           discriminator: [175, 175, 109, 31, 13, 152, 155, 237];
           accounts: [
               {
-                  name: "dexConfigurationAccount";
-                  writable: true;
-                  pda: {
-                      seeds: [
-                          {
-                              kind: "const";
-                              value: [
-                                  67,
-                                  117,
-                                  114,
-                                  118,
-                                  101,
-                                  67,
-                                  111,
-                                  110,
-                                  102,
-                                  105,
-                                  103,
-                                  117,
-                                  114,
-                                  97,
-                                  116,
-                                  105,
-                                  111,
-                                  110
-                              ];
-                          }
-                      ];
-                  };
-              },
-              {
                   name: "globalAccount";
                   docs: ["CHECK"];
                   writable: true;
@@ -666,37 +635,6 @@ export type Pump = {
           name: "swap";
           discriminator: [248, 198, 158, 145, 225, 117, 135, 200];
           accounts: [
-              {
-                  name: "dexConfigurationAccount";
-                  writable: true;
-                  pda: {
-                      seeds: [
-                          {
-                              kind: "const";
-                              value: [
-                                  67,
-                                  117,
-                                  114,
-                                  118,
-                                  101,
-                                  67,
-                                  111,
-                                  110,
-                                  102,
-                                  105,
-                                  103,
-                                  117,
-                                  114,
-                                  97,
-                                  116,
-                                  105,
-                                  111,
-                                  110
-                              ];
-                          }
-                      ];
-                  };
-              },
               {
                   name: "pool";
                   writable: true;
@@ -1262,21 +1200,6 @@ export const IDL: Pump = {
           discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
           accounts: [
               {
-                  name: "dexConfigurationAccount",
-                  writable: true,
-                  pda: {
-                      seeds: [
-                          {
-                              kind: "const",
-                              value: [
-                                  67, 117, 114, 118, 101, 67, 111, 110, 102,
-                                  105, 103, 117, 114, 97, 116, 105, 111, 110,
-                              ],
-                          },
-                      ],
-                  },
-              },
-              {
                   name: "globalAccount",
                   docs: ["CHECK"],
                   writable: true,
@@ -1488,21 +1411,7 @@ export const IDL: Pump = {
           name: "swap",
           discriminator: [248, 198, 158, 145, 225, 117, 135, 200],
           accounts: [
-              {
-                  name: "dexConfigurationAccount",
-                  writable: true,
-                  pda: {
-                      seeds: [
-                          {
-                              kind: "const",
-                              value: [
-                                  67, 117, 114, 118, 101, 67, 111, 110, 102,
-                                  105, 103, 117, 114, 97, 116, 105, 111, 110,
-                              ],
-                          },
-                      ],
-                  },
-              },
+              
               {
                   name: "pool",
                   writable: true,
