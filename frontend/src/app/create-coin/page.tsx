@@ -395,14 +395,16 @@ const createCoin = async () => {
           </div>
         )}
         <div>
-          <button
-            className="go-button w-full mt-[20px] justify-center"
-            onClick={createCoin}
-            disabled={isCreate || isLoading}
-          >
-            <span>{isLoading ? 'Creating...' : 'Launch Token'}</span>
-            <IoMdRocket size={30} />
-          </button>
+        <button
+  className={`go-button w-full mt-[20px] justify-center 
+              ${!user?._id || isCreate || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+  onClick={createCoin}
+  disabled={!user?._id || isCreate || isLoading} // Disable if user._id is missing or if already creating/loading
+>
+  <span>{ !user?._id ? 'No User!' : isLoading ? "Creating..." : "Launch Token"}</span>
+  <IoMdRocket size={30} />
+</button>
+
         </div>
       </div>
     </div>

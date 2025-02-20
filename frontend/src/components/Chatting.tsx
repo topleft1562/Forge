@@ -204,11 +204,13 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
                         Cancel
                       </button>
                       <button
-                        onClick={replyPost}
-                        className="px-6 py-2 rounded-lg bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white hover:opacity-90 transition-opacity"
-                      >
-                        Post Reply
-                      </button>
+  onClick={replyPost}
+  disabled={!user?._id} // Disable if user or user._id is missing
+  className={`px-6 py-2 rounded-lg bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white 
+              hover:opacity-90 transition-opacity ${!user?._id ? "opacity-50 cursor-not-allowed" : ""}`}
+>
+  {user?._id ? 'Post Reply' : 'No User'}
+</button>
                     </div>
                   </div>
                 </div>

@@ -50,7 +50,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
             }}
           />
           <div className="px-3 rounded-lg text-white">
-            {trade.holder.name}
+          {trade.holder?.name ?? "Unknown"}
           </div>
         </div>
         <p className={`font-medium ${isBuy ? 'text-[#4BB543]' : 'text-[#FF3B30]'}`}>
@@ -91,7 +91,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
               }}
             />
             <div className="text-white">
-              {trade.holder.name}
+            {trade.holder?.name ?? "Unknown"}
             </div>
           </div>
           <p className={`font-medium ${isBuy ? 'text-[#4BB543]' : 'text-[#FF3B30]'}`}>

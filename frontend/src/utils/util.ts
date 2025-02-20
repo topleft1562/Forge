@@ -141,13 +141,23 @@ export const getCoinTrade = async (data: string): Promise<any> => {
 }
 
 export const postReply = async (data: replyInfo) => {
-    try{
-        const response = await axios.post(`${BACKEND_URL}/feedback/`, data, config)
-        return response.data
-    } catch (err) {
-        return { error: "error setting up the request" }
+    console.log("Sending data:", data);
+    if (!data || Object.keys(data).length === 0) {
+        return { error: "Data is empty or not defined" };
     }
-}
+
+    try {
+        const response = await axios.post(
+            `${BACKEND_URL}/feedback/`,
+            data,
+            { headers: { "Content-Type": "application/json" } }
+        );
+        return response.data;
+    } catch (err: any) {
+        console.error("Error posting reply:", err.response?.data || err.message);
+        return { error: err.response?.data?.error || "Error setting up the request" };
+    }
+};
 
 // ===========================Functions=====================================
 const API_KEY = process.env.NEXT_PUBLIC_PINATA_API_KEY;

@@ -255,16 +255,18 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                         </div>
                     )}
 
-                    <button
-                        onClick={handlTrade}
-                        className="w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)",
-                        }}
-                    >
-                        {isBuy === 0 ? "Buy Token" : "Sell Token"}
-                    </button>
+<button
+  onClick={handlTrade}
+  disabled={!user?._id} // Disable if user or user._id is missing
+  className={`w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity 
+              ${!user?._id ? "opacity-50 cursor-not-allowed" : ""}`}
+  style={{
+    backgroundImage:
+      "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)",
+  }}
+>
+  {!user._id ? 'No User!' : isBuy === 0 ? "Buy Token" : "Sell Token"}
+</button>
                 </div>
             </div>
         </div>
