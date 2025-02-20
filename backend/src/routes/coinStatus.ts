@@ -2,6 +2,7 @@ import CoinStatus from "../models/CoinsStatus";
 import { ResultType } from "../program/web3";
 import Coin from "../models/Coin";
 import User from "../models/User";
+import { INITIAL_PRICE, PRICE_INCREMENT, PRICE_INCREMENT_STEP, totalSupply } from "../config/config";
 
 
 export const setCoinStatus = async (data: ResultType) => {
@@ -11,7 +12,9 @@ export const setCoinStatus = async (data: ResultType) => {
     const solAmount = data.reserve2 / 1e9; // Convert SOL from lamports (9 decimals)
     const tokenAmount = data.reserve1 / 1e6; // Convert tokens from raw amount (6 decimals)
 
-    const priceInSol = tokenAmount !== 0 ? solAmount / tokenAmount : 0;
+    const tokensSold = totalSupply - data.reserve1;
+    const priceStep = tokensSold / PRICE_INCREMENT_STEP;
+    const priceInSol = (INITIAL_PRICE + (priceStep * PRICE_INCREMENT)) / 1000;
 
     const newTx = {
         holder: userId?._id,
@@ -50,6 +53,7 @@ export const setCoinStatus = async (data: ResultType) => {
                 reserveOne: data.reserve1,
                 reserveTwo: data.reserve2,
                 date: new Date(),
+                isMigrated: data.isMigrated,
             }
         },
         { new: true, upsert: true }

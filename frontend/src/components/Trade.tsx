@@ -10,7 +10,7 @@ interface TradePropsInfo {
 }
 
 const DEFAULT_AVATAR = '/default-avatar.png';
-const cluster = process.env.SOLANA_NETWORK! as Cluster
+const cluster = process.env.CLUSTER
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
   const isBuy = trade.holdingStatus === 2;

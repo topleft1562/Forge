@@ -17,7 +17,7 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, ourFeeToKeep, willMigrateAt } from "../config/config";
+import { cluster, INITIAL_PRICE, ourFeeToKeep, willMigrateAt } from "../config/config";
 
 const curveSeed = "CurveConfiguration"
 const POOL_SEED_PREFIX = "liquidity_pool"
@@ -169,14 +169,16 @@ export const createToken = async (data: CoinInfo) => {
             const gatewayUrl = process.env.PINATA_GATEWAY_URL || 'https://gateway.pinata.cloud/ipfs';
             const url = `${gatewayUrl}/${urlSeg[urlSeg.length - 1]}`;
             // console.log('Constructed URL:', url);
+            const tokenAddress = mint.publicKey.toString()
 
             const newCoin = new Coin({
                 creator: data.creator,
                 name: data.name,
                 ticker: data.ticker,
                 description: data.description,
-                token: mint.publicKey,
+                token: tokenAddress,
                 url,
+                isMigrated: false,
             });
            // console.log("Saving coin to database:", newCoin);
 
@@ -191,7 +193,7 @@ export const createToken = async (data: CoinInfo) => {
                         holdingStatus: 2,
                         amount: 0,
                         tx: txId,
-                        price: newCoin.reserveTwo / newCoin.reserveOne
+                        price: INITIAL_PRICE / 1000
                     }
                 ]
             });
@@ -254,7 +256,6 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (logs.err !== null) {
         return;
     }
-    console.log(logs)
     console.log("log1:", logs.logs[1])
     if (processedSignatures.has(logs.signature) || logs.signature === "1111111111111111111111111111111111111111111111111111111111111111") {
         return;
@@ -294,7 +295,8 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
             ticker: "",
             description: "",
             url: "",
-            creator: null
+            creator: null,
+            isMigrated: true,
         };
         await setCoinStatus(result);
         return;
@@ -367,7 +369,8 @@ function parseLogs(logs: string[], tx: string): ResultType {
         ticker: "",
         description: "",
         url: "",
-        creator: null
+        creator: null,
+        isMigrated: false,
     };
 
     logs.forEach((log: string) => {
@@ -381,7 +384,7 @@ function parseLogs(logs: string[], tx: string): ResultType {
                     return acc;
                 }, {});
 
-            result.mint = data.Mint || '';                   // This was failing!
+            result.mint = data.Mint || '';
             result.swapAmount = parseInt(data.Amount) || 0;
             result.swapType = parseInt(data.Style) || 0;
             result.reserve1 = parseInt(data.PostReserve1) || 0;
@@ -419,4 +422,5 @@ export interface ResultType {
     swapAmount: number;
     reserve1: number;
     reserve2: number;
+    isMigrated: boolean;
 }

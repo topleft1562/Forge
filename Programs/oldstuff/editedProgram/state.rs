@@ -9,7 +9,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount};
 pub struct CurveConfiguration {
     pub fees: f64,
 }
-
+DuplicateTokenNotAllowed
 impl CurveConfiguration {
     pub const SEED: &'static str = "CurveConfiguration";
 
