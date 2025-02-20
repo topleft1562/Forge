@@ -494,11 +494,12 @@ export const createMarket = async (tokenMint: any) => {
     )
   )
 
+  try {
   const txIds = await execute({
     // set sequentially to true means tx will be sent when previous one confirmed
     sequentially: true,
   })
-
+  } catch{console.log("MarketCreation Failed")}
   // console.log('create market txIds:', txIds)
   console.log("Market Address:", extInfo.address.marketId);
 
@@ -511,7 +512,7 @@ export const createAmmPool = async (
   amount1: number,
   amount2: number
 ) => {
-  try {
+
     const raydium = await initSdk();
 
     // Convert mint and marketId to PublicKey if they are strings
@@ -520,8 +521,8 @@ export const createAmmPool = async (
     const WSOLMint = new PublicKey("So11111111111111111111111111111111111111112"); // WSOL
 
     // Convert liquidity amounts to BN format
-    const baseAmount = new BN(amount1 * 10 ** 6); // Assume 6 decimals for SPL tokens
-    const quoteAmount = new BN(amount2 * 10 ** 9); // Assume 9 decimals for SOL
+    const baseAmount = new BN(amount1); // Assume 6 decimals for SPL tokens
+    const quoteAmount = new BN(amount2); // Assume 9 decimals for SOL
 
     console.log("Initializing AMM Pool on Devnet...");
     console.log(`Base Mint: ${baseMint.toBase58()}`);
@@ -551,33 +552,46 @@ export const createAmmPool = async (
       },
       associatedOnly: false, // Allow non-associated accounts
       txVersion, // Use legacy transactions for compatibility
-      feeDestinationId: FEE_DESTINATION_ID, // Fee receiver for liquidity
+      // feeDestinationId: FEE_DESTINATION_ID, // Fee receiver for liquidity
+      feeDestinationId: DEVNET_PROGRAM_ID.FEE_DESTINATION_ID, // devnet
     });
 
     console.log("Executing AMM Pool Transaction...");
-    const txHash = await execute();
+   
+    const txHash = await execute().catch(async (error) => {
+      console.error("❌ Transaction failed!", error);
+  
+      // Fetch transaction logs
+      const txStatus = await connection.getSignatureStatus(error.txid, { searchTransactionHistory: true });
+  
+      console.log("🔍 Logs:", txStatus?.value?.err);
+      process.exit(1);
+    });
+
     console.log("✅ AMM Pool Created! Tx Hash:", txHash);
+    console.log(
+      'amm pool created! txId: ',
+      txHash,
+      ', poolKeys:',
+      Object.keys(extInfo.address).reduce(
+        (acc, cur) => ({
+          ...acc,
+          [cur]: extInfo.address[cur as keyof typeof extInfo.address].toBase58(),
+        }),
+        {}
+      )
+    )
+   
+    
 
  
-  console.log(
-    'amm pool created! txId: ',
-    txHash,
-    ', poolKeys:',
-    Object.keys(extInfo.address).reduce(
-      (acc, cur) => ({
-        ...acc,
-        [cur]: extInfo.address[cur as keyof typeof extInfo.address].toBase58(),
-      }),
-      {}
-    )
-  )
+  
   console.log(extInfo.address.ammId.toBase58())
   return extInfo.address.ammId.toBase58()
-} catch{console.log("failed")}
-return ""
+
 }
 
-export const addLiquidityRaydium = async (poolId: any) => {
+export const addLiquidityRaydium = async (poolId: any, mint1: PublicKey) => {
   const raydium = await initSdk()
 console.log(poolId)
   // RAY-USDC pool
@@ -591,12 +605,18 @@ console.log(poolId)
     const data = await raydium.api.fetchPoolById({ ids: poolId })
     poolInfo = data[0] as ApiV3PoolInfoStandardItem
   } else {
+
+    console.log("trying to get data")
     // note: getPoolInfoFromRpc method only return required pool data for computing not all detail pool info
+    // 
+    const data2 = await raydium.api.fetchPoolByMints({ mint1, mint2: mint1})
+    console.log("DATA2", data2)
     const data = await raydium.liquidity.getPoolInfoFromRpc({ poolId })
     poolInfo = data.poolInfo
     poolKeys = data.poolKeys
   }
 
+  // console.log(poolInfo, poolKeys)
   // if (!isValidAmm(poolInfo.programId)) throw new Error('target pool is not AMM pool')
 
   const inputAmount = '1'
