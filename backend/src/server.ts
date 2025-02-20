@@ -5,6 +5,7 @@ import { logger } from './sockets/logger';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import { cluster } from './config/config';
+import { checkAnonymousUser } from './routes/user';
 
 const PORT = process.env.PORT || 3001;
 
@@ -71,6 +72,9 @@ process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception:', error);
   gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
+
+checkAnonymousUser()
+
 
 // Initialize Socket.IO
 try {

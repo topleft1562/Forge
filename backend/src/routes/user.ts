@@ -9,6 +9,7 @@ import nacl from 'tweetnacl';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import jwt from 'jsonwebtoken';
 import CoinStatus from '../models/CoinsStatus';
+import mongoose from 'mongoose';
 
 
 const router = express.Router();
@@ -184,6 +185,30 @@ router.get('/:id', async (req, res) => {
         res.status(500).send(error);
     }
 });
+
+
+export const checkAnonymousUser = async () => {
+    try {
+        const anonymousUser = await User.findOne({ name: "anonymous" });
+
+        if (!anonymousUser) {
+            console.log("Anonymous user not found. Creating one...");
+            const newUser = new User({
+                _id: new mongoose.Types.ObjectId("999999999999999999999999"), // Manually set the ID
+                name: "anonymous",
+                wallet: "An0N",
+                avatar: "https://gateway.pinata.cloud/ipfs/undefined",
+            });
+
+            await newUser.save();
+            console.log("Anonymous user created successfully.");
+        } else {
+            console.log("Anonymous user already exists.");
+        }
+    } catch (error) {
+        console.error("Error checking/creating anonymous user:", error);
+    }
+};
 
 
 

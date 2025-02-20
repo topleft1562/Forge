@@ -70,29 +70,24 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
   };
 
   const replyPost = async () => {
-    let reply: replyInfo;
+    const sender = user?._id ?? "999999999999999999999999"
+
+    let reply: replyInfo = {
+        coinId: coin._id,
+        sender: sender,  // Will be either user._id or "Anonymous"
+        msg: msg,
+    };
+
     if (imageUrl) {
-      const url = await uploadImage(imageUrl);
-      if (url && user._id) {
-        reply = {
-          coinId: coin._id,
-          sender: user._id,
-          msg: msg,
-          img: url
+        const url = await uploadImage(imageUrl);
+        if (url) {
+            reply.img = url;
         }
-      }
-    } else {
-      if (user._id) {
-        reply = {
-          coinId: coin._id,
-          sender: user._id,
-          msg: msg,
-        }
-      }
     }
+
     handleModalToggle();
     await postReply(reply);
-  }
+};
   return (
     <div className="threadHolder">
       <div className="flex gap-4 mb-6">
@@ -205,11 +200,10 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
                       </button>
                       <button
   onClick={replyPost}
-  disabled={!user?._id} // Disable if user or user._id is missing
   className={`px-6 py-2 rounded-lg bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white 
-              hover:opacity-90 transition-opacity ${!user?._id ? "opacity-50 cursor-not-allowed" : ""}`}
+              hover:opacity-90 transition-opacity`}
 >
-  {user?._id ? 'Post Reply' : 'No User'}
+  {user?._id ? 'Post Reply' : 'Post Anonymously'}
 </button>
                     </div>
                   </div>
