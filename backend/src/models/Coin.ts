@@ -9,6 +9,7 @@ const coinSchema = new mongoose.Schema({
     token: { type: String, },
     reserveOne: { type: Number, default: 1_000_000_000_000_000 },
     reserveTwo: { type: Number, default: 30_000_000 },
+    isMigrated: { type: Boolean, default: false},
     url: { type: String, requried: true },
     date:{type:Date, default:new Date}
 });
