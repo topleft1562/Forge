@@ -4,9 +4,9 @@ import socketio from './sockets';
 import { logger } from './sockets/logger';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
+import { cluster } from './config/config';
 
 const PORT = process.env.PORT || 3001;
-const ENV = process.env.NODE_ENV || 'development';
 
 const server = createServer(app);
 let io: Server | null = null;
@@ -81,10 +81,7 @@ try {
 
 // Start server
 server.listen(PORT, () => {
-  logger.info(`Server running in ${ENV} mode on port ${PORT}`);
-  if (ENV === 'production') {
-    logger.info(`Railway URL: ${process.env.RAILWAY_STATIC_URL || 'Not available'}`);
-  }
+  logger.info(`Server running in ${cluster} mode on port ${PORT}`);
 });
 
 export default server;
