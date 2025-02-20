@@ -1,40 +1,30 @@
 import * as anchor from "@coral-xyz/anchor"
 import { PROGRAM_ID } from "./cli/programId"
-import { ComputeBudgetProgram, clusterApiUrl, Connection, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, } from "@solana/web3.js"
+import { clusterApiUrl, Connection, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, Cluster, } from "@solana/web3.js"
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createSyncNativeInstruction } from "@solana/spl-token"
 import { AddLiquidityAccounts, AddLiquidityArgs, InitializeAccounts, InitializePoolAccounts, RemoveLiquidityAccounts, SwapAccounts, SwapArgs, addLiquidity, initialize, initializePool, removeLiquidity, swap } from "./cli/instructions"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token"
 import { 
   Raydium, TxVersion, WSOLMint, FEE_DESTINATION_ID,
-  DEVNET_PROGRAM_ID,
-  MARKET_STATE_LAYOUT_V3,
-  OPEN_BOOK_PROGRAM,
-  ApiV3PoolInfoStandardItem,
-  TokenAmount,
-  toToken,
-  Percent,
-  AmmV4Keys,
-  AmmV5Keys,
+  DEVNET_PROGRAM_ID
 } from '@raydium-io/raydium-sdk-v2'
-import bs58 from 'bs58'
 import BN from 'bn.js'
-import Decimal from "decimal.js";
+import base58 from "bs58"
 
 
-const pkey = process.env.PRIVATE_KEY
-export const owner: Keypair = Keypair.fromSecretKey(bs58.decode(pkey))
+const cluster = process.env.SOLANA_NETWORK as Cluster
+const privateKey = base58.decode(process.env.PRIVATE_KEY!);
+
+export const owner: Keypair = Keypair.fromSecretKey(privateKey)
 // export const connection = new Connection('<YOUR_RPC_URL>') //<YOUR_RPC_URL>
-export const connection = new Connection(clusterApiUrl('devnet')) //<YOUR_RPC_URL>
+export const connection = new Connection(clusterApiUrl(cluster)) //<YOUR_RPC_URL>
 export const txVersion = TxVersion.V0 // or TxVersion.LEGACY
-const cluster = 'devnet' // 'mainnet' | 'devnet'
 
 const POOL_SEED_PREFIX = "liquidity_pool"
 
 let raydium: Raydium | undefined
 export const initSdk = async (params?: { loadToken?: boolean }) => {
   if (raydium) return raydium
-  if (connection.rpcEndpoint === clusterApiUrl('devnet'))
-    console.warn('using free rpc node might cause unexpected error, strongly suggest uses paid rpc node')
   console.log(`connect to rpc ${connection.rpcEndpoint} in ${cluster}`)
   raydium = await Raydium.load({
     owner,
@@ -450,6 +440,7 @@ export const removeLiquidityIx = async (
 
 
 export const createMarket = async (tokenMint: any) => {
+  console.log("🔹 Creating Raydium Market...");
   const raydium = await initSdk()
 
   // check mint info here: https://api-v3.raydium.io/mint/list
@@ -482,7 +473,7 @@ export const createMarket = async (tokenMint: any) => {
     //   microLamports: 46591500,
     // },
   })
-
+/*
   console.log(
     `create market total ${transactions.length} txs, market info: `,
     Object.keys(extInfo.address).reduce(
@@ -493,6 +484,7 @@ export const createMarket = async (tokenMint: any) => {
       {}
     )
   )
+*/
 
   try {
   const txIds = await execute({
@@ -512,6 +504,7 @@ export const createAmmPool = async (
   amount1: number,
   amount2: number
 ) => {
+  console.log("🔹 Creating Raydium AMM Pool...");
 
     const raydium = await initSdk();
 
@@ -521,13 +514,8 @@ export const createAmmPool = async (
     const WSOLMint = new PublicKey("So11111111111111111111111111111111111111112"); // WSOL
 
     // Convert liquidity amounts to BN format
-    const baseAmount = new BN(amount1); // Assume 6 decimals for SPL tokens
-    const quoteAmount = new BN(amount2); // Assume 9 decimals for SOL
-
-    console.log("Initializing AMM Pool on Devnet...");
-    console.log(`Base Mint: ${baseMint.toBase58()}`);
-    console.log(`Market ID: ${marketPubkey.toBase58()}`);
-    console.log(`Base Amount: ${baseAmount.toString()} | Quote Amount: ${quoteAmount.toString()}`);
+    const baseAmount = new BN(amount1);
+    const quoteAmount = new BN(amount2);
 
     const { execute, extInfo } = await raydium.liquidity.createPoolV4({
       programId: DEVNET_PROGRAM_ID.AmmV4, // Devnet AMM V4 program
@@ -565,9 +553,8 @@ export const createAmmPool = async (
       const txStatus = await connection.getSignatureStatus(error.txid, { searchTransactionHistory: true });
   
       console.log("🔍 Logs:", txStatus?.value?.err);
-      process.exit(1);
     });
-
+/*
     console.log("✅ AMM Pool Created! Tx Hash:", txHash);
     console.log(
       'amm pool created! txId: ',
@@ -581,88 +568,17 @@ export const createAmmPool = async (
         {}
       )
     )
-   
-    
+*/
 
- 
-  
   console.log(extInfo.address.ammId.toBase58())
   return extInfo.address.ammId.toBase58()
 
 }
 
-export const addLiquidityRaydium = async (poolId: any, mint1: PublicKey) => {
-  const raydium = await initSdk()
-console.log(poolId)
-  // RAY-USDC pool
-  // const poolId = '6UmmUiYoBjSrhakAobJw8BvkmJtDVxaeBtbt7rxWo1mg'
-  let poolKeys: AmmV4Keys | AmmV5Keys | undefined
-  let poolInfo: ApiV3PoolInfoStandardItem
-
-  if (raydium.cluster === 'mainnet') {
-    // note: api doesn't support get devnet pool info, so in devnet else we go rpc method
-    // if you wish to get pool info from rpc, also can modify logic to go rpc method directly
-    const data = await raydium.api.fetchPoolById({ ids: poolId })
-    poolInfo = data[0] as ApiV3PoolInfoStandardItem
-  } else {
-
-    console.log("trying to get data")
-    // note: getPoolInfoFromRpc method only return required pool data for computing not all detail pool info
-    // 
-    const data2 = await raydium.api.fetchPoolByMints({ mint1, mint2: mint1})
-    console.log("DATA2", data2)
-    const data = await raydium.liquidity.getPoolInfoFromRpc({ poolId })
-    poolInfo = data.poolInfo
-    poolKeys = data.poolKeys
-  }
-
-  // console.log(poolInfo, poolKeys)
-  // if (!isValidAmm(poolInfo.programId)) throw new Error('target pool is not AMM pool')
-
-  const inputAmount = '1'
-
-  const r = raydium.liquidity.computePairAmount({
-    poolInfo,
-    amount: inputAmount,
-    baseIn: true,
-    slippage: new Percent(1, 100), // 1%
-  })
-
-  const { execute, transaction } = await raydium.liquidity.addLiquidity({
-    poolInfo,
-    poolKeys,
-    amountInA: new TokenAmount(
-      toToken(poolInfo.mintA),
-      new Decimal(inputAmount).mul(10 ** poolInfo.mintA.decimals).toFixed(0)
-    ),
-    amountInB: new TokenAmount(
-      toToken(poolInfo.mintB),
-      new Decimal(r.maxAnotherAmount.toExact()).mul(10 ** poolInfo.mintB.decimals).toFixed(0)
-    ),
-    otherAmountMin: r.minAnotherAmount,
-    fixedSide: 'a',
-    txVersion,
-    // optional: set up priority fee here
-    // computeBudgetConfig: {
-    //   units: 600000,
-    //   microLamports: 46591500,
-    // },
-
-    // optional: add transfer sol to tip account instruction. e.g sent tip to jito
-    // txTipConfig: {
-    //   address: new PublicKey('96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5'),
-    //   amount: new BN(10000000), // 0.01 sol
-    // },
-  })
-
-  // don't want to wait confirm, set sendAndConfirm to false or don't pass any params to execute
-  const { txId } = await execute({ sendAndConfirm: true })
-  console.log('liquidity added:', { txId: `https://explorer.solana.com/tx/${txId}` })
-  process.exit() // if you don't want to end up node execution, comment this line
-}
-
 
 export async function wrapSOLToWSOL(connection: Connection, user: Keypair, amountLamports: number) {
+  console.log("🔹 Converting to WSOL...");
+  
   const wsolMint = new PublicKey("So11111111111111111111111111111111111111112"); // WSOL Mint Address
   
   // Get the user's WSOL Associated Token Account (ATA)
@@ -690,7 +606,7 @@ export async function wrapSOLToWSOL(connection: Connection, user: Keypair, amoun
   );
 
   const txId = await connection.sendTransaction(tx, [user]);
-  console.log("✅ Wrapped SOL. Transaction:", txId);
+  // console.log("✅ Wrapped SOL. Transaction:", txId);
 
   return userWSOLAccount;
 }

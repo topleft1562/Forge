@@ -10,6 +10,7 @@ interface TradePropsInfo {
 }
 
 const DEFAULT_AVATAR = '/default-avatar.png';
+const cluster = process.env.SOLANA_NETWORK! as Cluster
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
   const isBuy = trade.holdingStatus === 2;
@@ -61,7 +62,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
           {formattedDate}
         </p>
         <Link 
-          href={`https://solscan.io/tx/${trade.tx}?cluster=devnet`}
+          href={`https://solscan.io/tx/${trade.tx}?cluster=${cluster}`}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -107,7 +108,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
         </div>
         
         <Link 
-          href={`https://solscan.io/tx/${trade.tx}?cluster=devnet`}
+          href={`https://solscan.io/tx/${trade.tx}?cluster=${cluster}`}
           target="_blank"
           rel="noopener noreferrer"
           className="block"

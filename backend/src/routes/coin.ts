@@ -14,7 +14,7 @@ const router = express.Router();
 // @desc    Get all created coins
 // @access  Public
 router.get('/', async (req, res) => {
-    console.log("GET /coin route hit"); // Add this line
+    // console.log("GET /coin route hit"); // Add this line
     try {
         const coins = await Coin.find({}).populate('creator');
         // console.log("Found coins:", coins); // Add this line
@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
             reserveTwo: Joi.number().default(0),    // Add this line
             token: Joi.string().allow('', null)     // Add this line
         });
-        console.log(UserSchema)
+        // console.log(UserSchema)
         const inputValidation = UserSchema.validate(body);
         if (inputValidation.error) {
             return res.status(400).json({ error: inputValidation.error.details[0].message });

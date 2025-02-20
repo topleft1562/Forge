@@ -1,11 +1,11 @@
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
-import { Instruction, createSignerFromKeypair, generateSigner, percentAmount, signerIdentity } from "@metaplex-foundation/umi";
+import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { ComputeBudgetProgram, Connection, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL, Cluster } from "@solana/web3.js";
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
-import { addLiquidityRaydium, createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
+import { createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { PROGRAM_ID } from "./cli/programId";
@@ -20,13 +20,12 @@ import pinataSDK from '@pinata/sdk';
 
 const curveSeed = "CurveConfiguration"
 const POOL_SEED_PREFIX = "liquidity_pool"
-const LP_SEED_PREFIX = "LiqudityProvider"
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
 
-
-export const connection = new Connection(clusterApiUrl('devnet'))
+const cluster = process.env.SOLANA_NETWORK as Cluster
+export const connection = new Connection(clusterApiUrl(cluster))
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
 
@@ -34,7 +33,7 @@ export const adminKeypair = web3.Keypair.fromSecretKey(privateKey);
 const adminWallet = new NodeWallet(adminKeypair);
 
 // const umi = createUmi(process.env.PUBLIC_SOLANA_RPC!);
-const umi = createUmi(clusterApiUrl('devnet'));
+const umi = createUmi(clusterApiUrl(cluster));
 
 const userWallet = umi.eddsa.createKeypairFromSecretKey(privateKey);
 
@@ -56,7 +55,7 @@ export const uploadMetadata = async (data: CoinInfo): Promise<any> => {
 
     try {
         const res = await pinata.pinJSONToIPFS(metadata);
-        console.log(res, "======")
+        // console.log(res, "======")
         return res
     } catch (error) {
         console.error('Error uploading metadata: ', error);
@@ -67,13 +66,13 @@ export const uploadMetadata = async (data: CoinInfo): Promise<any> => {
 export const initializeTx = async () => {
     const initTx = await initializeIx(adminWallet.publicKey);
     const createTx = new Transaction().add(initTx.ix);
-    console.log(adminWallet.publicKey.toBase58())
+    // console.log(adminWallet.publicKey.toBase58())
 
     createTx.feePayer = adminWallet.publicKey;
     createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 
     const txId = await sendAndConfirmTransaction(connection, createTx, [adminKeypair]);
-    console.log("txId:", txId)
+    // console.log("txId:", txId)
 }
 
 
@@ -108,13 +107,13 @@ export const createToken = async (data: CoinInfo) => {
         // console.log("Starting LP creation...");
 
         try {
-            console.log("Checking if Program needs initialization...");
+            // console.log("Checking if Program needs initialization...");
            
             const [globalAccount] = PublicKey.findProgramAddressSync(
                 [Buffer.from("global")],
                 PROGRAM_ID
               );
-            console.log("Global Account:", globalAccount.toBase58());
+            // console.log("Global Account:", globalAccount.toBase58());
             const accountInfo = await connection.getAccountInfo(globalAccount);
             
             // First initialize Program config if Needed
@@ -129,19 +128,17 @@ export const createToken = async (data: CoinInfo) => {
                 console.log("Initial Setup txId:", initTxId);
                 
                 await sleep(2000);
-            } else {
-                console.log("Program is Initialized");
             }
         
             // Then initialize the pool for this specific token
-            console.log("Initializing pool for token:", mint.publicKey);
+            // console.log("Initializing pool for token:", mint.publicKey);
             const poolInitTx = await initializePoolIx(new PublicKey(mint.publicKey), adminKeypair.publicKey);
             const poolInitCreateTx = new Transaction().add(poolInitTx.ix);
             poolInitCreateTx.feePayer = adminWallet.publicKey;
             poolInitCreateTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
             
             const poolInitTxId = await sendAndConfirmTransaction(connection, poolInitCreateTx, [adminKeypair]);
-            console.log("Pool initialization txId:", poolInitTxId);
+            // console.log("Pool initialization txId:", poolInitTxId);
             
             await sleep(2000);
         
@@ -152,20 +149,20 @@ export const createToken = async (data: CoinInfo) => {
             createTx.feePayer = adminWallet.publicKey;
             createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-            console.log("Simulating transaction before sending...");
+            // console.log("Simulating transaction before sending...");
             const simulation = await connection.simulateTransaction(createTx);
             if (simulation.value.err) {
                 console.error("Transaction simulation failed:", simulation.value.err);
                 console.error("Simulation logs:", simulation.value.logs);
                 throw new Error(`Simulation failed: ${JSON.stringify(simulation.value.err)}`);
             }
-            console.log("Simulation successful");
+            // console.log("Simulation successful");
 
             const txId = await sendAndConfirmTransaction(connection, createTx, [adminKeypair], {
                 skipPreflight: true,
                 commitment: 'confirmed'
             });
-            console.log("LP transaction successful, txId:", txId);
+            // console.log("LP transaction successful, txId:", txId);
 
             // Database operations
             const urlSeg = data.url.split('/');
@@ -275,7 +272,7 @@ export const swapTx = async (
             console.error("Mint account does not exist");
             return;
         }
-        console.log("Mint account verified:", mint1.toBase58());
+        // console.log("Mint account verified:", mint1.toBase58());
 
         // Get PDAs
         const [curveConfig] = PublicKey.findProgramAddressSync(
@@ -374,9 +371,9 @@ export const swapTx = async (
         tx.recentBlockhash = blockhash;
 
         // Simulate transaction
-        console.log("Debug - About to simulate transaction");
+        // console.log("Debug - About to simulate transaction");
         const simResult = await connection.simulateTransaction(tx);
-        console.log("Simulation result:", simResult);
+        // console.log("Simulation result:", simResult);
 
         // Sign and send transaction
         const signature = await sendAndConfirmTransaction(
@@ -389,7 +386,7 @@ export const swapTx = async (
             }
         );
 
-        console.log("Transaction sent:", signature);
+        // console.log("Transaction sent:", signature);
         return signature;
 
     } catch (error) {
@@ -446,9 +443,8 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (logs.err !== null) {
         return;
     }
-
     // Prevent duplicate processing
-    if (processedSignatures.has(logs.signature)) {
+    if (processedSignatures.has(logs.signature) || logs.signature === "1111111111111111111111111111111111111111111111111111111111111111") {
         return; // Skip if already processed
     }
     processedSignatures.add(logs.signature);
@@ -461,17 +457,17 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     }
 
     const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
+    const willMigrateAt = 300_000_000
+
     console.log('Current reserves:', {
-        solReserve: parsedData.reserve2 / 1e9, // Display in SOL for clarity
-        threshold: 3,
-        willMigrate: parsedData.reserve2 > 300_000_000
+        solReserve: parsedData.reserve2 / 1e9,
+        willMigrate: parsedData.reserve2 > willMigrateAt
     });
 
-    if (parsedData.reserve2 > 1) {
+    if (parsedData.reserve2 > willMigrateAt) {
         console.log('🚀 Migration threshold reached! Moving to Raydium...');
         try {
             const result = await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
-            console.log('Migration transaction:', result);
         } catch (error:any) {
             console.error('Migration failed:', error);
         }
@@ -484,61 +480,53 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 // Remove liquidity pool and Create Raydium Pool
 export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) => {
     console.log('Starting Raydium migration for token:', mint1.toBase58());
+    const ourFeeToKeep = 31_000_000
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);
-        const requiredBalance = 1; // 3 SOL to be safe
+        const requiredBalance = 5_000_000_000; // 5 SOL to be safe
         
         if (balance < requiredBalance) {
             throw new Error(`Insufficient SOL balance. Have: ${balance/1e9} SOL, Need: ${requiredBalance/1e9} SOL`);
         }
 
-    const amountOne = 100000 // r1;    // tokens to raydium
-    const amountTwo = 100000 // r2 - 1000;   // sol to raydium minus fee
+    const amountOne = r1;    // tokens to raydium
+    const amountTwo = r2 - ourFeeToKeep;   // sol to raydium minus fee
     // 🔹 Fetch remove liquidity instructions (returns structured output)
-const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
+    const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
 
-const tx = new Transaction().add(
-    ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
-);
-tx.add(removeLiquidityTX.ixs[0])
+    const tx = new Transaction().add(
+        ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
+    );
+    tx.add(removeLiquidityTX.ixs[0])
 
-tx.feePayer = adminKeypair.publicKey;
-tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    tx.feePayer = adminKeypair.publicKey;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-// ✅ Simulate transaction before sending
-console.log("🔹 Simulating Transaction...");
-// await simulateTransaction(connection, tx);
+    // ✅ Simulate transaction before sending
+    console.log("🔹 Simulating Transaction...");
+    await simulateTransaction(connection, tx);
 
-// ✅ Send transaction with preflight check
-// const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair], {
-//     commitment: "finalized", // Ensures transaction is fully confirmed
-// });
+    // ✅ Send transaction with preflight check
+    const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair], {
+        commitment: "finalized", // Ensures transaction is fully confirmed
+    });
+    console.log("✅ LIQUIDITY REMOVED!");
 
-// await sleep(20000)
-console.log("✅ LIQUIDITY REMOVED!");
-console.log("🔹 Creating Raydium Market...");
-// const marketId = await createMarket(mint1)
-const marketId = "483bWr1PkiktzjSfRLqrv9VM6g6tDsSETJf8NruUQdna"
-console.log("marketID", marketId.toString())
-console.log("🔹 Converting to WSOL...");
-// wrapSOLToWSOL(connection, adminKeypair, amountTwo )
-console.log("SLEEPING");
-// await sleep(20000)
-console.log("🔹 Creating Raydium AMM Pool...");
-const poolAddress = await createAmmPool(mint1, marketId, amountOne, amountTwo)
-// const poolAddress = "4gxhnnub4CqwkC1Y9mbVJwVGEb6GDJZatx7syQnsKiLZ"
-console.log("SLEEPING");
-// await sleep(20000)
-// console.log("adding liquidity to New Pool...")
-// await addLiquidityRaydium(poolAddress, mint1)
-    
-    return // sig;
+    await sleep(20000)
+    const marketId = await createMarket(mint1)
+    // const marketId = "483bWr1PkiktzjSfRLqrv9VM6g6tDsSETJf8NruUQdna"
+    wrapSOLToWSOL(connection, adminKeypair, amountTwo )
+    await sleep(20000)
+    const poolAddress = await createAmmPool(mint1, marketId, amountOne, amountTwo)
+    console.log("✅ Migration to Raydium Complete!");
+ 
 }
 
 function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
 // Get swap(buy and sell)
 function parseLogs(logs: string[], tx: string): ResultType {
     // console.log("📜 Raw logs received:", logs);
@@ -577,7 +565,7 @@ function parseLogs(logs: string[], tx: string): ResultType {
         }
     });
 
-    console.log("✅ Parsed Result:", result);
+    // console.log("✅ Parsed Result:", result);
     return result;
 }
 

@@ -4,11 +4,13 @@ import Modal from "@/components/Modal";
 import UserContext from "@/context/UserContext";
 import { coinInfo, userInfo } from "@/utils/types";
 import { getCoinsInfo, getCoinsInfoBy, getUser } from "@/utils/util";
+import { Cluster } from "@solana/web3.js";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 
 const DEFAULT_AVATAR = '/default-avatar.png';
+const cluster = process.env.SOLANA_NETWORK! as Cluster
 
 export default function Page() {
   const { user, imageUrl, setImageUrl } = useContext(UserContext);
@@ -145,7 +147,7 @@ export default function Page() {
             {index.wallet}
           </p>
           <Link 
-            href={`https://solscan.io/account/${index.wallet}?cluster=devnet`}
+            href={`https://solscan.io/account/${index.wallet}?cluster=${cluster}`}
             className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
           >
             View on Solscan ↗

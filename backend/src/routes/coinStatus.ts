@@ -5,7 +5,6 @@ import User from "../models/User";
 
 
 export const setCoinStatus = async (data: ResultType) => {
-    console.log("DATA", data)
     const coinId = await Coin.findOne({ token: data.mint }).select('_id');
     const userId = await User.findOne({ wallet: data.owner }).select('_id');
 
@@ -59,7 +58,7 @@ export const setCoinStatus = async (data: ResultType) => {
     if (!updateCoin) {
         console.error(`❌ Token not found in MongoDB: [${tokenAddress}]`);
     } else {
-        console.log("✅ Updated coin reserves:", updateCoin);
+        console.log("✅ Updated coin reserves")  //, updateCoin);
     }
 };
 
