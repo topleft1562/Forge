@@ -260,12 +260,12 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (processedSignatures.has(logs.signature) || logs.signature === "1111111111111111111111111111111111111111111111111111111111111111") {
         return;
     }
-    
+
     let isSwap = false
     let isRemove
     processedSignatures.add(logs.signature);
     logs.logs.forEach((log: string) => {
-        if (log.includes('SwapData:')) {
+        if (log.includes('RemovalData:')) {
             isRemove = true
         }
         if (log.includes('SwapData:')) {
