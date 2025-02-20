@@ -17,6 +17,7 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
+import { cluster, ourFeeToKeep, willMigrateAt } from "../config/config";
 
 const curveSeed = "CurveConfiguration"
 const POOL_SEED_PREFIX = "liquidity_pool"
@@ -24,7 +25,6 @@ const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
 
-const cluster = process.env.SOLANA_NETWORK as Cluster
 export const connection = new Connection(clusterApiUrl(cluster))
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
@@ -43,7 +43,7 @@ umi.use(mplTokenMetadata());
 
 export const uploadMetadata = async (data: CoinInfo): Promise<any> => {
     // const url = data.url;
-    const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS/'
+    // const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS/'
     // console.log(data)
     const metadata = {
         name: data.name,
@@ -248,195 +248,6 @@ export const checkTransactionStatus = async (transactionId: string) => {
     }
 }
 
-// Swap transaction
-export enum SwapType {
-    SOL_TO_TOKEN = 0,  // Buy
-    TOKEN_TO_SOL = 1   // Sell
-}
-
-export const swapTx = async (
-    mint1: PublicKey,
-    user: Signer,
-    amount: string,
-    type: number
-): Promise<any> => {
-    console.log("========trade swap==============")
-
-    try {
-        const provider = new anchor.AnchorProvider(connection, user as any, {});
-        anchor.setProvider(provider);
-
-        // Verify mint
-        const mintInfo = await connection.getAccountInfo(mint1);
-        if (!mintInfo) {
-            console.error("Mint account does not exist");
-            return;
-        }
-        // console.log("Mint account verified:", mint1.toBase58());
-
-        // Get PDAs
-        const [curveConfig] = PublicKey.findProgramAddressSync(
-            [Buffer.from(curveSeed)],
-            PROGRAM_ID
-        );
-        const [poolPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
-            PROGRAM_ID
-        );
-        const [globalAccount] = PublicKey.findProgramAddressSync(
-            [Buffer.from("global")],
-            PROGRAM_ID
-        );
-
-        // Add verification using raw account data
-        let feeRecipient;
-        try {
-            const configAccountInfo = await connection.getAccountInfo(curveConfig);
-            if (configAccountInfo && configAccountInfo.data) {
-                const feeRecipientBytes = configAccountInfo.data.slice(-32);
-                feeRecipient = new PublicKey(feeRecipientBytes);
-            } else {
-                feeRecipient = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
-            }
-        } catch (e) {
-            feeRecipient = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
-        }
-
-        // Get pool token account
-        const poolTokenOne = await anchor.utils.token.associatedAddress({
-            mint: mint1,
-            owner: globalAccount
-        });
-
-        // Create pool token account if it doesn't exist
-        const poolTokenAccount = await connection.getAccountInfo(poolTokenOne);
-        if (!poolTokenAccount) {
-            await getOrCreateAssociatedTokenAccount(
-                connection,
-                user,
-                mint1,
-                globalAccount,
-                true
-            );
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-
-        // Get user's token account
-        const {instructions, destinationAccounts} = await getATokenAccountsNeedCreate(
-            connection,
-            user.publicKey,
-            user.publicKey,
-            [mint1]
-        );
-
-        const args: SwapArgs = {
-            amount: new anchor.BN(type === SwapType.SOL_TO_TOKEN ? 
-                parseFloat(amount) * LAMPORTS_PER_SOL : 
-                parseFloat(amount) * 1_000_000),
-            style: new anchor.BN(type)
-        };
-
-        const acc: SwapAccounts = {
-            pool: poolPda,
-            globalAccount,
-            mintTokenOne: mint1,
-            poolTokenAccountOne: poolTokenOne,
-            userTokenAccountOne: destinationAccounts[0],
-            user: user.publicKey,
-            feeRecipient: feeRecipient,
-            rent: SYSVAR_RENT_PUBKEY,
-            systemProgram: SystemProgram.programId,
-            tokenProgram: TOKEN_PROGRAM_ID,
-            associatedTokenProgram: ASSOCIATED_PROGRAM_ID
-        };
-
-        // Build transaction
-        const dataIx = swap(args, acc, PROGRAM_ID);
-        const tx = new Transaction();
-
-        // Add compute budget instruction first
-        tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }));
-
-        // Add ATA creation instructions if needed
-        if(instructions.length !== 0) {
-            tx.add(...instructions);
-        }
-
-        // Add the swap instruction
-        tx.add(dataIx);
-
-        // Set the fee payer and get recent blockhash
-        tx.feePayer = user.publicKey;
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-        tx.recentBlockhash = blockhash;
-
-        // Simulate transaction
-        // console.log("Debug - About to simulate transaction");
-        const simResult = await connection.simulateTransaction(tx);
-        // console.log("Simulation result:", simResult);
-
-        // Sign and send transaction
-        const signature = await sendAndConfirmTransaction(
-            connection,
-            tx,
-            [user],
-            {
-                skipPreflight: false,
-                preflightCommitment: 'confirmed'
-            }
-        );
-
-        // console.log("Transaction sent:", signature);
-        return signature;
-
-    } catch (error) {
-        console.log("Error in swap transaction", error);
-        throw error;
-    }
-};
-
-const getATokenAccountsNeedCreate = async (
-    connection: Connection,
-    payer: PublicKey,
-    owner: PublicKey,
-    mints: PublicKey[]
-): Promise<{
-    instructions: TransactionInstruction[];
-    destinationAccounts: PublicKey[];
-}> => {
-    const instructions: TransactionInstruction[] = [];
-    const destinationAccounts: PublicKey[] = [];
-
-    for (const mint of mints) {
-        const associatedToken = await getAssociatedTokenAddress(
-            mint,
-            owner,
-            false
-        );
-
-        // Check if account exists
-        const account = await connection.getAccountInfo(associatedToken);
-        
-        if (!account) {
-            instructions.push(
-                createAssociatedTokenAccountInstruction(
-                    payer,
-                    associatedToken,
-                    owner,
-                    mint
-                )
-            );
-        }
-        
-        destinationAccounts.push(associatedToken);
-    }
-
-    return {
-        instructions,
-        destinationAccounts
-    };
-};
-
 const processedSignatures = new Set<string>(); // Track already processed transactions
 
 connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
@@ -445,19 +256,15 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     }
     // Prevent duplicate processing
     if (processedSignatures.has(logs.signature) || logs.signature === "1111111111111111111111111111111111111111111111111111111111111111") {
-        return; // Skip if already processed
+        return;
     }
     processedSignatures.add(logs.signature);
-
-    // console.log("RAW:", logs);
-    // console.log("LOGS:", logs.logs, logs.signature);
 
     if (logs.logs[1].includes('AddLiquidity')) {
         return;
     }
 
     const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
-    const willMigrateAt = 500_000_000
 
     console.log('Current reserves:', {
         solReserve: parsedData.reserve2 / 1e9,
@@ -480,7 +287,6 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 // Remove liquidity pool and Create Raydium Pool
 export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) => {
     console.log('Starting Raydium migration for token:', mint1.toBase58());
-    const ourFeeToKeep = 100_000_000
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);

@@ -4,13 +4,11 @@ import Modal from "@/components/Modal";
 import UserContext from "@/context/UserContext";
 import { coinInfo, userInfo } from "@/utils/types";
 import { getCoinsInfo, getCoinsInfoBy, getUser } from "@/utils/util";
-import { Cluster } from "@solana/web3.js";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 
 const DEFAULT_AVATAR = '/default-avatar.png';
-const cluster = process.env.SOLANA_NETWORK! as Cluster
 
 export default function Page() {
   const { user, imageUrl, setImageUrl } = useContext(UserContext);

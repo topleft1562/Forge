@@ -11,6 +11,7 @@ import chartRoutes from "./routes/chart";
 import { init } from "./db/dbConncetion";
 import { logger } from "./sockets/logger";
 import corsConfig from "./config/cors";
+import { cluster } from "./config/config";
 
 const app = express();
 
@@ -26,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
-    environment: process.env.NODE_ENV,
+    environment: cluster,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     dbStatus:
@@ -42,9 +43,6 @@ app.get("/health", (req, res) => {
     await init();
   } catch (error) {
     logger.error("Failed to initialize database:", error);
-    if (process.env.NODE_ENV === "production") {
-      process.exit(1);
-    }
   }
 })();
 
@@ -61,7 +59,7 @@ app.use(
     logger.error("Error:", err);
     res.status(500).json({
       error: "Internal Server Error",
-      message: process.env.NODE_ENV === "development" ? err.message : undefined,
+      message: err.message,
     });
   }
 );

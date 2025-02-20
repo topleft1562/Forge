@@ -10,9 +10,9 @@ import {
 } from '@raydium-io/raydium-sdk-v2'
 import BN from 'bn.js'
 import base58 from "bs58"
+import { cluster } from "../config/config"
 
 
-const cluster = process.env.SOLANA_NETWORK as Cluster
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
 
 export const owner: Keypair = Keypair.fromSecretKey(privateKey)

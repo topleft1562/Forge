@@ -5,7 +5,7 @@ import { logger } from './sockets/logger';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 const ENV = process.env.NODE_ENV || 'development';
 
 const server = createServer(app);
