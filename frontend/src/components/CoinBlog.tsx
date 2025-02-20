@@ -19,8 +19,8 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
     const updateMarketCap = async () => {
       try {
         if (!coin?.reserveOne || !coin?.reserveTwo) {
-          console.warn('Missing reserve values:', coin);
-          return;
+          // console.warn('Missing reserve values:', coin);
+          // return;
         }
         
         const mcap = await calculateMarketCap(coin.reserveOne, coin.reserveTwo);

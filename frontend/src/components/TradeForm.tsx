@@ -54,7 +54,6 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
 
     const handlTrade = async () => {
         setIsLoading(true);
-        console.log("here")
         
         try {
             /*
