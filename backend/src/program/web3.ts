@@ -254,34 +254,52 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (logs.err !== null) {
         return;
     }
-    // Prevent duplicate processing
+    console.log(logs)
+    console.log("log1:", logs.logs[1])
     if (processedSignatures.has(logs.signature) || logs.signature === "1111111111111111111111111111111111111111111111111111111111111111") {
         return;
     }
     processedSignatures.add(logs.signature);
+    // IF SWAP BUY OR SELL - Do this.
+    if (logs.logs[1].includes('Swap')) {
+        const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
+        await setCoinStatus(parsedData);
+    
+        console.log('Current reserves:', {
+            solReserve: parsedData.reserve2 / 1e9,
+            willMigrate: parsedData.reserve2 > willMigrateAt
+        });
 
-    if (logs.logs[1].includes('AddLiquidity')) {
-        return;
-    }
-
-    const parsedData: ResultType = parseLogs(logs.logs, logs.signature);
-
-    console.log('Current reserves:', {
-        solReserve: parsedData.reserve2 / 1e9,
-        willMigrate: parsedData.reserve2 > willMigrateAt
-    });
-
-    if (parsedData.reserve2 > willMigrateAt) {
-        console.log('🚀 Migration threshold reached! Moving to Raydium...');
-        try {
-            const result = await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
-        } catch (error:any) {
-            console.error('Migration failed:', error);
+        if (parsedData.reserve2 > willMigrateAt) {
+            console.log('🚀 Migration threshold reached! Moving to Raydium...');
+            try {
+                await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
+            } catch (error:any) {
+                console.error('Migration failed:', error);
+            }
+            return;
         }
+    }
+    if (logs.logs[1].includes('RemoveLiquidity')) {
+        const tx = logs.signature
+        const result: ResultType = {
+            tx,
+            mint: '',
+            owner: '',
+            swapType: 1,
+            swapAmount: 0,
+            reserve1: 0,
+            reserve2: 0,
+            name: "",
+            ticker: "",
+            description: "",
+            url: "",
+            creator: null
+        };
+        await setCoinStatus(result);
         return;
     }
     
-    await setCoinStatus(parsedData);
 });
 
 // Remove liquidity pool and Create Raydium Pool
