@@ -9,7 +9,7 @@ use crate::utils::convert_from_float;
 use crate::utils::convert_to_float;
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, CloseAccount};
 use std::cmp;
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -185,6 +185,19 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                 system_program,
                 bump
             )?;
+
+            // Close the Pool Token Account to reclaim rent
+    token::close_account(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            CloseAccount {
+                account: token_one_accounts.1.to_account_info(),
+                destination: token_two_accounts.2.to_account_info(), // Send reclaimed SOL to dev wallet
+                authority: token_two_accounts.1.to_account_info(),
+            },
+            &[&[b"global", &[bump]]], // PDA signer if needed
+        ),
+    )?;
 
         msg!("Liquidity Removed From Forge Tokens: {}, SOL: {}", self.reserve_one, self.reserve_two);
         msg!(
