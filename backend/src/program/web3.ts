@@ -374,21 +374,27 @@ function parseLogs(logs: string[], tx: string): ResultType {
     };
 
     logs.forEach((log: string) => {
-        if (log.includes('SwapData:')) {
+        if (log.includes('SwapData:') || log.includes('RemovalData:')) {
+            const isRemoval = log.includes('RemovalData:');
+    
             const data = log
-                .replace("Program log: SwapData: ", "") // Fix this line!
+                .replace(/Program log: (SwapData|RemovalData): /, "")
                 .split(", ")
                 .reduce<Record<string, string>>((acc, entry) => {
                     const [key, value] = entry.split(": ");
-                    acc[key.trim()] = value.trim();
+                    acc[key.trim()] = value ? value.trim() : "";
                     return acc;
                 }, {});
-
+    
             result.mint = data.Mint || '';
             result.swapAmount = parseInt(data.Amount) || 0;
             result.swapType = parseInt(data.Style) || 0;
             result.reserve1 = parseInt(data.PostReserve1) || 0;
             result.reserve2 = parseInt(data.PostReserve2) || 0;
+    
+            if (isRemoval) {
+                result.isMigrated = true;
+            }
         }
     });
 

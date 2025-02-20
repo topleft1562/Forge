@@ -22,7 +22,8 @@ pub struct LiquidityPool {
     pub reserve_one: u64,  // 8 bytes
     pub reserve_two: u64,  // 8 bytes
     pub bump: u8,          // 1 byte
-    pub padding: [u8; 7],  // 7 bytes to make total size 96 bytes
+    pub is_migrated: bool, // 1 byte
+    pub padding: [u8; 6],  // 7 bytes to make total size 96 bytes
 }
 
 impl LiquidityPool {
@@ -40,7 +41,8 @@ impl LiquidityPool {
             reserve_one: 0_u64,
             reserve_two: 0_u64,
             bump,
-            padding: [0; 7], // Initialize padding
+            is_migrated: false,
+            padding: [0; 6], // Initialize padding
         }
     }
 }
@@ -162,7 +164,9 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
         token_program: &Program<'info, Token>,
         system_program: &Program<'info, System>,
     ) -> Result<()> {
-
+        if self.is_migrated {
+            return err!(CustomError::IsMigrated);
+        }
             // Transfer tokens from pool to RAYDIUM
             self.transfer_token_from_pool(
                 token_one_accounts.1, // from Pools TOKEN account
@@ -183,9 +187,12 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             )?;
 
         msg!("Liquidity Removed From Forge Tokens: {}, SOL: {}", self.reserve_one, self.reserve_two);
+        msg!(
+                "RemovalData: Mint: {}, Amount: {}, Style: {}, PostReserve1: {}, PostReserve2: {}",
+                self.token_one, 0, 0, self.reserve_one, self.reserve_two
+            );
         self.reserve_one = 0;
         self.reserve_two = 0;
-        self.total_supply = 0;
         Ok(())
     }
 
@@ -211,6 +218,9 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
     ) -> Result<()> {
         if amount <= 0 {
             return err!(CustomError::InvalidAmount);
+        }
+        if self.is_migrated {
+            return err!(CustomError::IsMigrated);
         }
 
         let TOTAL_SUPPLY = self.total_supply as u128;
@@ -467,6 +477,12 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
         token_program: &Program<'info, Token>,
         system_program: &Program<'info, System>, // Added parameter
     ) -> Result<()> {
+        if self.is_migrated {
+            return err!(CustomError::IsMigrated);
+        }
+        if self.total_supply > 0 {
+            return err!(CustomError::DuplicateTokenNotAllowed);
+        }
         msg!("Adding liquidity: amount_one={}, amount_two={}", amount_one, amount_two);
     
         let new_reserves_one = self.reserve_one
