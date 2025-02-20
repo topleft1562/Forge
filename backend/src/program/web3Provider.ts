@@ -10,7 +10,7 @@ import {
 } from '@raydium-io/raydium-sdk-v2'
 import BN from 'bn.js'
 import base58 from "bs58"
-import { cluster } from "../config/config"
+import { cluster, initialSOL, totalSupply } from "../config/config"
 
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
@@ -97,7 +97,7 @@ export const createLPIx = async (
     associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
     systemProgram: SystemProgram.programId
   };
-  
+  /*
   console.log("AddLiquidity Accounts:", {
     ...acc,
     pool: acc.pool.toBase58(),
@@ -107,16 +107,17 @@ export const createLPIx = async (
     userTokenAccountOne: acc.userTokenAccountOne.toBase58(),
     user: acc.user.toBase58(),
   });
-
+*/
   const args: AddLiquidityArgs = {
-    amountOne: new anchor.BN(1000000000000000),
-    amountTwo: new anchor.BN(30000000)
+    amountOne: new anchor.BN(totalSupply),
+    amountTwo: new anchor.BN(initialSOL)
   };
+  /*
   console.log("AddLiquidity Args:", {
     amountOne: args.amountOne.toString(),
     amountTwo: args.amountTwo.toString()
   });
-
+*/
   const ix = addLiquidity(args, acc);
   // console.log("AddLiquidity instruction created");
 

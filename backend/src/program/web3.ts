@@ -1,7 +1,7 @@
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { ComputeBudgetProgram, Connection, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL, Cluster } from "@solana/web3.js";
+import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL, Cluster } from "@solana/web3.js";
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
@@ -9,18 +9,13 @@ import { createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { PROGRAM_ID } from "./cli/programId";
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountInstruction } from "@solana/spl-token";
-import { SwapAccounts, SwapArgs, swap } from "./cli/instructions";
-import * as anchor from "@coral-xyz/anchor"
-import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, INITIAL_PRICE, ourFeeToKeep, willMigrateAt } from "../config/config";
+import { cluster, INITIAL_PRICE, ourFeeToKeep, totalSupply, willMigrateAt } from "../config/config";
 
-const curveSeed = "CurveConfiguration"
-const POOL_SEED_PREFIX = "liquidity_pool"
+
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
@@ -94,7 +89,7 @@ export const createToken = async (data: CoinInfo) => {
             uri: data.url,
             sellerFeeBasisPoints: percentAmount(0),
             decimals: 6,
-            amount: 1000_000_000_000_000,
+            amount: totalSupply,
             tokenOwner: userWallet.publicKey,
             tokenStandard: TokenStandard.Fungible,
         });
