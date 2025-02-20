@@ -7,14 +7,11 @@ import { TradingChart } from "@/components/TVChart/TradingChart";
 import { coinInfo } from "@/utils/types";
 import {
     getCoinInfo,
-    getCoinTrade,
-    getCoinsInfoBy,
     getCoinsInfo,
 } from "@/utils/util";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import { MarketCap } from "@/components/MarketCap";
 import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
@@ -22,6 +19,7 @@ import { FaTwitter, FaTelegram } from "react-icons/fa";
 import { calculateMarketCap, formatMarketCap } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
+import { TargetMarketCap } from "@/confgi";
 
 export default function Page() {
     const pathname = usePathname();
@@ -313,12 +311,12 @@ export default function Page() {
                                 <MarketCap
                                     reserveOne={coin.reserveOne}
                                     reserveTwo={coin.reserveTwo}
-                                    targetCap={65000}
+                                    targetCap={TargetMarketCap}
                                 />
 
                                 <div className="space-y-4">
                                     <p className="text-sm text-[#888] leading-relaxed">
-                                        When market cap reaches $65k all
+                                        When market cap reaches ${TargetMarketCap} all
                                         liquidity from the bonding curve will be
                                         deposited into Raydium and burned.
                                         Progression increases as buys comes in

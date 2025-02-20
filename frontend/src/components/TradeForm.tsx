@@ -155,49 +155,9 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex justify-end">
-                        <button
-                            onClick={() => setShowSlippage(!showSlippage)}
-                            className="text-sm text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors flex items-center gap-1"
-                        >
-                            Max Slippage: {slippage}%
-                            <svg
-                                className={`w-4 h-4 transition-transform ${
-                                    showSlippage ? "rotate-180" : ""
-                                }`}
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 9l-7 7-7-7"
-                                />
-                            </svg>
-                        </button>
-                    </div>
+                    
 
-                    {showSlippage && (
-                        <div className="animate-fade-in">
-                            <label className="block text-[#888] text-sm mb-2">
-                                Adjust Max Slippage
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    value={slippage}
-                                    onChange={handleSlippageChange}
-                                    className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
-                                    placeholder="Enter max slippage %"
-                                />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
-                                    %
-                                </span>
-                            </div>
-                        </div>
-                    )}
+                  
 
                     <div>
                         <label className="block text-[#888] text-sm mb-2">

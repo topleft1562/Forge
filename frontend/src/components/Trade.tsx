@@ -3,6 +3,7 @@ import { formatSOL, formatTokenAmount, formatDate } from "@/utils/format";
 import Link from "next/link";
 import React from "react";
 import { FiExternalLink } from 'react-icons/fi';
+import { cluster } from "@/confgi";
 
 interface TradePropsInfo {
   trade: recordInfo;
@@ -10,7 +11,7 @@ interface TradePropsInfo {
 }
 
 const DEFAULT_AVATAR = '/default-avatar.png';
-const cluster = process.env.CLUSTER
+
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
   const isBuy = trade.holdingStatus === 2;

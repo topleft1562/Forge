@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { calculateMarketCap, formatMarketCap, fetchSolPrice } from '@/utils/marketCap';
+import { TargetMarketCap, TargetSOL } from '@/confgi';
 
 interface MarketCapProps {
     reserveOne: number;
@@ -10,7 +11,7 @@ interface MarketCapProps {
 export const MarketCap: React.FC<MarketCapProps> = ({ 
     reserveOne, 
     reserveTwo, 
-    targetCap = 65000
+    targetCap = TargetMarketCap
 }) => {
     const [marketCap, setMarketCap] = useState<number>(0);
     const [progress, setProgress] = useState<number>(0);
@@ -23,7 +24,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                 setIsLoading(true);
                 const mcap = await calculateMarketCap(reserveOne, reserveTwo);
                 setMarketCap(mcap);
-                const value = Math.floor(reserveOne / 10_000_000_000_000);
+                const value = Math.min(100, Math.max(0, (reserveTwo / TargetSOL) * 100));
                 setProgress(100 - value);
                 setError(null);
             } catch (error) {
