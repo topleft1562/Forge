@@ -19,7 +19,7 @@ import { FaTwitter, FaTelegram } from "react-icons/fa";
 import { calculateMarketCap, formatMarketCap } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
-import { TargetMarketCap } from "@/confgi";
+import { TargetMarketCap, TargetSOL } from "@/confgi";
 
 export default function Page() {
     const pathname = usePathname();
@@ -45,7 +45,7 @@ export default function Page() {
             setParam(parameter);
             const data = await getCoinInfo(parameter);
             setCoin(data);
-            const value = Math.floor(data.reserveOne / 10_000_000_000_000);
+            const value = Math.min(100, Math.max(0, (coin.reserveTwo / TargetSOL) * 100));
             setProgress(100 - value);
         };
         fetchData();
