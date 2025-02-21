@@ -36,6 +36,7 @@
     "react-toastify": "^10.0.5",
     "react-use": "^17.5.0",
     "tailwind-merge": "^2.3.0",
+    "usb": "^2.14.0",
     "viem": "^2.14.2"
   },
   "devDependencies": {
