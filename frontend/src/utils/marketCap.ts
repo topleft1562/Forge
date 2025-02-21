@@ -1,3 +1,5 @@
+import { totalSupply } from "@/confgi";
+
 let cachedSolPrice: number | null = null;
 let lastPriceFetch = 0;
 const PRICE_CACHE_DURATION = 30000; // 30 seconds
@@ -53,10 +55,40 @@ export const calculateMarketCap = async (
     const priceInUSD = priceInSol * solPrice;
     
     // Calculate market cap
-    const marketCap = priceInUSD * (tokenAmount / 1e6); // Use 6 decimals for total supply
+    const marketCap = priceInUSD * totalSupply;
     
     // Return rounded number to avoid floating point issues
     return Math.round(marketCap * 100) / 100;
+};
+
+export const calculateLaunchPrice = async (
+    reserveOne: number | string, 
+    reserveTwo: number | string
+): Promise<number> => {
+    // Convert inputs to numbers and handle scientific notation
+    const tokenAmount = Number(reserveOne);
+    const solAmount = Number(reserveTwo) / 1e9; // Convert lamports to SOL
+    
+    // Validate inputs
+    if (isNaN(tokenAmount) || isNaN(solAmount)) {
+        throw new Error('Invalid reserve values');
+    }
+    
+    if (tokenAmount <= 0) {
+        return 0;
+    }
+    
+    // Get SOL price
+    const solPrice = await fetchSolPrice();
+    
+    // Calculate price per token in SOL
+    const priceInSol = solAmount / (tokenAmount / 1e6); // Adjust token amount for 6 decimals
+    
+    // Convert to USD
+    const priceInUSD = priceInSol * solPrice;
+    
+    // Return rounded number to avoid floating point issues
+    return Math.round(priceInUSD * 100) / 100;
 };
 
 // Add this export
