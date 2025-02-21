@@ -2,7 +2,8 @@
 nixPkgs = ["nodejs_18", "python3"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = ["npm install usb --build-from-source=false", "npm install"]
 
 [phases.build]
 cmds = []  # This disables the build step
+
