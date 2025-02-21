@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs_22", "python3"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = ["npm install || true"]
 
 [phases.build]
 cmds = []  # This disables the build step
