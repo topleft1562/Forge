@@ -37,6 +37,7 @@ export default function Page() {
         ? coin?.description
         : coin?.description?.slice(0, 120) + (shouldShowReadMore ? "... " : "");
 
+        console.log(coin, progress)
     useEffect(() => {
         const fetchData = async () => {
             // Split the pathname and extract the last segment
@@ -45,11 +46,11 @@ export default function Page() {
             setParam(parameter);
             const data = await getCoinInfo(parameter);
             setCoin(data);
-            const value = Math.min(100, Math.max(0, (coin.reserveTwo / TargetSOL) * 100));
+            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / TargetSOL) * 100));
             setProgress(100 - value);
         };
         fetchData();
-    }, [pathname]);
+    }, [pathname, coin]);
 
     useEffect(() => {
         const updateMarketCap = async () => {

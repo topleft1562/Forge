@@ -14,7 +14,7 @@ const DEFAULT_AVATAR = '/default-avatar.png';
 
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
-  const isBuy = trade.holdingStatus === 2;
+  const isBuy = trade.holdingStatus === 0;
   
   // Format the amount based on transaction type
   const formattedAmount = isBuy 
