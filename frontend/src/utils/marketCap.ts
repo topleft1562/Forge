@@ -91,10 +91,19 @@ export const calculateLaunchPrice = async (
     return Math.round(priceInUSD * 100) / 100;
 };
 
-// Add this export
 export const formatMarketCap = (marketCap: number): string => {
-    if (marketCap >= 1_000_000_000) return `$${(marketCap / 1_000_000_000).toFixed(2)}B`;
-    if (marketCap >= 1_000_000) return `$${(marketCap / 1_000_000).toFixed(2)}M`;
-    if (marketCap >= 1_000) return `$${(marketCap / 1_000).toFixed(2)}k`;
-    return `$${marketCap.toFixed(2)}`;
+    const formatNumber = (value: number, suffix: string) => {
+        if (value >= 1) {
+            return `$${value.toFixed(2)}${suffix}`; // Only show 2 decimals if >= 1
+        }
+
+        // If value is less than 1, keep up to 12 decimals while removing trailing zeros
+        return `$${value.toFixed(16).replace(/\.?0+$/, '')}${suffix}`;
+    };
+
+    if (marketCap >= 1_000_000_000) return formatNumber(marketCap / 1_000_000_000, 'B');
+    if (marketCap >= 1_000_000) return formatNumber(marketCap / 1_000_000, 'M');
+    if (marketCap >= 1_000) return formatNumber(marketCap / 1_000, 'k');
+    
+    return formatNumber(marketCap, '');
 };

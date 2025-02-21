@@ -83,7 +83,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                         Target: {formatMarketCap(targetCap)}
                     </div>
                     <div className="text-xs text-gray-500">
-                        Target: {formatMarketCap(launchPrice)}
+                        Launch Price: {formatMarketCap(launchPrice)}
                     </div>
                 </div>
             </div>
