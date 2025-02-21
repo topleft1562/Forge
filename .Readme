@@ -1,1 +1,32 @@
-starting fresh
+to run on railway =============
+
+run: railway init 
+
+ensure procfile ===========================
+
+web: npm run dev
+
+edit nixpacks.toml ===================
+
+[phases.setup]
+nixPkgs = ["nodejs_18"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = []
+
+then upload to railway ==================
+
+run: railway up
+
+to STOP the railway app ===========
+
+run: railway down
+
+
+
+Railway will auto detect updates to github. and redeploy
+
+
