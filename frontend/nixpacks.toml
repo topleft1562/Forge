@@ -6,6 +6,3 @@ cmds = ["npm install"]
 
 [phases.build]
 cmds = []  # This disables the build step
-
-[phases.start]
-cmds = ["npm run dev"]
