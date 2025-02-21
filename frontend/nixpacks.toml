@@ -1,9 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_18", "python3", "gcc", "gnumake", "libusb", "pkg-config"]
+nixPkgs = ["nodejs_18", "python3"]
 
 [phases.install]
-cmds = ["npm install usb --build-from-source=false", "npm install"]
+cmds = ["npm install"]
 
 [phases.build]
 cmds = []  # This disables the build step
-
