@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { calculateMarketCap, formatMarketCap, fetchSolPrice } from '@/utils/marketCap';
+import { calculateMarketCap, formatMarketCap, calculateLaunchPrice } from '@/utils/marketCap';
 import { TargetMarketCap, TargetSOL } from '@/confgi';
 
 interface MarketCapProps {
@@ -14,6 +14,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
     targetCap = TargetMarketCap
 }) => {
     const [marketCap, setMarketCap] = useState<number>(0);
+    const [launchPrice, setLaunchPrice] = useState<number>(0);
     const [progress, setProgress] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -24,6 +25,8 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                 setIsLoading(true);
                 const mcap = await calculateMarketCap(reserveOne, reserveTwo);
                 setMarketCap(mcap);
+                const lprice = await calculateLaunchPrice(reserveOne, reserveTwo)
+                setLaunchPrice(lprice)
                 const value = Math.min(100, Math.max(0, (reserveTwo / TargetSOL) * 100));
                 setProgress(100 - value);
                 setError(null);
@@ -78,6 +81,9 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                     
                     <div className="text-xs text-gray-500">
                         Target: {formatMarketCap(targetCap)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                        Target: {formatMarketCap(launchPrice)}
                     </div>
                 </div>
             </div>

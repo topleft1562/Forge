@@ -218,7 +218,7 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
               <div className="grid grid-cols-5 gap-4">
                 <p className="text-[#888] font-medium">Account</p>
                 <p className="text-[#888] font-medium">Type</p>
-                <p className="text-[#888] font-medium">SOL</p>
+                <p className="text-[#888] font-medium">Amount</p>
                 <p className="text-[#888] font-medium">Date</p>
                 <p className="text-[#888] font-medium">Transaction</p>
               </div>

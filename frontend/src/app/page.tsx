@@ -28,15 +28,20 @@ export default function Home() {
       const coins = await getCoinsInfo();
       if (coins !== null) {
         coins.sort((a, b) => a.reserveOne - b.reserveOne);
-
+  
         setData(coins);
         setIsLoading(true);
         setKing(coins[0]);
       }
     };
-    fetchData();
-
+  
+    fetchData(); // Run immediately on mount
+  
+    const interval = setInterval(fetchData, 20000); // Run every 20 seconds
+  
+    return () => clearInterval(interval); // Cleanup on unmount
   }, []);
+  
   const handleSortSelection = (option) => {
     let sortOption: string = '';
     let orderOption: string = "";
