@@ -52,6 +52,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
         return () => clearInterval(interval);
     }, [getBalance]);
 
+    const isDisabled = !user._id || coin.isMigrated
     const handlTrade = async () => {
         setIsLoading(true);
         
@@ -257,15 +258,15 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
 
 <button
   onClick={handlTrade}
-  disabled={!user?._id} // Disable if user or user._id is missing
+  disabled={isDisabled} // Disable if user or user._id is missing
   className={`w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity 
-              ${!user?._id ? "opacity-50 cursor-not-allowed" : ""}`}
+              ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
   style={{
     backgroundImage:
       "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)",
   }}
 >
-  {!user._id ? 'No User!' : isBuy === 0 ? "Buy Token" : "Sell Token"}
+  {!user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
 </button>
                 </div>
             </div>

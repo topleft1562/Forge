@@ -37,7 +37,7 @@ export const Holders: React.FC<HolderInfo> = ({ param, coin }) => {
           totalAmount: 0,
         };
       }
-      acc[holder.name].totalAmount += (-1)**(record.holdingStatus+1)*amount;
+      acc[holder.name].totalAmount += (-1)**(record.holdingStatus+1)*Number(amount);
       return acc;
     }, {} as Record<string, holderInfo>);
 

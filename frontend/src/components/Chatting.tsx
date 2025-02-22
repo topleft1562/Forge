@@ -42,8 +42,10 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
       }
     }
     fetchData();
+        const interval = setInterval(fetchData, 5000);
+        return () => clearInterval(interval);
   }, [isTrades, param]);
-
+  
     // Add these pagination helpers
     const indexOfLastTrade = currentPage * tradesPerPage;
     const indexOfFirstTrade = indexOfLastTrade - tradesPerPage;

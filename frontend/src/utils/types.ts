@@ -46,6 +46,7 @@ export interface coinInfo {
     tokenReserve?: number,  // Same as reserveOne
     solanaReserve?: number, // Same as reserveTwo
     token: string,
+    isMigrated: boolean,
     marketcap?: number,
     replies?: number,
     description?: string,

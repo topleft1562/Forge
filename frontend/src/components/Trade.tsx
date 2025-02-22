@@ -14,12 +14,13 @@ const DEFAULT_AVATAR = '/default-avatar.png';
 
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
-  const isBuy = trade.holdingStatus === 0;
+  const tradeType = trade.holdingStatus;
   
   // Format the amount based on transaction type
-  const formattedAmount = isBuy 
+  const formattedAmount = tradeType === 0 
     ? formatSOL(trade.amount) 
-    : formatTokenAmount(trade.amount); 
+    :  tradeType === 1 ? formatTokenAmount(trade.amount)
+    : "CREATED"; 
   
   // Simplified date format
   const formattedDate = typeof trade.time === 'string' 
@@ -53,11 +54,11 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
           {trade.holder?.name ?? "Unknown"}
           </div>
         </div>
-        <p className={`font-medium ${isBuy ? 'text-[#4BB543]' : 'text-[#FF3B30]'}`}>
-          {isBuy ? "BUY" : "SELL"}
+        <p className={`font-medium ${tradeType === 0 ? 'text-[#4BB543]' : 'text-[#FF3B30]' }`}>
+          {tradeType === 0 ? "BUY" : tradeType === 1 ? "SELL" : "CREATION"}
         </p>
         <p className="text-white">
-          {formattedAmount} {isBuy ? 'SOL' : ticker}
+          {formattedAmount} {tradeType === 0 ? 'SOL' : ticker}
         </p>
         <p className="text-[#888]">
           {formattedDate}
@@ -94,14 +95,14 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
             {trade.holder?.name ?? "Unknown"}
             </div>
           </div>
-          <p className={`font-medium ${isBuy ? 'text-[#4BB543]' : 'text-[#FF3B30]'}`}>
-            {isBuy ? "BUY" : "SELL"}
+          <p className={`font-medium ${tradeType === 0 ? 'text-[#4BB543]' : 'text-[#FF3B30]'}`}>
+          {tradeType === 0 ? "BUY" : tradeType === 1 ? "SELL" : "CREATED"}
           </p>
         </div>
         
         <div className="flex justify-between items-center">
           <p className="text-white">
-            {formattedAmount} {isBuy ? 'SOL' : ticker}
+          {formattedAmount} {tradeType === 0 ? 'SOL' : ticker}
           </p>
           <p className="text-[#888] text-sm">
             {formattedDate}
