@@ -12,7 +12,7 @@ interface TradingChartProps {
 
 const TVChartContainer = dynamic(
     () => import("@/components/TVChart/TVChartContainer").then((mod) => {
-        console.log("TVChartContainer module loaded");
+        // console.log("TVChartContainer module loaded");
         return mod.TVChartContainer;
     }),
     { ssr: false }
@@ -24,7 +24,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
     useEffect(() => {
         // Check if the script is already loaded
         if ((window as any).TradingView) {
-            console.log("TradingView already loaded");
+           // console.log("TradingView already loaded");
             setIsScriptReady(true);
             return;
         }
@@ -35,7 +35,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
         script.type = 'text/javascript';
         script.async = true;
         script.onload = () => {
-            console.log("TradingView script loaded manually");
+            // console.log("TradingView script loaded manually");
             setIsScriptReady(true);
         };
         script.onerror = (error) => {
@@ -50,8 +50,8 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
     }, []);
 
     useEffect(() => {
-        console.log("TradingChart effect - Script ready status:", isScriptReady);
-        console.log("TradingChart effect - Param:", param);
+        // console.log("TradingChart effect - Script ready status:", isScriptReady);
+        // console.log("TradingChart effect - Param:", param);
     }, [isScriptReady, param]);
 
     // Default configuration for the chart
@@ -69,7 +69,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
         studies_overrides: {},
         theme: "dark",
     };
-
+/*
     console.log("TradingChart render - Current state:", {
         isScriptReady,
         hasParam: !!param,
@@ -77,7 +77,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
         hasWindow: typeof window !== 'undefined',
         hasTradingView: typeof window !== 'undefined' && !!(window as any).TradingView
     });
-
+*/
     return (
         <div className="relative w-full h-[600px]">
             <Head>

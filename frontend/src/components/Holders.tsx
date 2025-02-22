@@ -21,7 +21,7 @@ export const Holders: React.FC<HolderInfo> = ({ param, coin }) => {
         setTrades(data)
         const agr=holderCalc(data.record);
         setHolders(agr);
-        console.log("trade holder",agr)
+        // console.log("trade holder",agr)
       }
     }
     fetchData();
@@ -44,7 +44,7 @@ export const Holders: React.FC<HolderInfo> = ({ param, coin }) => {
     return Object.values(aggregation);
   };
 
-  console.log("trades", trades)
+  // console.log("trades", trades)
   return (
     <div className="m-4">
       {holders && holders.map((trade, index) => (
