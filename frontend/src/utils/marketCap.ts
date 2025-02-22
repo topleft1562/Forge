@@ -55,7 +55,7 @@ export const calculateMarketCap = async (
     const priceInUSD = priceInSol * solPrice;
     
     // Calculate market cap
-    const marketCap = priceInUSD * totalSupply;
+    const marketCap = priceInUSD * (totalSupply / 1e6);
     
     // Return rounded number to avoid floating point issues
     return Math.round(marketCap * 100) / 100;
@@ -87,24 +87,23 @@ export const calculateLaunchPrice = async (
     // Convert to USD
     const priceInUSD = priceInSol * solPrice;
     
-    // Return rounded number to avoid floating point issues
     return priceInUSD;
 };
 
 export const calculateCurrentPrice = async (
     reserveOne: number | string, 
-    reserveTwo: number | string
 ): Promise<number> => {
     // Convert inputs to numbers and handle scientific notation
     const tokenAmount = Number(reserveOne);
-    console.log("rw:", reserveOne)
-    console.log(totalSupply, totalSupply - 1000000)
-    const tokensSold = (totalSupply * 1000000) - tokenAmount;
+    const tokensSold = totalSupply - tokenAmount;
     const priceStep = tokensSold / PRICE_INCREMENT_STEP;
     const priceInSol = (INITIAL_PRICE + (priceStep * PRICE_INCREMENT)) / 1000;
-    console.log("currentPrice", priceInSol)
-    // Return rounded number to avoid floating point issues
-    return priceInSol;
+    // Get SOL price
+    const solPrice = await fetchSolPrice();
+
+    const priceInUSD = priceInSol * solPrice;
+    
+    return priceInUSD;
 };
 
 export const formatMarketCap = (marketCap: number): string => {

@@ -16,7 +16,7 @@ import { MarketCap } from "@/components/MarketCap";
 import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
 import { FaTwitter, FaTelegram } from "react-icons/fa";
-import { calculateMarketCap, fetchSolPrice, formatMarketCap } from "@/utils/marketCap";
+import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, fetchSolPrice, formatMarketCap } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
 import { willMigrateAt } from "@/confgi";
@@ -32,6 +32,8 @@ export default function Page() {
     const [showMobileTradeForm, setShowMobileTradeForm] = useState(false);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
     const [TargetMarketCap, setTarget] = useState(100000)
+    const [launchPrice, setLaunchPrice] = useState<number>(0);
+    const [currentPrice, setCurrentPrice] = useState<number>(0);
 
     const shouldShowReadMore = (coin?.description?.length || 0) > 120;
     const description = isDescriptionExpanded
@@ -48,10 +50,14 @@ export default function Page() {
             const data = await getCoinInfo(parameter);
             setCoin(data);
             const value = Math.min(100, Math.max(0, (coin?.reserveTwo / willMigrateAt) * 100));
-            setProgress(100 - value);
+            setProgress(value);
             const sprice = await  fetchSolPrice()
-            const tmc = willMigrateAt * sprice
+            const tmc = (willMigrateAt / 1e6) * sprice
             setTarget(tmc)
+            const lprice = await calculateLaunchPrice(coin?.reserveOne, coin?.reserveTwo)
+                            setLaunchPrice(lprice)
+                            const cprice = await calculateCurrentPrice(coin?.reserveOne)
+                            setCurrentPrice(cprice)
         };
         fetchData();
     }, [pathname, coin]);
@@ -261,6 +267,13 @@ export default function Page() {
                                                 />
                                             </div>
                                         </div>
+                                        <div className="text-xs text-gray-500">
+                        Launch Price: {formatMarketCap(launchPrice)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                        Current Price: {formatMarketCap(currentPrice)}
+                    </div>
+
                                     </div>
 
                                     <div className="shrink-0 flex sm:flex-col items-center sm:items-end gap-4 sm:gap-0">
@@ -316,12 +329,11 @@ export default function Page() {
                                 <MarketCap
                                     reserveOne={coin.reserveOne}
                                     reserveTwo={coin.reserveTwo}
-                                    targetCap={TargetMarketCap}
                                 />
 
                                 <div className="space-y-4">
                                     <p className="text-sm text-[#888] leading-relaxed">
-                                        When market cap reaches ${TargetMarketCap} all
+                                        When market cap reaches {formatMarketCap(TargetMarketCap)} all
                                         liquidity from the bonding curve will be
                                         deposited into Raydium and burned.
                                         Progression increases as buys comes in

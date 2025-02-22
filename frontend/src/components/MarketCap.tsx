@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react';
-import { calculateMarketCap, formatMarketCap, calculateLaunchPrice, calculateCurrentPrice } from '@/utils/marketCap';
+import { calculateMarketCap, formatMarketCap, calculateLaunchPrice, calculateCurrentPrice, fetchSolPrice } from '@/utils/marketCap';
 import { willMigrateAt } from '@/confgi';
 
 interface MarketCapProps {
     reserveOne: number;
     reserveTwo: number;
-    targetCap?: number;
 }
 
 export const MarketCap: React.FC<MarketCapProps> = ({ 
     reserveOne, 
     reserveTwo, 
-    targetCap = willMigrateAt
 }) => {
     const [marketCap, setMarketCap] = useState<number>(0);
+    const [tMarket, settMarket] = useState(1)
     const [launchPrice, setLaunchPrice] = useState<number>(0);
     const [currentPrice, setCurrentPrice] = useState<number>(0);
     const [progress, setProgress] = useState<number>(0);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
         const updateMarketCap = async () => {
@@ -28,10 +28,13 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                 setMarketCap(mcap);
                 const lprice = await calculateLaunchPrice(reserveOne, reserveTwo)
                 setLaunchPrice(lprice)
-                const cprice = await calculateCurrentPrice(reserveOne, reserveTwo)
+                const cprice = await calculateCurrentPrice(reserveOne)
                 setCurrentPrice(cprice)
                 const value = Math.min(100, Math.max(0, (reserveTwo / willMigrateAt) * 100));
-                setProgress(100 - value);
+                setProgress(value);
+                const sprice = await  fetchSolPrice()
+                const tmc = (willMigrateAt / 1e6) * sprice
+                settMarket(tmc)
                 setError(null);
             } catch (error) {
                 console.error('Error calculating market cap:', error);
@@ -44,7 +47,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
         updateMarketCap();
         const interval = setInterval(updateMarketCap, 5000);
         return () => clearInterval(interval);
-    }, [reserveOne, reserveTwo, targetCap]);
+    }, [reserveOne, reserveTwo, willMigrateAt]);
 
     if (error) {
         return (
@@ -83,7 +86,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                     </div>
                     
                     <div className="text-xs text-gray-500">
-                        Target: {formatMarketCap(targetCap)}
+                        Target: {formatMarketCap(tMarket)}
                     </div>
                     <div className="text-xs text-gray-500">
                         Launch Price: {formatMarketCap(launchPrice)}
