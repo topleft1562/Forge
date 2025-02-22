@@ -37,7 +37,7 @@ export default function Page() {
         ? coin?.description
         : coin?.description?.slice(0, 120) + (shouldShowReadMore ? "... " : "");
 
-        console.log(coin, progress)
+        // console.log(coin, progress)
     useEffect(() => {
         const fetchData = async () => {
             // Split the pathname and extract the last segment

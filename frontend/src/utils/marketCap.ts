@@ -1,4 +1,4 @@
-import { totalSupply } from "@/confgi";
+import { INITIAL_PRICE, PRICE_INCREMENT, PRICE_INCREMENT_STEP, totalSupply } from "@/confgi";
 
 let cachedSolPrice: number | null = null;
 let lastPriceFetch = 0;
@@ -88,7 +88,23 @@ export const calculateLaunchPrice = async (
     const priceInUSD = priceInSol * solPrice;
     
     // Return rounded number to avoid floating point issues
-    return Math.round(priceInUSD * 100) / 100;
+    return priceInUSD;
+};
+
+export const calculateCurrentPrice = async (
+    reserveOne: number | string, 
+    reserveTwo: number | string
+): Promise<number> => {
+    // Convert inputs to numbers and handle scientific notation
+    const tokenAmount = Number(reserveOne);
+    console.log("rw:", reserveOne)
+    console.log(totalSupply, totalSupply - 1000000)
+    const tokensSold = (totalSupply * 1000000) - tokenAmount;
+    const priceStep = tokensSold / PRICE_INCREMENT_STEP;
+    const priceInSol = (INITIAL_PRICE + (priceStep * PRICE_INCREMENT)) / 1000;
+    console.log("currentPrice", priceInSol)
+    // Return rounded number to avoid floating point issues
+    return priceInSol;
 };
 
 export const formatMarketCap = (marketCap: number): string => {
