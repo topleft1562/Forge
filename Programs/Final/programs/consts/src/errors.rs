@@ -2,6 +2,9 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum CustomError {
+    #[msg("Already Migrated!")]
+    IsMigrated,
+
     #[msg("Duplicate tokens are not allowed")]
     DuplicateTokenNotAllowed,
 

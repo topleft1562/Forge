@@ -3,7 +3,6 @@ use crate::consts::PRICE_INCREMENT_STEP;
 use crate::consts::INITIAL_PRICE;
 use crate::consts::PRICE_INCREMENT;
 use crate::consts::SELL_REDUCTION;
-use crate::consts::MIGRATIONFEE;
 use crate::errors::CustomError;
 use crate::utils::convert_from_float;
 use crate::utils::convert_to_float;

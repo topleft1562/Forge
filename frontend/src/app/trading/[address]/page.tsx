@@ -16,10 +16,10 @@ import { MarketCap } from "@/components/MarketCap";
 import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
 import { FaTwitter, FaTelegram } from "react-icons/fa";
-import { calculateMarketCap, formatMarketCap } from "@/utils/marketCap";
+import { calculateMarketCap, fetchSolPrice, formatMarketCap } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
-import { TargetMarketCap, TargetSOL } from "@/confgi";
+import { willMigrateAt } from "@/confgi";
 
 export default function Page() {
     const pathname = usePathname();
@@ -31,6 +31,7 @@ export default function Page() {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [showMobileTradeForm, setShowMobileTradeForm] = useState(false);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+    const [TargetMarketCap, setTarget] = useState(100000)
 
     const shouldShowReadMore = (coin?.description?.length || 0) > 120;
     const description = isDescriptionExpanded
@@ -46,8 +47,11 @@ export default function Page() {
             setParam(parameter);
             const data = await getCoinInfo(parameter);
             setCoin(data);
-            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / TargetSOL) * 100));
+            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / willMigrateAt) * 100));
             setProgress(100 - value);
+            const sprice = await  fetchSolPrice()
+            const tmc = willMigrateAt * sprice
+            setTarget(tmc)
         };
         fetchData();
     }, [pathname, coin]);
