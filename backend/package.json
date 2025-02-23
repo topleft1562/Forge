@@ -15,6 +15,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.0",
     "@metaplex-foundation/mpl-token-metadata": "^3.2.1",
+    "@metaplex-foundation/mpl-toolbox": "^0.10.0",
     "@metaplex-foundation/umi": "^0.9.1",
     "@metaplex-foundation/umi-bundle-defaults": "^0.9.1",
     "@pinata/sdk": "^2.1.0",

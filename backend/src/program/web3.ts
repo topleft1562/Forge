@@ -98,7 +98,7 @@ export const createToken = async (data: CoinInfo) => {
         // console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
         // console.log("Mint transaction:", mintTx);
 
-        await sleep(5000);
+        await sleep(10000);
         // console.log("Starting LP creation...");
 
         try {
@@ -124,7 +124,7 @@ export const createToken = async (data: CoinInfo) => {
                 
                 await sleep(2000);
             }
-        
+        /*
             // Then initialize the pool for this specific token
             // console.log("Initializing pool for token:", mint.publicKey);
             const poolInitTx = await initializePoolIx(new PublicKey(mint.publicKey), adminKeypair.publicKey);
@@ -134,7 +134,7 @@ export const createToken = async (data: CoinInfo) => {
             
             const poolInitTxId = await sendAndConfirmTransaction(connection, poolInitCreateTx, [adminKeypair]);
             // console.log("Pool initialization txId:", poolInitTxId);
-            
+        */
             await sleep(2000);
         
             // Now proceed with LP creation
@@ -172,6 +172,7 @@ export const createToken = async (data: CoinInfo) => {
                 ticker: data.ticker,
                 description: data.description,
                 token: tokenAddress,
+                lastPrice: INITIAL_PRICE / 1000,
                 url,
                 isMigrated: false,
             });
@@ -255,7 +256,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (processedSignatures.has(logs.signature) || logs.signature === "1111111111111111111111111111111111111111111111111111111111111111") {
         return;
     }
-
+    console.log(logs)
     let isSwap = false
     let isRemove
     processedSignatures.add(logs.signature);
@@ -347,6 +348,8 @@ function parseLogs(logs: string[], tx: string): ResultType {
         owner: '',
         swapType: 0,
         swapAmount: 0,
+        swapAmountOut: 0,
+        price: "0",
         reserve1: 0,
         reserve2: 0,
         name: "",
@@ -356,31 +359,34 @@ function parseLogs(logs: string[], tx: string): ResultType {
         creator: null,
         isMigrated: false,
     };
-
     logs.forEach((log: string) => {
         if (log.includes('SwapData:') || log.includes('RemovalData:')) {
-            const isRemoval = log.includes('RemovalData:');
-    
-            const data = log
-                .replace(/Program log: (SwapData|RemovalData): /, "")
-                .split(", ")
-                .reduce<Record<string, string>>((acc, entry) => {
-                    const [key, value] = entry.split(": ");
-                    acc[key.trim()] = value ? value.trim() : "";
-                    return acc;
-                }, {});
-    
-            result.mint = data.Mint || '';
-            result.swapAmount = parseInt(data.Amount) || 0;
-            result.swapType = parseInt(data.Style) || 0;
-            result.reserve1 = parseInt(data.PostReserve1) || 0;
-            result.reserve2 = parseInt(data.PostReserve2) || 0;
-    
-            if (isRemoval) {
-                result.isMigrated = true;
-            }
+          const isRemoval = log.includes('RemovalData:');
+      
+          const data = log
+            .replace(/Program log: (SwapData|RemovalData): /, "")
+            .split(", ")
+            .reduce<Record<string, string>>((acc, entry) => {
+              const [key, value] = entry.split(": ");
+              acc[key.trim()] = value ? value.trim() : "";
+              return acc;
+            }, {});
+          result.mint = data.Mint || '';
+          result.owner = data.Caller || '';
+          result.swapAmount = parseInt(data.AmountIn) || 0;
+          result.swapAmountOut = parseInt(data.AmountOut) || 0;
+          result.price = (parseFloat(data.Price) / 1000).toString() || "0";
+          result.swapType = parseInt(data.Style) || 0;
+          result.reserve1 = parseInt(data.PostReserve1) || 0;
+          result.reserve2 = parseInt(data.PostReserve2) || 0;
+      
+          if (isRemoval) {
+            result.isMigrated = true;
+          }
+          console.log(result.price, data.Price)
         }
-    });
+      });
+      
 
     // console.log("✅ Parsed Result:", result);
     return result;
@@ -397,6 +403,7 @@ export interface CoinInfo {
     token?: string;
     reserve1?: number;
     reserve2?: number;
+    lastPrice?: number;
 }
 
 export interface ResultType {
@@ -410,6 +417,8 @@ export interface ResultType {
     owner: string;
     swapType: number;
     swapAmount: number;
+    swapAmountOut: number;
+    price: string;
     reserve1: number;
     reserve2: number;
     isMigrated: boolean;

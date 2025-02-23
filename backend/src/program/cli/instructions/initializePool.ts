@@ -28,7 +28,7 @@ export function initializePool(
 
     const keys: Array<AccountMeta> = [
         { pubkey: accounts.pool, isSigner: false, isWritable: true },
-        { pubkey: accounts.mintTokenOne, isSigner: false, isWritable: false },
+        { pubkey: accounts.mintTokenOne, isSigner: false, isWritable: true },
         { pubkey: accounts.user, isSigner: true, isWritable: true },
         { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     ]

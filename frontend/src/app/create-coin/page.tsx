@@ -14,6 +14,8 @@ import { IoArrowBack } from "react-icons/io5";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { EmojiClickData } from 'emoji-picker-react';
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { useRouter } from "next/navigation";
+
 
 export default function CreateCoin() {
   const { user, imageUrl, setImageUrl, isCreated, setIsCreated } = useContext(UserContext);
@@ -24,6 +26,7 @@ export default function CreateCoin() {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (
@@ -118,11 +121,13 @@ const createCoin = async () => {
     } else {
         throw new Error('Failed to create coin');
     }
+    router.push(`/trading/${created._id}`);
   } catch (error: any) {
     console.error("Error creating coin:", error);
     errorAlert(error.message || "Failed to create coin. Make sure you have enough SOL in your wallet.");
   } finally {
     setIsLoading(false);
+    
   }
 };
 

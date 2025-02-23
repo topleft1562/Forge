@@ -67,12 +67,7 @@ export const swapTx = async (
       console.log("Warning: Wallet not connected")
       return
   }
-
-  try {
-      const provider = new anchor.AnchorProvider(connection, wallet as any, {});
-      anchor.setProvider(provider);
-
-      // Verify mint
+// Verify mint
       const mintInfo = await connection.getAccountInfo(mint1);
       if (!mintInfo) {
           console.error("Mint account does not exist");
@@ -130,7 +125,8 @@ export const swapTx = async (
       console.log(amount, "====", typeof(amount));
       const args: SwapArgs = {
           amount: new anchor.BN(type===2 ? parseFloat(amount)*1000_000_000 : parseFloat(amount)*1_000_000),
-          style: new anchor.BN(type)
+          style: new anchor.BN(type),
+          minOut: new anchor.BN("9999999999999999999999")
       };
 
       const ADMIN_PUBKEY = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
@@ -161,35 +157,7 @@ export const swapTx = async (
           ASSOCIATED_PROGRAM_ID.toString(),
           SystemProgram.programId.toString(), 
         )
-      // Build transaction
-      const dataIx = swap(args, acc, PROGRAM_ID);
-      const tx = new Transaction();
-      if(instructions.length !== 0) tx.add(...instructions);
-      tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }));
-      tx.add(dataIx);
-      tx.feePayer = wallet.publicKey;
-      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-      if (wallet.signTransaction) {
-          const signedTx = await wallet.signTransaction(tx);
-          const sTx = signedTx.serialize();
-          console.log("----", await connection.simulateTransaction(signedTx));
-          const signature = await connection.sendRawTransaction(sTx, { skipPreflight: false });
-          const blockhash = await connection.getLatestBlockhash();
-
-          const res = await connection.confirmTransaction({
-              signature,
-              blockhash: blockhash.blockhash,
-              lastValidBlockHeight: blockhash.lastValidBlockHeight
-          }, "processed");
-          console.log("Successfully initialized.\n Signature: ", signature);
-          return res;
-      }
-
-  } catch (error) {
-      console.log("Error in swap transaction", error);
-      throw error;
-  }
+   
 };
 
 const getAssociatedTokenAccount = async (

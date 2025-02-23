@@ -1,6 +1,6 @@
 // models/Coin.js
 import mongoose from 'mongoose';
-import { initialSOL, totalSupply } from '../config/config';
+import { INITIAL_PRICE, initialSOL, totalSupply } from '../config/config';
 
 const coinSchema = new mongoose.Schema({
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -11,6 +11,7 @@ const coinSchema = new mongoose.Schema({
     reserveOne: { type: Number, default: totalSupply },
     reserveTwo: { type: Number, default: initialSOL },
     isMigrated: { type: Boolean, default: false},
+    lastPrice: {type: Number},
     url: { type: String, requried: true },
     date:{type:Date, default:new Date}
 });

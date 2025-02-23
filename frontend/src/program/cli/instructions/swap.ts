@@ -6,6 +6,7 @@ import { PROGRAM_ID } from "../programId"
 export interface SwapArgs {
   amount: BN
   style: BN
+  minOut: BN
 }
 
 export interface SwapAccounts {
@@ -22,7 +23,7 @@ export interface SwapAccounts {
   associatedTokenProgram: PublicKey
 }
 
-export const layout = borsh.struct([borsh.u64("amount"), borsh.u64("style")])
+export const layout = borsh.struct([borsh.u64("amount"), borsh.u64("style"), borsh.u64("minOut")])
 
 export function swap(
   args: SwapArgs,
@@ -52,6 +53,7 @@ export function swap(
     {
       amount: args.amount,
       style: args.style,
+      minOut: args.minOut,
     },
     buffer
   )

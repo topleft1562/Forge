@@ -897,7 +897,11 @@ export type Pump = {
               {
                   name: "style";
                   type: "u64";
-              }
+              },
+              {
+                name: "minOut",
+                type: "u64",
+            }
           ];
       }
   ];
@@ -1551,6 +1555,10 @@ export const IDL: Pump = {
                   name: "style",
                   type: "u64",
               },
+              {
+                  name: "minOut",
+                  type: "u64",
+              }
           ],
       },
   ],

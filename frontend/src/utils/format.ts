@@ -30,7 +30,7 @@ export const formatDate = (dateString: string): string => {
 
 export const formatSOL = (amount: number | string): string => {
     const num = Number(amount) / 1e9; // 9 decimals for SOL
-    return isNaN(num) ? '0' : num.toFixed(6); 
+    return isNaN(num) ? '0' : num.toFixed(2); 
 };
 
 // Full numbers for token amounts (6 decimals)

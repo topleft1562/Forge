@@ -217,10 +217,12 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
           <div>
             {/* Table Header - Hide on mobile */}
             <div className="bg-[#1e1f23] rounded-xl p-4 hidden md:block">
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-7 gap-4">
                 <p className="text-[#888] font-medium">Account</p>
                 <p className="text-[#888] font-medium">Type</p>
-                <p className="text-[#888] font-medium">Amount</p>
+                <p className="text-[#888] font-medium">Amount In</p>
+                <p className="text-[#888] font-medium">Amount Out</p>
+                <p className="text-[#888] font-medium">Price</p>
                 <p className="text-[#888] font-medium">Date</p>
                 <p className="text-[#888] font-medium">Transaction</p>
               </div>

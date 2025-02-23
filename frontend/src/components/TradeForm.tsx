@@ -10,6 +10,7 @@ import {
     getAssociatedTokenAddressSync,
     createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
+import { calculateOutPut } from "@/utils/util";
 
 interface TradingFormProps {
     coin: coinInfo;
@@ -19,13 +20,15 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
     const { program } = useProgram();
     const { connection } = useConnection();
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [sol, setSol] = useState<string>("");
+    const [sol, setSol] = useState<string>("0.25");
     const [isBuy, setIsBuy] = useState<number>(0);
     const [tokenBal, setTokenBal] = useState<number>(0);
     const [showSlippage, setShowSlippage] = useState<boolean>(false);
-    const [slippage, setSlippage] = useState<string>("1.0");
+    const [slippage, setSlippage] = useState<string>("0.1");
     const { user } = useContext(UserContext);
     const wallet = useWallet();
+
+    const {amount_out, tokens_at_current_price} = calculateOutPut(coin, parseFloat(sol), isBuy === 0 )
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -47,7 +50,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
     useEffect(() => {
         const interval = setInterval(() => {
             getBalance();
-        }, 10000);
+        }, 3000);
 
         return () => clearInterval(interval);
     }, [getBalance]);
@@ -57,12 +60,13 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
         setIsLoading(true);
         
         try {
-            /*
-            const mint = new PublicKey(coin.token);
-            swapTx(mint, wallet, (parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)).toString(),  isBuy )
-            */
             
             const mint = new PublicKey(coin.token);
+            await swapTx(mint, wallet, (parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)).toString(),  isBuy )
+            
+           // set minOut based on out - x%
+           const minOut = amount_out * (1 - (Number(slippage) / 100));
+            console.log(amount_out, minOut)
             const userWallet = new PublicKey(user.wallet);
 
             // Get the associated token account address
@@ -95,7 +99,8 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
             const txHash = await program.methods
                 .swap(
                     new BN(parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)),
-                    new BN(isBuy)
+                    new BN(isBuy),
+                    new BN(minOut)
                 )
                 .accounts({
                     mintTokenOne: mint,
@@ -143,6 +148,17 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                     >
                         {isLoading ? "Loading..." : "Buy"}
                     </button>
+
+                    <div className="flex flex-col">
+  <span className="text-[#999]">
+    Receive: {amount_out.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
+  </span>
+  <span className="text-[#999]">
+    At Current: {tokens_at_current_price.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
+  </span>
+</div>
+
+
                     <button
                         className={`px-4 py-2 rounded-lg transition-all duration-300 ${
                             isBuy === 1
@@ -157,7 +173,40 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
 
                 <div className="space-y-4">
                     
+                <div className="flex justify-end">
+            <button
+              onClick={() => setShowSlippage(!showSlippage)}
+              className="text-sm text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors flex items-center gap-1"
+            >
+              Max Slippage: {slippage}%
+              <svg 
+                className={`w-4 h-4 transition-transform ${showSlippage ? 'rotate-180' : ''}`}
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
 
+          {showSlippage && (
+            <div className="animate-fade-in">
+              <label className="block text-[#888] text-sm mb-2">
+                Adjust Max Slippage
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={slippage}
+                  onChange={handleSlippageChange}
+                  className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
+                  placeholder="Enter max slippage %"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">%</span>
+              </div>
+            </div>
+          )}
                   
 
                     <div>
@@ -186,7 +235,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                         <div className="flex gap-2 flex-wrap">
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("")}
+                                onClick={() => setSol("0")}
                             >
                                 Clear
                             </button>
@@ -226,7 +275,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
                                 onClick={() =>
-                                    setSol((tokenBal / 10).toString())
+                                    setSol((tokenBal / 10).toFixed(6))
                                 }
                             >
                                 10%
@@ -234,7 +283,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
                                 onClick={() =>
-                                    setSol((tokenBal / 4).toString())
+                                    setSol((tokenBal / 4).toFixed(6))
                                 }
                             >
                                 25%
@@ -242,7 +291,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
                                 onClick={() =>
-                                    setSol((tokenBal / 2).toString())
+                                    setSol((tokenBal / 2).toFixed(6))
                                 }
                             >
                                 50%

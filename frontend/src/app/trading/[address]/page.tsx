@@ -39,7 +39,6 @@ export default function Page() {
     const description = isDescriptionExpanded
         ? coin?.description
         : coin?.description?.slice(0, 120) + (shouldShowReadMore ? "... " : "");
-
         // console.log(coin, progress)
     useEffect(() => {
         const fetchData = async () => {
@@ -49,18 +48,12 @@ export default function Page() {
             setParam(parameter);
             const data = await getCoinInfo(parameter);
             setCoin(data);
-            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / willMigrateAt) * 100));
-            setProgress(value);
-            const sprice = await  fetchSolPrice()
-            const tmc = (willMigrateAt / 1e6) * sprice
-            setTarget(tmc)
-            const lprice = await calculateLaunchPrice(coin?.reserveOne, coin?.reserveTwo)
-                            setLaunchPrice(lprice)
-                            const cprice = await calculateCurrentPrice(coin?.reserveOne)
-                            setCurrentPrice(cprice)
         };
         fetchData();
-    }, [pathname, coin]);
+        const interval = setInterval(fetchData, 30000);
+        return () => clearInterval(interval);
+    }, [pathname]);
+
 
     useEffect(() => {
         const updateMarketCap = async () => {
@@ -91,12 +84,21 @@ export default function Page() {
             } catch (err) {
                 console.error("Error updating market cap:", err);
             }
+            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / willMigrateAt) * 100));
+            setProgress(value);
+            const sprice = await  fetchSolPrice()
+            const tmc = (willMigrateAt / 1e6) * sprice
+            setTarget(tmc)
+            const lprice = await calculateLaunchPrice(coin?.reserveOne, coin?.reserveTwo)
+            setLaunchPrice(lprice)
+            const cprice = await calculateCurrentPrice(coin?.lastPrice)
+            setCurrentPrice(cprice)
         };
 
         updateMarketCap();
         const interval = setInterval(updateMarketCap, 30000);
         return () => clearInterval(interval);
-    }, [coin?.reserveOne, coin?.reserveTwo]);
+    }, [coin]);
 
     // Add this function to handle image errors
     const handleImageError = (
@@ -255,7 +257,7 @@ export default function Page() {
                                                     Bonding Curve
                                                 </p>
                                                 <span className="text-xs text-[#01a8dd]">
-                                                    {progress.toString()}%
+                                                    {progress.toFixed(1)}%
                                                 </span>
                                             </div>
                                             <div className="h-1.5 bg-[#1E1E1E] rounded-full overflow-hidden">
@@ -329,6 +331,7 @@ export default function Page() {
                                 <MarketCap
                                     reserveOne={coin.reserveOne}
                                     reserveTwo={coin.reserveTwo}
+                                    lastPrice={coin.lastPrice}
                                 />
 
                                 <div className="space-y-4">

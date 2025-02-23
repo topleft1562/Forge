@@ -47,6 +47,7 @@ export interface coinInfo {
     solanaReserve?: number, // Same as reserveTwo
     token: string,
     isMigrated: boolean,
+    lastPrice: string,
     marketcap?: number,
     replies?: number,
     description?: string,
@@ -72,6 +73,8 @@ export interface recordInfo {
     holdingStatus: number,
     time: Date | string;
     amount: number | string;
+    amountOut: number | string;
+    price: string;
     tx: string,
 }
 export interface CharTable {

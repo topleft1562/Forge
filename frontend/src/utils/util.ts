@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { ChartTable, coinInfo, msgInfo, replyInfo, userInfo } from './types';
+import { FEE_PERCENTAGE, PRICE_INCREMENT, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const config: AxiosRequestConfig = {
@@ -219,3 +220,40 @@ export const uploadImage = async (url: string) => {
         return false;
     }
 };
+
+export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) => {
+    const amount = input * 10 ** (isBuy ? 9 : 6)
+let amount_out = 0
+let tokens_at_current_price = 0
+const current_price = parseFloat(coin.lastPrice) * 1000
+    if(isBuy) {
+    const fee_amount = amount * FEE_PERCENTAGE;
+    const amount_after_fee = amount - fee_amount
+    
+    // Calculate how many tokens can be bought at current price tier
+    const atPrice = (amount_after_fee / current_price)
+
+    // Adjust price incrementally based on tokens acquired
+    const price_adjustment = (atPrice / 2 / PRICE_INCREMENT_STEP) * PRICE_INCREMENT;
+    const final_price = current_price + price_adjustment;
+    tokens_at_current_price = atPrice / 1e6
+    // Compute tokens acquired using adjusted price
+    amount_out = (amount_after_fee / final_price) / 1e6
+    } else {
+// Calculate how many tokens can be sold at current price tier
+tokens_at_current_price = (amount * current_price) / 1e9;
+
+// Adjust price decrementally based on tokens sold
+const price_adjustment = (amount / 2 / PRICE_INCREMENT_STEP) * PRICE_INCREMENT;
+const final_price = (current_price - price_adjustment) * SELL_REDUCTION;
+
+// Compute SOL received using adjusted price
+const sol_out = amount  * final_price
+
+// Apply SOL fee (0.1%)
+const fee_amount = (sol_out * FEE_PERCENTAGE)
+amount_out = (sol_out - fee_amount) / 1e9
+    }
+
+    return {amount_out, tokens_at_current_price}
+}

@@ -1,4 +1,4 @@
-import { INITIAL_PRICE, PRICE_INCREMENT, PRICE_INCREMENT_STEP, totalSupply } from "@/confgi";
+import { totalSupply } from "@/confgi";
 
 let cachedSolPrice: number | null = null;
 let lastPriceFetch = 0;
@@ -91,13 +91,10 @@ export const calculateLaunchPrice = async (
 };
 
 export const calculateCurrentPrice = async (
-    reserveOne: number | string, 
+    lastPrice: string,
 ): Promise<number> => {
     // Convert inputs to numbers and handle scientific notation
-    const tokenAmount = Number(reserveOne);
-    const tokensSold = totalSupply - tokenAmount;
-    const priceStep = tokensSold / PRICE_INCREMENT_STEP;
-    const priceInSol = (INITIAL_PRICE + (priceStep * PRICE_INCREMENT)) / 1000;
+    const priceInSol = parseFloat(lastPrice) / 1000;
     // Get SOL price
     const solPrice = await fetchSolPrice();
 

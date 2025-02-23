@@ -5,11 +5,13 @@ import { willMigrateAt } from '@/confgi';
 interface MarketCapProps {
     reserveOne: number;
     reserveTwo: number;
+    lastPrice: string;
 }
 
 export const MarketCap: React.FC<MarketCapProps> = ({ 
     reserveOne, 
-    reserveTwo, 
+    reserveTwo,
+    lastPrice
 }) => {
     const [marketCap, setMarketCap] = useState<number>(0);
     const [tMarket, settMarket] = useState(1)
@@ -28,7 +30,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                 setMarketCap(mcap);
                 const lprice = await calculateLaunchPrice(reserveOne, reserveTwo)
                 setLaunchPrice(lprice)
-                const cprice = await calculateCurrentPrice(reserveOne)
+                const cprice = await calculateCurrentPrice(lastPrice)
                 setCurrentPrice(cprice)
                 const value = Math.min(100, Math.max(0, (reserveTwo / willMigrateAt) * 100));
                 setProgress(value);

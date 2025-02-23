@@ -1,9 +1,10 @@
 import { recordInfo } from "@/utils/types";
 import { formatSOL, formatTokenAmount, formatDate } from "@/utils/format";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FiExternalLink } from 'react-icons/fi';
 import { cluster } from "@/confgi";
+import { calculateCurrentPrice } from "@/utils/marketCap";
 
 interface TradePropsInfo {
   trade: recordInfo;
@@ -15,13 +16,28 @@ const DEFAULT_AVATAR = '/default-avatar.png';
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
   const tradeType = trade.holdingStatus;
+  const [ lastPrice, setLastPrice] = useState(0)
   
   // Format the amount based on transaction type
   const formattedAmount = tradeType === 0 
     ? formatSOL(trade.amount) 
     :  tradeType === 1 ? formatTokenAmount(trade.amount)
     : "CREATED"; 
+  const formattedAmountOut = tradeType === 1 
+    ? formatSOL(trade.amountOut) 
+    :  tradeType === 0 ? formatTokenAmount(trade.amountOut)
+    : "CREATED"; 
   
+  useEffect(() => {
+      const fetchData = async () => {
+        const price = await calculateCurrentPrice(trade.price)
+        setLastPrice(price)
+      }
+      fetchData();
+          const interval = setInterval(fetchData, 5000);
+          return () => clearInterval(interval);
+    }, [trade]);
+
   // Simplified date format
   const formattedDate = typeof trade.time === 'string' 
     ? formatDate(trade.time)
@@ -36,33 +52,33 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
   return (
     <div className="my-2 bg-[#0c1015] rounded-xl p-4">
       {/* Desktop Layout */}
-      <div className="hidden md:grid md:grid-cols-5 md:gap-4 md:items-center">
-        <div className="flex items-center">
-          <img
-            src={DEFAULT_AVATAR}
-            alt="IMG"
-            className="rounded-lg mr-3"
-            width={40}
-            height={40}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.onerror = null;
-              target.src = DEFAULT_AVATAR;
-            }}
-          />
-          <div className="px-3 rounded-lg text-white">
+      <div className="hidden md:grid md:grid-cols-7 md:gap-4 md:items-center">
+
+          <div className="px-1 rounded-lg text-white">
           {trade.holder?.name ?? "Unknown"}
           </div>
-        </div>
+       
+
         <p className={`font-medium ${tradeType === 0 ? 'text-[#4BB543]' : 'text-[#FF3B30]' }`}>
           {tradeType === 0 ? "BUY" : tradeType === 1 ? "SELL" : "CREATION"}
         </p>
+
         <p className="text-white">
           {formattedAmount} {tradeType === 0 ? 'SOL' : ticker}
         </p>
+
+        <p className="text-white">
+          {formattedAmountOut} {tradeType === 1 ? 'SOL' : ticker}
+        </p>
+
+        <p className="text-white">
+          ${lastPrice}
+        </p>
+
         <p className="text-[#888]">
           {formattedDate}
         </p>
+
         <Link 
           href={`https://solscan.io/tx/${trade.tx}?cluster=${cluster}`}
           target="_blank"
@@ -73,6 +89,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
             <span>{trade.tx.slice(0, 6)}</span>
           </div>
         </Link>
+
       </div>
 
       {/* Mobile Layout */}
