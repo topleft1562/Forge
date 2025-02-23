@@ -15,8 +15,9 @@ export const setCoinStatus = async (data: ResultType) => {
         holder: userId?._id,
         holdingStatus: data.swapType,
         amount: data.swapAmount,
+        amountOut: data.swapAmountOut,
         tx: data.tx,
-        lastPrice: data.price,
+        price: data.price,
         time: new Date() // Add timestamp if required for tracking
     };
 

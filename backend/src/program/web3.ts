@@ -402,7 +402,7 @@ export interface CoinInfo {
     token?: string;
     reserve1?: number;
     reserve2?: number;
-    lastPrice?: number;
+    lastPrice?: string;
 }
 
 export interface ResultType {
