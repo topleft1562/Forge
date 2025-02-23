@@ -55,14 +55,14 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
         return () => clearInterval(interval);
     }, [getBalance]);
 
-    const isDisabled = !user._id || coin.isMigrated
+    const isDisabled = !user._id || coin.isMigrated || isLoading
     const handlTrade = async () => {
         setIsLoading(true);
         
         try {
             
             const mint = new PublicKey(coin.token);
-            await swapTx(mint, wallet, (parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)).toString(),  isBuy )
+            // await swapTx(mint, wallet, (parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)).toString(),  isBuy )
             
            // set minOut based on out - x%
            const minOut = amount_out * (1 - (Number(slippage) / 100));
