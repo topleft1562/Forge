@@ -1,10 +1,8 @@
-import UserContext from "@/context/UserContext";
 import { useProgram } from "@/contexts/ProgramProvider";
-import { getTokenBalance, swapTx } from "@/program/web3";
-import { coinInfo } from "@/utils/types";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { coinInfo, userInfo } from "@/utils/types";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useState } from "react";
 import { BN } from "@coral-xyz/anchor";
 import {
     getAssociatedTokenAddressSync,
@@ -14,19 +12,18 @@ import { calculateOutPut } from "@/utils/util";
 
 interface TradingFormProps {
     coin: coinInfo;
+    tokenBal: number;
+    user: userInfo;
 }
 
-export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
+export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) => {
     const { program } = useProgram();
     const { connection } = useConnection();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [sol, setSol] = useState<string>("0.25");
     const [isBuy, setIsBuy] = useState<number>(0);
-    const [tokenBal, setTokenBal] = useState<number>(0);
     const [showSlippage, setShowSlippage] = useState<boolean>(false);
     const [slippage, setSlippage] = useState<string>("0.1");
-    const { user } = useContext(UserContext);
-    const wallet = useWallet();
 
     const {amount_out, tokens_at_current_price} = calculateOutPut(coin, parseFloat(sol), isBuy === 0 )
     
@@ -38,23 +35,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
             setSol(""); // Allow empty string to clear the input
         }
     };
-    const getBalance = useCallback(async () => {
-        try {
-            const balance = await getTokenBalance(user.wallet, coin.token);
-            setTokenBal(balance ? balance : 0);
-        } catch (error) {
-            setTokenBal(0);
-        }
-    }, [user.wallet, coin.token]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            getBalance();
-        }, 3000);
-
-        return () => clearInterval(interval);
-    }, [getBalance]);
-
+    
     const isDisabled = !user._id || coin.isMigrated || isLoading
     const handlTrade = async () => {
         setIsLoading(true);
@@ -66,7 +47,6 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
             
            // set minOut based on out - x%
            const minOut = amount_out * (1 - (Number(slippage) / 100));
-            console.log(amount_out, minOut)
             const userWallet = new PublicKey(user.wallet);
 
             // Get the associated token account address

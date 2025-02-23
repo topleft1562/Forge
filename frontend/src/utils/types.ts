@@ -72,8 +72,8 @@ export interface recordInfo {
     holder: userInfo,
     holdingStatus: number,
     time: Date | string;
-    amount: number | string;
-    amountOut: number | string;
+    amount: string;
+    amountOut: string;
     price: string;
     tx: string,
 }

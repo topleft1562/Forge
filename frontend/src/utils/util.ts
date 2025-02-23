@@ -17,7 +17,7 @@ export const test = async () => {
 export const getUser = async ({ id }: { id: string }): Promise<any> => {
     try {
         const response = await axios.get(`${BACKEND_URL}/user/${id}`, config)
-        console.log("response:", response.data)
+        // console.log("response:", response.data)
         return response.data
     } catch (err) {
         return { error: "error setting up the request" }
@@ -26,9 +26,9 @@ export const getUser = async ({ id }: { id: string }): Promise<any> => {
 
 export const walletConnect = async ({ data }: { data: userInfo }): Promise<any> => {
     try {
-        console.log("============walletConnect=========")
+        // console.log("============walletConnect=========")
         const response = await axios.post(`${BACKEND_URL}/user/`, data)
-        console.log("==============response=====================", response.data, config)
+        // console.log("==============response=====================", response.data, config)
         return response.data
     } catch (err) {
         return { error: "error setting up the request" }
@@ -83,9 +83,9 @@ export const createNewCoin = async (data: coinInfo) => {
 
 export const getCoinsInfo = async (): Promise<coinInfo[]> => {
     try {
-        console.log("Attempting to fetch coins from:", `${BACKEND_URL}/coin`);
+        // console.log("Attempting to fetch coins from:", `${BACKEND_URL}/coin`);
         const res = await axios.get(`${BACKEND_URL}/coin`, config);
-        console.log("Coin response:", res.data);
+        // console.log("Coin response:", res.data);
         return res.data;
     } catch (error) {
         console.error("Error fetching coins:", error);
@@ -103,7 +103,7 @@ export const getCoinsInfoBy = async (id: string): Promise<coinInfo[]> => {
 }
 export const getCoinInfo = async (data: string): Promise<any> => {
     try {
-        console.log("coinINfo", data)
+        // console.log("coinINfo", data)
         const response = await axios.get(`${BACKEND_URL}/coin/${data}`, config)
         return response.data
     } catch (err) {
@@ -134,7 +134,7 @@ export const getMessageByCoin = async (data: string): Promise<msgInfo[]> => {
 export const getCoinTrade = async (data: string): Promise<any> => {
     try {
         const response = await axios.get(`${BACKEND_URL}/cointrade/${data}`, config)
-        console.log("trade response::", response)
+        // console.log("trade response::", response)
         return response.data
     } catch (err) {
         return { error: "error setting up the request" }
@@ -142,7 +142,7 @@ export const getCoinTrade = async (data: string): Promise<any> => {
 }
 
 export const postReply = async (data: replyInfo) => {
-    console.log("Sending data:", data);
+    // console.log("Sending data:", data);
     if (!data || Object.keys(data).length === 0) {
         return { error: "Data is empty or not defined" };
     }
@@ -170,7 +170,7 @@ export const pinFileToIPFS = async (blob: File) => {
         data.append("file", blob);
         
         // Log the keys to verify they're being read
-        console.log('API Key:', API_KEY?.slice(0, 5) + '...');
+        // console.log('API Key:', API_KEY?.slice(0, 5) + '...');
         
         const res = await fetch(
             "https://api.pinata.cloud/pinning/pinFileToIPFS",
@@ -201,13 +201,13 @@ export const pinFileToIPFS = async (blob: File) => {
 export const uploadImage = async (url: string) => {
     try {
         const res = await fetch(url);
-        console.log(res.blob);
+        // console.log(res.blob);
         const blob = await res.blob();
 
         const imageFile = new File([blob], "image.png", { type: "image/png" });
-        console.log(imageFile);
+        // console.log(imageFile);
         const resData = await pinFileToIPFS(imageFile);
-        console.log(resData, "RESDATA>>>>");
+        // console.log(resData, "RESDATA>>>>");
         
         if (resData && resData.IpfsHash) {
             return `https://gateway.pinata.cloud/ipfs/${resData.IpfsHash}`;

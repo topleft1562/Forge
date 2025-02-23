@@ -1,6 +1,5 @@
 "use client";
 import { Chatting } from "@/components/Chatting";
-import { CoinBlog } from "@/components/CoinBlog";
 import { Holders } from "@/components/Holders";
 import { TradeForm } from "@/components/TradeForm";
 import { TradingChart } from "@/components/TVChart/TradingChart";
@@ -11,7 +10,7 @@ import {
 } from "@/utils/util";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { MarketCap } from "@/components/MarketCap";
 import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
@@ -20,6 +19,8 @@ import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, fetchS
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
 import { willMigrateAt } from "@/confgi";
+import UserContext from "@/context/UserContext";
+import { getTokenBalance } from "@/program/web3";
 
 export default function Page() {
     const pathname = usePathname();
@@ -34,6 +35,26 @@ export default function Page() {
     const [TargetMarketCap, setTarget] = useState(100000)
     const [launchPrice, setLaunchPrice] = useState<number>(0);
     const [currentPrice, setCurrentPrice] = useState<number>(0);
+    const [tokenBal, setTokenBal] = useState<number>(0);
+    const { user } = useContext(UserContext);
+
+    const getBalance = useCallback(async () => {
+            try {
+                const balance = await getTokenBalance(user.wallet, coin.token);
+                setTokenBal(balance ? balance : 0);
+            } catch (error) {
+                setTokenBal(0);
+            }
+        }, [user.wallet, coin.token]);
+    
+        useEffect(() => {
+            const interval = setInterval(() => {
+                getBalance();
+            }, 3000);
+    
+            return () => clearInterval(interval);
+        }, [getBalance]);
+
 
     const shouldShowReadMore = (coin?.description?.length || 0) > 120;
     const description = isDescriptionExpanded
@@ -325,7 +346,7 @@ export default function Page() {
                         </div>
 
                         <div className="w-full lg:w-[32%] space-y-8 hidden lg:block">
-                            <TradeForm coin={coin} />
+                            <TradeForm coin={coin} tokenBal={tokenBal} user={user}/>
 
                             <div className="bg-[#151515] rounded-xl p-6 space-y-8">
                                 <MarketCap
@@ -347,7 +368,7 @@ export default function Page() {
                                         {formatFullNumber(coin.reserveOne)}{" "}
                                         {coin.ticker} available for sale in the
                                         bonding curve and there is{" "}
-                                        {formatSOL(coin.reserveTwo - 30e6)} SOL
+                                        {formatSOL((coin.reserveTwo - 30e6).toString())} SOL
                                         in the pool.
                                     </p>
                                 </div>
@@ -387,7 +408,7 @@ export default function Page() {
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4">
-                            <TradeForm coin={coin} />
+                            <TradeForm coin={coin} tokenBal={tokenBal} user={user}/>
                         </div>
                     </div>
                 </div>

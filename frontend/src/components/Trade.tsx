@@ -16,7 +16,6 @@ const DEFAULT_AVATAR = '/default-avatar.png';
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
   const tradeType = trade.holdingStatus;
-  const [ lastPrice, setLastPrice] = useState(0)
   
   // Format the amount based on transaction type
   const formattedAmount = tradeType === 0 
@@ -27,16 +26,8 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
     ? formatSOL(trade.amountOut) 
     :  tradeType === 0 ? formatTokenAmount(trade.amountOut)
     : "CREATED"; 
-  
-  useEffect(() => {
-      const fetchData = async () => {
-        const price = await calculateCurrentPrice(trade.price)
-        setLastPrice(price)
-      }
-      fetchData();
-          const interval = setInterval(fetchData, 5000);
-          return () => clearInterval(interval);
-    }, [trade]);
+  const formattedAmountPrice = formatSOL(trade.price, 1) 
+
 
   // Simplified date format
   const formattedDate = typeof trade.time === 'string' 
@@ -72,7 +63,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
         </p>
 
         <p className="text-white">
-          ${lastPrice}
+          {formattedAmountPrice}
         </p>
 
         <p className="text-[#888]">

@@ -52,7 +52,7 @@ export const getTokenBalance = async (
     const tokenAccountInfo = await connection.getTokenAccountBalance(response.value[0].pubkey);
 
     // Convert the balance from integer to decimal format
-    console.log(`Token Balance: ${tokenAccountInfo.value.uiAmount}`);
+    // console.log(`Token Balance: ${tokenAccountInfo.value.uiAmount}`);
 
     return tokenAccountInfo.value.uiAmount;
 }
