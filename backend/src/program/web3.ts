@@ -349,7 +349,7 @@ function parseLogs(logs: string[], tx: string): ResultType {
         swapType: 0,
         swapAmount: 0,
         swapAmountOut: 0,
-        price: 0,
+        price: "0",
         reserve1: 0,
         reserve2: 0,
         name: "",
@@ -375,7 +375,7 @@ function parseLogs(logs: string[], tx: string): ResultType {
           result.owner = data.Caller || '';
           result.swapAmount = parseInt(data.AmountIn) || 0;
           result.swapAmountOut = parseInt(data.AmountOut) || 0;
-          result.price = (parseFloat(data.Price) / 1000) || 0;
+          result.price = (parseFloat(data.Price) / 1000).toFixed(15) || "0";
           result.swapType = parseInt(data.Style) || 0;
           result.reserve1 = parseInt(data.PostReserve1) || 0;
           result.reserve2 = parseInt(data.PostReserve2) || 0;
@@ -418,7 +418,7 @@ export interface ResultType {
     swapType: number;
     swapAmount: number;
     swapAmountOut: number;
-    price: number;
+    price: string;
     reserve1: number;
     reserve2: number;
     isMigrated: boolean;
