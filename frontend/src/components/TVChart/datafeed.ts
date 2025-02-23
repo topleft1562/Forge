@@ -189,8 +189,7 @@ export function getDataFeed({
         pairIndex,
       );
     },
-  
-    
+
     unsubscribeBars: (subscriberUID) => {
       // console.log("[datafeed] unsubscribeBars:", subscriberUID);
       unsubscribeFromStream(subscriberUID);
