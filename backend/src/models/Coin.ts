@@ -11,7 +11,7 @@ const coinSchema = new mongoose.Schema({
     reserveOne: { type: Number, default: totalSupply },
     reserveTwo: { type: Number, default: initialSOL },
     isMigrated: { type: Boolean, default: false},
-    lastPrice: {type: Number},
+    lastPrice: {type: String},
     url: { type: String, requried: true },
     date:{type:Date, default:new Date}
 });
