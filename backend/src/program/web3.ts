@@ -172,7 +172,7 @@ export const createToken = async (data: CoinInfo) => {
                 ticker: data.ticker,
                 description: data.description,
                 token: tokenAddress,
-                lastPrice: INITIAL_PRICE / 1000,
+                lastPrice: (INITIAL_PRICE / 1000).toFixed(15),
                 url,
                 isMigrated: false,
             });
@@ -189,7 +189,7 @@ export const createToken = async (data: CoinInfo) => {
                         holdingStatus: 2,
                         amount: 0,
                         tx: txId,
-                        price: INITIAL_PRICE / 1000
+                        price: (INITIAL_PRICE / 1000).toFixed(15)
                     }
                 ]
             });
@@ -383,7 +383,6 @@ function parseLogs(logs: string[], tx: string): ResultType {
           if (isRemoval) {
             result.isMigrated = true;
           }
-          console.log(result.price, data.Price)
         }
       });
       
