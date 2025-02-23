@@ -237,23 +237,7 @@ export default function Home() {
                 Sort: Forge Order
               </button>
               <button
-                onClick={() => handleSortSelection("last reply")}
-                className="modern-dropdown-item"
-              >
-                Sort: Last Reply
-              </button>
-              <button
-                onClick={() => handleSortSelection("reply count")}
-                className="modern-dropdown-item"
-              >
-                Sort: Reply Count
-              </button>
-              <button
-                onClick={() => handleSortSelection("market cap")}
-                className="modern-dropdown-item"
-              >
-                Sort: Market Cap
-              </button>
+              
               <button
                 onClick={() => handleSortSelection("creation time")}
                 className="modern-dropdown-item"
