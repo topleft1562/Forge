@@ -43,15 +43,15 @@ export function getDataFeed({
 }): IBasicDataFeed {
   return {
     onReady: (callback) => {
-      // console.log("[datafeed] onReady called");
+      console.log("[datafeed] onReady called");
       setTimeout(() => {
-        // console.log("[datafeed] Calling onReady callback with:", configurationData);
+        console.log("[datafeed] Calling onReady callback with:", configurationData);
         callback(configurationData);
       });
     },
 
     searchSymbols: (userInput, exchange, symbolType, onResult) => {
-      // console.log("[datafeed] searchSymbols called");
+      console.log("[datafeed] searchSymbols called");
       onResult([]);
     },
 
@@ -60,7 +60,7 @@ export function getDataFeed({
       onSymbolResolvedCallback,
       onResolveErrorCallback,
   ) => {
-      // console.log("[datafeed] resolveSymbol called for:", symbolName);
+      console.log("[datafeed] resolveSymbol called for:", symbolName);
       try {
           const symbolInfo: LibrarySymbolInfo = {
               ticker: name,
@@ -82,7 +82,7 @@ export function getDataFeed({
               listed_exchange: ""
           };
   
-          // console.log("[datafeed] Symbol resolved:", symbolInfo);
+          console.log("[datafeed] Symbol resolved:", symbolInfo);
           onSymbolResolvedCallback(symbolInfo);
       } catch (error) {
           console.error("[datafeed] Symbol resolution error:", error);
@@ -104,11 +104,11 @@ export function getDataFeed({
       const cachedData = historyCache.get(cacheKey);
       
       if (cachedData) {
-          // console.log("[datafeed] Returning cached data for:", cacheKey);
+          console.log("[datafeed] Returning cached data for:", cacheKey);
           onHistoryCallback(cachedData, { noData: false });
           return;
       }
-  /*
+  
       console.log("[datafeed] getBars called:", {
           symbol: symbolInfo.name,
           resolution,
@@ -116,11 +116,11 @@ export function getDataFeed({
           to,
           firstDataRequest
       });
-  */
+  
       try {
           // Add debounce/throttle for API calls
           if (lastApiCall && Date.now() - lastApiCall < 1000) {
-              // console.log("[datafeed] Throttling API call");
+              console.log("[datafeed] Throttling API call");
               onHistoryCallback([], { noData: true });
               return;
           }
@@ -135,7 +135,7 @@ export function getDataFeed({
           });
   
           if (!chartTable?.table?.length) {
-              // console.log("[datafeed] No data available");
+              console.log("[datafeed] No data available");
               onHistoryCallback([], { noData: true });
               return;
           }
@@ -151,7 +151,7 @@ export function getDataFeed({
               historyCache.set(cacheKey, bars);
           }
   
-          // console.log("[datafeed] Sending bars to chart:", bars.length);
+          console.log("[datafeed] Sending bars to chart:", bars.length);
           onHistoryCallback(bars, { noData: false });
       } catch (error) {
           console.error("[datafeed] getBars error:", error);
@@ -166,13 +166,12 @@ export function getDataFeed({
       subscriberUID,
       onResetCacheNeededCallback,
     ) => {
-      /*
       console.log("[datafeed] subscribeBars called:", {
         symbol: symbolInfo.name,
         resolution,
         subscriberUID
       });
-*/
+
       const lastBar = lastBarsCache.get(symbolInfo.name);
       if (!lastBar) {
         console.error('[datafeed] No last bar found for subscription');
@@ -191,7 +190,7 @@ export function getDataFeed({
     },
 
     unsubscribeBars: (subscriberUID) => {
-      // console.log("[datafeed] unsubscribeBars:", subscriberUID);
+      console.log("[datafeed] unsubscribeBars:", subscriberUID);
       unsubscribeFromStream(subscriberUID);
     },
   };
