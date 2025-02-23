@@ -236,7 +236,6 @@ export default function Home() {
               >
                 Sort: Forge Order
               </button>
-              <button
               
               <button
                 onClick={() => handleSortSelection("creation time")}

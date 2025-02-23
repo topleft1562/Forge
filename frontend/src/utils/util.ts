@@ -222,6 +222,7 @@ export const uploadImage = async (url: string) => {
 };
 
 export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) => {
+    console.log("what is it", input)
     const amount = input * 10 ** (isBuy ? 9 : 6)
 let amount_out = 0
 let tokens_at_current_price = 0

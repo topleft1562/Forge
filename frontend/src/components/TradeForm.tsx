@@ -29,7 +29,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin }) => {
     const wallet = useWallet();
 
     const {amount_out, tokens_at_current_price} = calculateOutPut(coin, parseFloat(sol), isBuy === 0 )
-
+    
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (!isNaN(parseFloat(value))) {
