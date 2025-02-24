@@ -248,7 +248,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
                         <div className="flex gap-2 flex-wrap">
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("")}
+                                onClick={() => setSol("0")}
                             >
                                 Clear
                             </button>
