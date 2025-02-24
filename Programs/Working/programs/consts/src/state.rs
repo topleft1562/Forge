@@ -383,10 +383,14 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
         if amount_out < minOut {
             return err!(CustomError::LowOutPut);
         }
+        // calculate current price after trade
+        let tokens_sold = TOTAL_SUPPLY.saturating_sub(self.reserve_one as u128);
+        let price_step = tokens_sold / PRICE_INCREMENT_STEP;
+        let thePrice = INITIAL_PRICE + (price_step as f64 * PRICE_INCREMENT);
 
         msg!(
             "SwapData: Caller: {}, Mint: {}, AmountIn: {}, AmountOut: {}, Style: {}, Price: {}, PostReserve1: {}, PostReserve2: {}",
-            authority.key(), self.token_one, amount, amount_out, style, final_price, self.reserve_one, self.reserve_two
+            authority.key(), self.token_one, amount, amount_out, style, thePrice, self.reserve_one, self.reserve_two
         );
 
         Ok(())
