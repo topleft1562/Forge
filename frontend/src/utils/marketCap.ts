@@ -119,3 +119,20 @@ export const formatMarketCap = (marketCap: number): string => {
     
     return formatNumber(marketCap, '');
 };
+
+export const formatTokenGoal = (marketCap: number): string => {
+    const formatNumber = (value: number, suffix: string) => {
+        if (value >= 1) {
+            return `${value.toFixed(2)}${suffix} Tokens`; // Only show 2 decimals if >= 1
+        }
+
+        // If value is less than 1, keep up to 12 decimals while removing trailing zeros
+        return `${value.toFixed(16).replace(/\.?0+$/, '')}${suffix} Tokens`;
+    };
+
+    if (marketCap >= 1_000_000_000) return formatNumber(marketCap / 1_000_000_000, 'B');
+    if (marketCap >= 1_000_000) return formatNumber(marketCap / 1_000_000, 'M');
+    if (marketCap >= 1_000) return formatNumber(marketCap / 1_000, 'k');
+    
+    return formatNumber(marketCap, '');
+};

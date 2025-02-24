@@ -272,6 +272,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 
  if(isSwap || isRemove){
         const parsedData = parseLogs(logs.logs, logs.signature);
+        const tokensSold = totalSupply - parsedData.reserve1
         await setCoinStatus(parsedData);
     /*
         console.log('Current reserves:', {
@@ -279,7 +280,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
             willMigrate: parsedData.reserve2 > willMigrateAt
         });
     */
-        if (parsedData.reserve2 > willMigrateAt && isSwap) {
+        if (tokensSold > willMigrateAt && isSwap) {
             console.log('🚀 Migration threshold reached! Moving to Raydium...');
             try {
                 await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);

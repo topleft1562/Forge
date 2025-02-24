@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { calculateMarketCap, formatMarketCap, calculateLaunchPrice, calculateCurrentPrice, fetchSolPrice } from '@/utils/marketCap';
-import { willMigrateAt } from '@/confgi';
+import { calculateMarketCap, formatMarketCap, calculateLaunchPrice, calculateCurrentPrice, fetchSolPrice, formatTokenGoal } from '@/utils/marketCap';
+import { totalSupply, willMigrateAt } from '@/confgi';
 
 interface MarketCapProps {
     reserveOne: number;
@@ -32,10 +32,10 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                 setLaunchPrice(lprice)
                 const cprice = await calculateCurrentPrice(lastPrice)
                 setCurrentPrice(cprice)
-                const value = Math.min(100, Math.max(0, (reserveTwo / willMigrateAt) * 100));
+                const tokensSold = totalSupply - reserveOne
+                const value = Math.min(100, Math.max(0, (tokensSold / willMigrateAt) * 100));
                 setProgress(value);
-                const sprice = await  fetchSolPrice()
-                const tmc = (willMigrateAt / 1e6) * sprice
+                const tmc = (willMigrateAt / 1e6)
                 settMarket(tmc)
                 setError(null);
             } catch (error) {
@@ -88,7 +88,7 @@ export const MarketCap: React.FC<MarketCapProps> = ({
                     </div>
                     
                     <div className="text-xs text-gray-500">
-                        Target: {formatMarketCap(tMarket)}
+                        Target: {formatTokenGoal(tMarket)}
                     </div>
                     <div className="text-xs text-gray-500">
                         Launch Price: {formatMarketCap(launchPrice)}

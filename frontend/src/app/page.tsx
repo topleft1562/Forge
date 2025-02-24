@@ -36,10 +36,12 @@ export default function Home() {
             if (coins !== null) {
                 // Sort descending so the coin with the highest reserveOne is first.
                 const sortedCoins = coins.sort(
-                    (a, b) => b.reserveOne - a.reserveOne
+                    (a, b) => b.reserveTwo - a.reserveTwo
                 );
                 setAllData(sortedCoins);
-                setKing(sortedCoins[0]);
+                const kingCoin = sortedCoins.find(coin => coin.isMigrated === false);
+                // Fallback to the first coin if none are found with isMigrated === false.
+                setKing(kingCoin || sortedCoins[0]);
                 setIsLoading(true);
             }
         };
@@ -83,7 +85,7 @@ export default function Home() {
         if (orderOption == "desc") {
             switch (sortOption) {
                 case "forge order":
-                    sortedData.sort((a, b) => a.reserveOne - b.reserveOne);
+                    sortedData.sort((a, b) => a.reserveTwo - b.reserveTwo);
                     break;
                 case "creation time":
                     sortedData.sort(
@@ -99,7 +101,7 @@ export default function Home() {
         } else {
             switch (sortOption) {
                 case "forge order":
-                    sortedData.sort((a, b) => b.reserveOne - a.reserveOne);
+                    sortedData.sort((a, b) => b.reserveTwo - a.reserveTwo);
                     break;
                 case "creation time":
                     sortedData.sort(

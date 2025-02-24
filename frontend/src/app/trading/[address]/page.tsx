@@ -15,10 +15,10 @@ import { MarketCap } from "@/components/MarketCap";
 import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
 import { FaTwitter, FaTelegram } from "react-icons/fa";
-import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, fetchSolPrice, formatMarketCap } from "@/utils/marketCap";
+import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, fetchSolPrice, formatMarketCap, formatTokenGoal } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
-import { willMigrateAt } from "@/confgi";
+import { totalSupply, willMigrateAt } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { getTokenBalance } from "@/program/web3";
 
@@ -32,7 +32,7 @@ export default function Page() {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [showMobileTradeForm, setShowMobileTradeForm] = useState(false);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const [TargetMarketCap, setTarget] = useState(100000)
+    const [TotalTokensSold, setTarget] = useState(100000)
     const [launchPrice, setLaunchPrice] = useState<number>(0);
     const [currentPrice, setCurrentPrice] = useState<number>(0);
     const [tokenBal, setTokenBal] = useState<number>(0);
@@ -105,10 +105,10 @@ export default function Page() {
             } catch (err) {
                 console.error("Error updating market cap:", err);
             }
-            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / willMigrateAt) * 100));
+            const tokensSold = totalSupply - coin?.reserveOne
+            const value = Math.min(100, Math.max(0, (tokensSold / willMigrateAt) * 100));
             setProgress(value);
-            const sprice = await  fetchSolPrice()
-            const tmc = (willMigrateAt / 1e6) * sprice
+            const tmc = (willMigrateAt / 1e6)
             setTarget(tmc)
             const lprice = await calculateLaunchPrice(coin?.reserveOne, coin?.reserveTwo)
             setLaunchPrice(lprice)
@@ -357,7 +357,7 @@ export default function Page() {
 
                                 <div className="space-y-4">
                                     <p className="text-sm text-[#888] leading-relaxed">
-                                        When market cap reaches {formatMarketCap(TargetMarketCap)} all
+                                        After Selling {formatTokenGoal(TotalTokensSold)} all
                                         liquidity from the bonding curve will be
                                         deposited into Raydium and burned.
                                         Progression increases as buys comes in
