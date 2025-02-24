@@ -2,7 +2,7 @@
 
 import Header from "@/components/Header";
 import { CoinBlog } from "@/components/CoinBlog";
-import { getCoinsInfo, test } from "@/utils/util";
+import { getCoinsInfo, simulateBuys, test } from "@/utils/util";
 import Image from "next/image";
 import { useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -201,6 +201,18 @@ export default function Home() {
         >
           Migrated
         </button>
+        {/*
+        <button
+          className={`px-4 py-2 rounded ${
+            activeTab === "migrated"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-800"
+          }`}
+          onClick={() => simulateBuys()}
+        >
+          simulate buys
+        </button>
+        */}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 px-4 sm:px-0 mb-8 items-center">

@@ -1,6 +1,6 @@
 // models/Coin.js
 import mongoose from 'mongoose';
-import { INITIAL_PRICE, initialSOL, totalSupply } from '../config/config';
+import { initialSOL, totalSupply } from '../config/config';
 
 const coinSchema = new mongoose.Schema({
     creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

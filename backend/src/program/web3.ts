@@ -172,7 +172,7 @@ export const createToken = async (data: CoinInfo) => {
                 ticker: data.ticker,
                 description: data.description,
                 token: tokenAddress,
-                lastPrice: (INITIAL_PRICE / 1000).toFixed(15),
+                lastPrice: (INITIAL_PRICE / 1000).toFixed(15).replace(/0+$/, ''),
                 url,
                 isMigrated: false,
             });
@@ -189,10 +189,11 @@ export const createToken = async (data: CoinInfo) => {
                         holdingStatus: 2,
                         amount: 0,
                         tx: txId,
-                        price: (INITIAL_PRICE / 1000).toFixed(15)
+                        price: (INITIAL_PRICE / 1000).toFixed(15).replace(/0+$/, '')
                     }
                 ]
             });
+            console.log()
             await newCoinStatus.save();
             // console.log("Coin status saved successfully");
 
@@ -375,7 +376,7 @@ function parseLogs(logs: string[], tx: string): ResultType {
           result.owner = data.Caller || '';
           result.swapAmount = parseInt(data.AmountIn) || 0;
           result.swapAmountOut = parseInt(data.AmountOut) || 0;
-          result.price = (parseFloat(data.Price) / 1000).toFixed(15) || "0";
+          result.price = (parseFloat(data.Price) / 1000).toFixed(15).replace(/0+$/, '') || "0";
           result.swapType = parseInt(data.Style) || 0;
           result.reserve1 = parseInt(data.PostReserve1) || 0;
           result.reserve2 = parseInt(data.PostReserve2) || 0;

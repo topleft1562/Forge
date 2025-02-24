@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { ChartTable, coinInfo, msgInfo, replyInfo, userInfo } from './types';
 import { FEE_PERCENTAGE, PRICE_INCREMENT, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
+import { useState } from 'react';
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const config: AxiosRequestConfig = {
@@ -257,3 +258,76 @@ amount_out = (sol_out - fee_amount) / 1e9
 
     return {amount_out, tokens_at_current_price}
 }
+
+    
+function calculateTokensBought(initialPrice, growthFactor, tokensPerIncrement, reserveOne, amountIn)
+: { tokensBought: number, nextPrice: number } {
+    const total_tokens_sold = totalSupply - reserveOne +1
+    
+    console.log("sold", total_tokens_sold)
+    const currentPrice = initialPrice * Math.pow(growthFactor, total_tokens_sold / tokensPerIncrement)
+    console.log("current", currentPrice)
+    // Calculate the number of increments (n) using the formula
+    const numerator = 1.0 - (amountIn * (1.0 - growthFactor)) / (tokensPerIncrement * currentPrice);
+    console.log("num", numerator)
+    const n = Math.log(numerator) / Math.log(growthFactor);
+    console.log("n", n)
+
+    // Calculate total tokens bought
+    const tokensBought = n * tokensPerIncrement;
+    console.log("bought", tokensBought)
+
+    // Calculate final price
+    const nextPrice = currentPrice * Math.pow(growthFactor, n);
+    console.log("next", nextPrice)
+
+    return { tokensBought, nextPrice };
+}
+
+export function simulateBuys() {
+    const initialPrice = 0.00000032425; // Adjusted initial price
+    const growthFactor = 1.000000033186334; // 0.01% increase per 10,000 tokens
+    const amountIn = 1_000_000_000; // 1 SOL in lamports
+    const tokensPerIncrement = 1_000_000; // Growth factor applies every 10,000 tokens
+    let reserveOne = totalSupply
+    const howManyBuys = 100
+   
+    let totalTokensSold = 0.0;
+    let totalSOL = 0.0;
+
+    // Simulate 100 buys
+    for (let buy = 1; buy <= howManyBuys; buy++) {
+        // Calculate tokens bought and final price for this buy
+        totalSOL += amountIn - (amountIn * 0.001)
+        const { tokensBought, nextPrice } = calculateTokensBought(
+            initialPrice, growthFactor, tokensPerIncrement, reserveOne, amountIn
+        );
+
+        // Update total tokens sold and current price
+        totalTokensSold += tokensBought;
+        reserveOne -= tokensBought;
+
+        // Print results for this buy
+        console.log(`Buy ${buy}:`);
+        console.log(`  Tokens Bought: ${(tokensBought / 1e6).toFixed(2)}`);
+        console.log(`  Total Tokens Sold: ${(totalTokensSold / 1e6).toFixed(2)}`);
+        console.log(`  Price of Next Token: ${nextPrice.toFixed(12)} SOL`);
+        console.log("-".repeat(40));
+    }
+
+    // Calculate final price based on total supply and reserve1
+    const reserve1 = totalSupply - totalTokensSold;
+    const incrementsSold = totalTokensSold / tokensPerIncrement;
+    const finalPrice = initialPrice * Math.pow(growthFactor, incrementsSold);
+    const priceMultiplier = finalPrice / initialPrice;
+
+    // Print final price with commas
+console.log("Final Price Calculation:");
+console.log(`  Reserve1 (Total Supply - Total Tokens Sold): ${(reserve1 / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+console.log(`  Tokens Sold: ${(totalTokensSold / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+console.log(`  Final Price: ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 12, maximumFractionDigits: 12 })} SOL`);
+console.log(`  Launch Price: ${(95_000_000_000 / reserve1).toLocaleString(undefined, { minimumFractionDigits: 12, maximumFractionDigits: 12 })}`)
+console.log(`  Price Change Multiplier: ${priceMultiplier.toFixed(2)}x`);
+console.log((totalSOL / 1e9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
+}
+
