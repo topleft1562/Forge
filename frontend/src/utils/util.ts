@@ -236,16 +236,17 @@ export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) =
         const minPrice = current_price * Math.pow(GROWTH_FACTOR, total_tokens_sold / PRICE_INCREMENT_STEP);
 
         // Estimate maximum possible tokens that can be bought
-        tokens_at_current_price = amount / minPrice;
+        const maxTokensOut = amount / minPrice;
 
         // Calculate max price after buying all possible tokens
-        const maxPrice = current_price * Math.pow(GROWTH_FACTOR, (total_tokens_sold + tokens_at_current_price) / PRICE_INCREMENT_STEP);
+        const maxPrice = current_price * Math.pow(GROWTH_FACTOR, (total_tokens_sold + maxTokensOut) / PRICE_INCREMENT_STEP);
 
         // More accurate avg price using logarithmic integral method
         const avgPrice = (maxPrice - minPrice) / Math.log(maxPrice / minPrice);
 
         // Calculate total tokens bought
-        amount_out = amount / avgPrice;
+        amount_out = (amount / avgPrice) / 1e6;
+        tokens_at_current_price = maxTokensOut / 1e6
 
     } else {
         const total_tokens_sold = totalSupply - coin.reserveOne + 1;
@@ -261,7 +262,7 @@ export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) =
 
         // Compute SOL received using adjusted price (sell reduction factor applied)
         let sol_out = amount * avgPrice * SELL_REDUCTION;
-        tokens_at_current_price = amount * minPrice * SELL_REDUCTION
+        tokens_at_current_price = (amount * minPrice * SELL_REDUCTION) / 1e9
 
         // Apply SOL fee (0.1%)
         const fee_amount = sol_out * FEE_PERCENTAGE;
