@@ -143,7 +143,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
                     <button
                         className={`px-4 py-2 rounded-lg transition-all duration-300 ${
                             isBuy === 1
-                                ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+                                ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
                                 : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
                         }`}
                         onClick={() => setIsBuy(1)}
@@ -288,12 +288,14 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
 
 <button
   onClick={handlTrade}
-  disabled={isDisabled} // Disable if user or user._id is missing
+  disabled={isDisabled}
   className={`w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity 
               ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
   style={{
     backgroundImage:
-      "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)",
+      isBuy === 0 
+        ? "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)"
+        : "linear-gradient(9deg, rgb(143, 0, 0) 0%, rgb(249, 138, 138) 100%)"
   }}
 >
   {slippageToHigh ? "Slippage Error" : !user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
