@@ -1,6 +1,7 @@
 "use client";
 import { CoinBlog } from "@/components/CoinBlog";
 import Modal from "@/components/Modal";
+import { cluster } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { coinInfo, userInfo } from "@/utils/types";
 import { getCoinsInfo, getCoinsInfoBy, getUser } from "@/utils/util";
