@@ -23,9 +23,10 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
     const [sol, setSol] = useState<string>("0.25");
     const [isBuy, setIsBuy] = useState<number>(0);
     const [showSlippage, setShowSlippage] = useState<boolean>(false);
-    const [slippage, setSlippage] = useState<string>("0.1");
+    const [slippage, setSlippage] = useState<string>("1");
 
     const {amount_out, tokens_at_current_price} = calculateOutPut(coin, parseFloat(sol), isBuy === 0 )
+    const slippageToHigh = amount_out < tokens_at_current_price * (1 - (Number(slippage) / 100)) 
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -36,7 +37,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
         }
     };
     
-    const isDisabled = !user._id || coin.isMigrated || isLoading
+    const isDisabled = !user._id || coin.isMigrated || isLoading || slippageToHigh
     const handlTrade = async () => {
         setIsLoading(true);
         
@@ -46,7 +47,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
             // await swapTx(mint, wallet, (parseFloat(sol) * 10 ** (isBuy === 0 ? 9 : 6)).toString(),  isBuy )
             
            // set minOut based on out - x%
-           const minOut = amount_out * (1 - (Number(slippage) / 100));
+           const minOut = tokens_at_current_price * (1 - (Number(slippage) / 100));
             const userWallet = new PublicKey(user.wallet);
 
             // Get the associated token account address
@@ -128,7 +129,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
                     >
                         {isLoading ? "Loading..." : "Buy"}
                     </button>
-
+{/*
                     <div className="flex flex-col">
   <span className="text-[#999]">
     Receive: {amount_out.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
@@ -137,7 +138,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
     At Current: {tokens_at_current_price.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
   </span>
 </div>
-
+*/}
 
                     <button
                         className={`px-4 py-2 rounded-lg transition-all duration-300 ${
@@ -295,7 +296,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
       "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)",
   }}
 >
-  {!user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
+  {slippageToHigh ? "Slippage Error" : !user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
 </button>
                 </div>
             </div>
