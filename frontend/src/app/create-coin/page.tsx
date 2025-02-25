@@ -15,7 +15,7 @@ import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { EmojiClickData } from 'emoji-picker-react';
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionMessage, TransactionSignature, VersionedTransaction } from '@solana/web3.js';
 import { useRouter } from "next/navigation";
-import { CREATEFEE } from "@/confgi";
+import { ADMINKEY, CREATEFEE } from "@/confgi";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 
@@ -121,7 +121,7 @@ const createCoin = async () => {
     };
     // send creation fee
     let signature: TransactionSignature = '';
-    const recipientPubKey = new PublicKey(process.env.ADMINWALLET)
+    const recipientPubKey = new PublicKey(ADMINKEY)
 
     try {
 

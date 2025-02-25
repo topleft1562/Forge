@@ -7,3 +7,4 @@ export const FEE_PERCENTAGE = 0.001;
 export const SELL_REDUCTION = 0.99
 export const INITIAL_PRICE = 0.000028;
 export const CREATEFEE = 100_000_000;
+export const ADMINKEY = "8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF"
