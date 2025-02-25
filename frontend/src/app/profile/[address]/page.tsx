@@ -126,7 +126,7 @@ export default function Page() {
               <div className="space-y-1">
                 <h1 className="text-2xl font-medium text-white">@{index.name}</h1>
                 <div className="flex gap-4 text-[#888]">
-                  <span>0 followers</span>
+                  <span className="hideFollowers">0 followers</span>
                   <span>dev</span>
                 </div>
               </div>
@@ -140,8 +140,8 @@ export default function Page() {
               }
 
               <div className="flex gap-6 text-sm">
-                <div className="text-[#888]">Likes received: {0}</div>
-                <div className="text-[#888]">Mentions received: {0}</div>
+                <div className="hideFollowers text-[#888]">Likes received: {0}</div>
+                <div className="hideFollowers text-[#888]">Mentions received: {0}</div>
               </div>
             </div>
           </div>
@@ -166,8 +166,8 @@ export default function Page() {
             { id: 2, label: 'Replies', show: user.wallet === index.wallet },
             { id: 3, label: 'Notifications', show: true },
             { id: 4, label: 'Launches', show: true },
-            { id: 5, label: 'Followers', show: true },
-            { id: 6, label: 'Following', show: true },
+            { id: 5, label: 'Followers', show: false },
+            { id: 6, label: 'Following', show: false },
           ].map(tab => tab.show && (
             <button
               key={tab.id}

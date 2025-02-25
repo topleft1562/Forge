@@ -67,7 +67,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
         autosize: true,
         container: 'tv_chart_container',
         studies_overrides: {},
-        theme: "dark",
+        theme: "light",
     };
 /*
     console.log("TradingChart render - Current state:", {
@@ -89,6 +89,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
                     name={param.name}
                     pairIndex={10}
                     token={param.token}
+                    theme="light"
                 />
             ) : (
                 <div className="flex items-center justify-center h-full bg-[#1E1E1E] text-white">

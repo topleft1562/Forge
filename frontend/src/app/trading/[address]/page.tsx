@@ -14,13 +14,15 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { MarketCap } from "@/components/MarketCap";
 import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
-import { FaTwitter, FaTelegram } from "react-icons/fa";
+import { FaXTwitter, FaGlobe } from "react-icons/fa6";
+import { FaTelegramPlane } from "react-icons/fa";
 import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, fetchSolPrice, formatMarketCap, formatTokenGoal } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
 import { totalSupply, willMigrateAt } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { getTokenBalance } from "@/program/web3";
+import { successAlert } from "@/components/ToastGroup";
 
 export default function Page() {
     const pathname = usePathname();
@@ -37,6 +39,8 @@ export default function Page() {
     const [currentPrice, setCurrentPrice] = useState<number>(0);
     const [tokenBal, setTokenBal] = useState<number>(0);
     const { user } = useContext(UserContext);
+    const [isBuy, setIsBuy] = useState<number>(0);
+    const [isDisabled, setIsDisabled] = useState<boolean>(false);
 
     const getBalance = useCallback(async () => {
             try {
@@ -136,6 +140,10 @@ export default function Page() {
         return url;
     };
 
+    const handlTrade = () => {
+        // Implement the trade logic here
+    };
+
     return (
         <ProgramProvider>
             <div className="min-h-screen">
@@ -185,29 +193,58 @@ export default function Page() {
                                                     </Link>
                                                 </div>
 
-                                                <div className="text-[#888]">
-                                                    Created{" "}
-                                                    {/* Add your time ago logic here */}{" "}
-                                                    ago
+                                                <div className="text-[#888] flex items-center">
+                                                    <span 
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(coin?.token || "Copied Test")
+                                                                .then(() => {
+                                                                    successAlert("Contract Address Copied");
+                                                                })
+                                                                .catch((err) => {
+                                                                    console.error('Failed to copy:', err);
+                                                                });
+                                                        }}
+                                                        className="cursor-pointer hover:text-[#01a8dd] transition-colors mr-4 flex items-center gap-1 tooltip"
+                                                        title="Copy contract"
+                                                    >
+                                                        <svg 
+                                                            xmlns="http://www.w3.org/2000/svg" 
+                                                            className="h-3.5 w-3.5" 
+                                                            fill="none" 
+                                                            viewBox="0 0 24 24" 
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path 
+                                                                strokeLinecap="round" 
+                                                                strokeLinejoin="round" 
+                                                                strokeWidth={2} 
+                                                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" 
+                                                            />
+                                                        </svg>
+                                                        <span>CA</span>
+                                                    </span>
+                                                    <span>Created ago</span>
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap gap-4 pt-2">
-                                                <button className="px-4 py-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors">
-                                                    <div className="flex items-center gap-2">
-                                                        <FaTwitter size={16} />
-                                                        <span className="text-sm">
-                                                            Twitter
-                                                        </span>
-                                                    </div>
+                                            <div className="social-links flex flex-wrap gap-4 pt-2">
+                                                <button 
+                                                    className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
+                                                    title="X/Twitter"
+                                                >
+                                                    <FaXTwitter size={16} />
                                                 </button>
-                                                <button className="px-4 py-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors">
-                                                    <div className="flex items-center gap-2">
-                                                        <FaTelegram size={16} />
-                                                        <span className="text-sm">
-                                                            Telegram
-                                                        </span>
-                                                    </div>
+                                                <button 
+                                                    className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
+                                                    title="Telegram"
+                                                >
+                                                    <FaTelegramPlane size={16} />
+                                                </button>
+                                                <button 
+                                                    className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
+                                                    title="Website"
+                                                >
+                                                    <FaGlobe size={16} />
                                                 </button>
                                             </div>
                                         </div>
@@ -337,7 +374,7 @@ export default function Page() {
                                 Trade Token
                             </button>
 
-                            <div className="bg-[#1a1a1a] rounded-xl p-1">
+                            <div className="chartHolder bg-[#1a1a1a] rounded-xl p-1">
                                 <TradingChart param={coin}></TradingChart>
                             </div>
                             <div className="bg-[#1a1a1a] rounded-xl p-6">
