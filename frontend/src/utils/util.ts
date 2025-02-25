@@ -26,6 +26,24 @@ export const getUser = async ({ id }: { id: string }): Promise<any> => {
     }
 }
 
+export const updateUser = async (userId: string, data: userInfo) => {
+    if (!data || Object.keys(data).length === 0) {
+        return { error: "Data is empty or not defined" };
+    }
+
+    try {
+        const response = await axios.post(
+            `${BACKEND_URL}/user/update/${userId}`,
+            data,
+            { headers: { "Content-Type": "application/json" } }
+        );
+        return response.data;
+    } catch (err: any) {
+        console.error("Error posting reply:", err.response?.data || err.message);
+        return { error: err.response?.data?.error || "Error setting up the request" };
+    }
+};
+
 export const walletConnect = async ({ data }: { data: userInfo }): Promise<any> => {
     try {
         // console.log("============walletConnect=========")
