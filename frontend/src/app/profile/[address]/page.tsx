@@ -71,6 +71,7 @@ export default function Page() {
 
   const handleSave= async () => { 
     updateUser(user._id, index)
+    setIsModal(false)
   }
 
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,6 +229,16 @@ export default function Page() {
                   className="text-[#888]"
                 />
               </div>
+              <img
+                src={index?.avatar}
+                alt="Profile"
+                className="rounded-xl object-cover w-24 h-24"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = index?.avatar;
+                }}
+              />
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   onClick={() => setIsModal(false)}
