@@ -259,7 +259,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     }
     console.log(logs)
     let isSwap = false
-    let isRemove
+    let isRemove = false
     processedSignatures.add(logs.signature);
     logs.logs.forEach((log: string) => {
         if (log.includes('RemovalData:')) {
@@ -270,7 +270,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         }
     });
 
- if(isSwap || isRemove){
+    if(isSwap || isRemove){
         const parsedData = parseLogs(logs.logs, logs.signature);
         const tokensSold = totalSupply - parsedData.reserve1
         await setCoinStatus(parsedData);
@@ -288,8 +288,28 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
                 console.error('Migration failed:', error);
             }
         }
-    }  
+    }
+  
 });
+
+export const cancelCoin = async(mint: string) => {
+    
+        const removeLiquidityTX = await removeLiquidityIx(new PublicKey(mint), adminKeypair.publicKey, 1);
+        const tx = new Transaction().add(
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
+        );
+        tx.add(removeLiquidityTX.ixs[0])
+        tx.feePayer = adminKeypair.publicKey;
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        // ✅ Simulate transaction before sending
+        console.log("🔹 Simulating Transaction...");
+        await simulateTransaction(connection, tx);
+        // ✅ Send transaction with preflight check
+        const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair], {
+            commitment: "finalized", // Ensures transaction is fully confirmed
+        });
+        console.log("✅ SALE HAS BEEN CANCELED!");
+}
 
 // Remove liquidity pool and Create Raydium Pool
 export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) => {
@@ -306,7 +326,7 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
     const amountOne = r1;    // tokens to raydium
     const amountTwo = r2 - ourFeeToKeep;   // sol to raydium minus fee
     // 🔹 Fetch remove liquidity instructions (returns structured output)
-    const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
+    const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey, 0);
 
     const tx = new Transaction().add(
         ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
@@ -392,8 +412,6 @@ function parseLogs(logs: string[], tx: string): ResultType {
     // console.log("✅ Parsed Result:", result);
     return result;
 }
-
-
 
 export interface CoinInfo {
     creator?: Types.ObjectId;
