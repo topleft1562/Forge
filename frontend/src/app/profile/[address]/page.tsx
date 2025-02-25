@@ -24,7 +24,9 @@ export default function Page() {
 
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
-
+  console.log(avatarIMG)
+  console.log(index)
+  console.log(user)
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -150,17 +152,17 @@ export default function Page() {
                 <h1 className="text-2xl font-medium text-white">@{index.name}</h1>
                 <div className="flex gap-4 text-[#888]">
                   <span className="hideFollowers">0 followers</span>
-                  <span>dev</span>
+                  
                 </div>
               </div>
-              {user.wallet === index.wallet &&
+             
               <button 
                 className="px-4 py-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors"
                 onClick={() => setIsModal(true)}
               >
                 Edit profile
               </button>
-              }
+              
 
               <div className="flex gap-6 text-sm">
                 <div className="hideFollowers text-[#888]">Likes received: {0}</div>

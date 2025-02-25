@@ -5,7 +5,7 @@ import { infoAlert, errorAlert, successAlert } from "@/components/ToastGroup";
 import UserContext from "@/context/UserContext";
 import { useSocket } from "@/contexts/SocketContext";
 import { coinInfo } from "@/utils/types";
-import { createNewCoin, transferSOL, uploadImage } from "@/utils/util";
+import { createNewCoin, handleSolTransfer, uploadImage } from "@/utils/util";
 import Link from "next/link";
 import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
@@ -113,7 +113,7 @@ const createCoin = async () => {
 
     // **Step 1: Transfer SOL to Admin Wallet**
     const adminWallet = process.env.NEXT_PUBLIC_ADMIN_WALLET!;
-    const txSignature = await transferSOL(user.wallet, adminWallet, CREATEFEE);
+    const txSignature = await handleSolTransfer(user.wallet, adminWallet, CREATEFEE);
     if (!txSignature) {
       errorAlert("Payment failed. Please try again.");
       setIsLoading(false);
