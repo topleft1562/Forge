@@ -385,18 +385,48 @@ const createCoin = async () => {
           </button>
         </div>
         {visible && (
-          <div className="m-auto">
-            <label htmlFor="twitter" className="block mb-2 text-sm font-medium text-white">
-              X.com
-            </label>
-            <input
-              type="text"
-              id="twitter"
-              value={newCoin.twitter}
-              onChange={handleChange}
-              className="modern-input w-full"
-              placeholder="Enter profile URL (optional)"
-            />
+          <div className="space-y-4 mt-4">
+            <div>
+              <label htmlFor="twitter" className="block mb-2 text-sm font-medium text-white">
+                X.com
+              </label>
+              <input
+                type="text"
+                id="twitter"
+                value={newCoin.twitter}
+                onChange={handleChange}
+                className="modern-input w-full"
+                placeholder="Enter X profile URL (optional)"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="telegram" className="block mb-2 text-sm font-medium text-white">
+                Telegram
+              </label>
+              <input
+                type="text"
+                id="telegram"
+                value={newCoin.telegram}
+                onChange={handleChange}
+                className="modern-input w-full"
+                placeholder="Enter Telegram group URL (optional)"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="website" className="block mb-2 text-sm font-medium text-white">
+                Website
+              </label>
+              <input
+                type="text"
+                id="website"
+                value={newCoin.website}
+                onChange={handleChange}
+                className="modern-input w-full"
+                placeholder="Enter website URL (optional)"
+              />
+            </div>
           </div>
         )}
         <div>
