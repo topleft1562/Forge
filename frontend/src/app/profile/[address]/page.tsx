@@ -69,10 +69,15 @@ export default function Page() {
     setIsModal(false);
   };
 
+  const handleSave= async () => { 
+    updateUser(user._id, index)
+    setIsModal(false)
+  }
+
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newName = event.target.value;
     setIndex((prev) => ({ ...prev, name: newName }));
-    updateUser(user._id, index)
+    
   }
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +115,6 @@ export default function Page() {
      
       // update mongoose DB
       setIndex((prev) => ({ ...prev, avatar: url }));
-      updateUser(user._id, index)
     }
   };
 
@@ -225,6 +229,16 @@ export default function Page() {
                   className="text-[#888]"
                 />
               </div>
+              <img
+                src={index?.avatar}
+                alt="Profile"
+                className="rounded-xl object-cover w-24 h-24"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = index?.avatar;
+                }}
+              />
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   onClick={() => setIsModal(false)}
@@ -235,6 +249,7 @@ export default function Page() {
                 <button
                   type="submit"
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white hover:opacity-90 transition-opacity"
+                  onClick={() => handleSave()}
                 >
                   Save
                 </button>
