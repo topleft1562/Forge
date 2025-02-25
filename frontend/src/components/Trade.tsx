@@ -45,9 +45,22 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
       {/* Desktop Layout */}
       <div className="hidden md:grid md:grid-cols-7 md:gap-4 md:items-center">
 
-          <div className="px-1 rounded-lg text-white">
-          {trade.holder?.name ?? "Unknown"}
-          </div>
+      <div className="flex items-center space-x-2 px-1 rounded-lg text-white">
+  <img
+    src={DEFAULT_AVATAR}
+    alt="IMG"
+    className="rounded-lg"
+    width={32}
+    height={32}
+    onError={(e) => {
+      const target = e.target as HTMLImageElement;
+      target.onerror = null;
+      target.src = DEFAULT_AVATAR;
+    }}
+  />
+  {trade.holder?.name ?? "Unknown"}
+</div>
+
        
 
         <p className={`font-medium ${tradeType === 0 ? 'text-[#4BB543]' : 'text-[#FF3B30]' }`}>
