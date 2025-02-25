@@ -246,64 +246,6 @@ export const uploadImage = async (url: string) => {
 };
 
 
-export const handleSolTransfer = async (fromWallet: string, toWallet: string, amount: number) => {
-    try {
-        const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com");
-        const senderPubKey = new PublicKey(fromWallet);
-        const recipientPubKey = new PublicKey(toWallet);
-        const wallet = useWallet(); // Access Phantom Wallet
-
-        if (!wallet.publicKey) {
-            throw new Error("Wallet not connected");
-        }
-
-        const solAmount = amount
-        console.log(`Requesting Phantom to send ${solAmount} lamports from ${fromWallet} to ${toWallet}`);
-
-        // Create a transaction
-        const transaction = new Transaction().add(
-            SystemProgram.transfer({
-                fromPubkey: senderPubKey,
-                toPubkey: recipientPubKey,
-                lamports: solAmount,
-            })
-        );
-
-        // Get the latest blockhash to ensure the transaction is valid
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-
-        // Set the blockhash in the transaction
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = senderPubKey;
-
-        // Request Phantom Wallet to sign the transaction
-        const signedTransaction = await wallet.signTransaction(transaction);
-        console.log("Transaction signed:", signedTransaction);
-
-        // Send the transaction to the blockchain
-        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-        console.log("Transaction sent:", signature);
-
-        // Confirm the transaction
-        await connection.confirmTransaction(
-            {
-                signature,
-                blockhash,
-                lastValidBlockHeight,
-            },
-            "confirmed" as Finality
-        );
-
-        console.log("SOL Transfer Successful:", signature);
-        return signature;
-    } catch (error) {
-        console.error("SOL Transfer Failed:", error);
-        return null;
-    }
-};
-
-
-
 export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) => {
     const amount = input * 10 ** (isBuy ? 9 : 6);
     let amount_out = 0;

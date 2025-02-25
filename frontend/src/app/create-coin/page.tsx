@@ -5,7 +5,7 @@ import { infoAlert, errorAlert, successAlert } from "@/components/ToastGroup";
 import UserContext from "@/context/UserContext";
 import { useSocket } from "@/contexts/SocketContext";
 import { coinInfo } from "@/utils/types";
-import { createNewCoin, handleSolTransfer, uploadImage } from "@/utils/util";
+import { createNewCoin, uploadImage } from "@/utils/util";
 import Link from "next/link";
 import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
@@ -13,9 +13,10 @@ import { IoMdRocket } from "react-icons/io";
 import { IoArrowBack } from "react-icons/io5";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { EmojiClickData } from 'emoji-picker-react';
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionMessage, TransactionSignature, VersionedTransaction } from '@solana/web3.js';
 import { useRouter } from "next/navigation";
 import { CREATEFEE } from "@/confgi";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 
 export default function CreateCoin() {
@@ -28,6 +29,8 @@ export default function CreateCoin() {
   const [isDragging, setIsDragging] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const router = useRouter();
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
 
   useEffect(() => {
     if (
@@ -81,6 +84,11 @@ const createCoin = async () => {
       return;
     }
 
+    if (!publicKey) {
+      console.log('error', `Send Transaction: Wallet not connected!`);
+      return;
+  }
+
     if (!user._id || !user.wallet) {
       errorAlert('Please connect your wallet first');
       return;
@@ -110,19 +118,48 @@ const createCoin = async () => {
         reserveTwo: 0,
         token: '', // This will be set by your backend
     };
-/*
-    // **Step 1: Transfer SOL to Admin Wallet**
-    const adminWallet = process.env.NEXT_PUBLIC_ADMIN_WALLET!;
-    
-    const txSignature = await handleSolTransfer(user.wallet, adminWallet, CREATEFEE);
-    if (!txSignature) {
-      errorAlert("Payment failed. Please try again.");
-      setIsLoading(false);
-      return;
-    }
+    // send creation fee
+    let signature: TransactionSignature = '';
+    const recipientPubKey = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF")
 
-    successAlert(`Payment Successful! TX: ${txSignature}`);
-*/
+    try {
+
+      // Create instructions to send, in this case a simple transfer
+      const instructions = [
+          SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: recipientPubKey,
+              lamports: 100_000_000,
+          }),
+      ];
+
+      // Get the lates block hash to use on our transaction and confirmation
+      let latestBlockhash = await connection.getLatestBlockhash()
+
+      // Create a new TransactionMessage with version and compile it to legacy
+      const messageLegacy = new TransactionMessage({
+          payerKey: publicKey,
+          recentBlockhash: latestBlockhash.blockhash,
+          instructions,
+      }).compileToLegacyMessage();
+
+      // Create a new VersionedTransacction which supports legacy and v0
+      const transation = new VersionedTransaction(messageLegacy)
+
+      // Send transaction and await for signature
+      signature = await sendTransaction(transation, connection);
+
+      // Send transaction and await for signature
+      await connection.confirmTransaction({ signature, ...latestBlockhash }, 'confirmed');
+
+      console.log(signature);
+      
+  } catch (error: any) {
+      
+      console.log('error', `Transaction failed! ${error?.message}`, signature);
+      return;
+  }
+
     const created = await createNewCoin(coin);
     
     if (created) {
