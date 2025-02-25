@@ -9,9 +9,9 @@ interface MarketCapProps {
 }
 
 export const MarketCap: React.FC<MarketCapProps> = ({ 
-    reserveOne, 
-    reserveTwo,
-    lastPrice
+    reserveOne = 0, 
+    reserveTwo = 0,
+    lastPrice = "0"
 }) => {
     const [marketCap, setMarketCap] = useState<number>(0);
     const [tMarket, settMarket] = useState(1)

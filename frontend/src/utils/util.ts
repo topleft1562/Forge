@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { ChartTable, coinInfo, msgInfo, replyInfo, userInfo } from './types';
-import { FEE_PERCENTAGE, GROWTH_FACTOR, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
+import { FEE_PERCENTAGE, GROWTH_FACTOR, INITIAL_PRICE, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
 import { useState } from 'react';
 import { fetchSolPrice } from './marketCap';
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -227,35 +227,37 @@ export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) =
     const amount = input * 10 ** (isBuy ? 9 : 6);
     let amount_out = 0;
     let tokens_at_current_price = 0;
-    const current_price = parseFloat(coin.lastPrice) * 1000;
+    const initialPrice = INITIAL_PRICE;
 
     if (isBuy) {
+        let fee_amount = (amount * FEE_PERCENTAGE)
+        let amount_after_fee = amount - fee_amount
         const total_tokens_sold = totalSupply - coin.reserveOne + 1;
 
         // Calculate min price (current price before buy)
-        const minPrice = current_price * Math.pow(GROWTH_FACTOR, total_tokens_sold / PRICE_INCREMENT_STEP);
+        const minPrice = initialPrice * Math.pow(GROWTH_FACTOR, total_tokens_sold / PRICE_INCREMENT_STEP);
 
         // Estimate maximum possible tokens that can be bought
-        const maxTokensOut = amount / minPrice;
+        const maxTokensOut = amount_after_fee / minPrice;
 
         // Calculate max price after buying all possible tokens
-        const maxPrice = current_price * Math.pow(GROWTH_FACTOR, (total_tokens_sold + maxTokensOut) / PRICE_INCREMENT_STEP);
+        const maxPrice = initialPrice * Math.pow(GROWTH_FACTOR, (total_tokens_sold + maxTokensOut) / PRICE_INCREMENT_STEP);
 
         // More accurate avg price using logarithmic integral method
         const avgPrice = (maxPrice - minPrice) / Math.log(maxPrice / minPrice);
 
         // Calculate total tokens bought
-        amount_out = amount ? (amount / avgPrice) / 1e6 : 0;
+        amount_out = amount_after_fee ? (amount_after_fee / avgPrice) / 1e6 : 0;
         tokens_at_current_price = maxTokensOut ? maxTokensOut / 1e6 : 0
 
     } else {
         const total_tokens_sold = totalSupply - coin.reserveOne + 1;
 
         // Calculate min price (current price before sell)
-        const minPrice = current_price * Math.pow(GROWTH_FACTOR, total_tokens_sold / PRICE_INCREMENT_STEP);
+        const minPrice = initialPrice * Math.pow(GROWTH_FACTOR, total_tokens_sold / PRICE_INCREMENT_STEP);
 
         // Calculate max price before selling the tokens
-        const maxPrice = current_price * Math.pow(GROWTH_FACTOR, (total_tokens_sold + amount) / PRICE_INCREMENT_STEP);
+        const maxPrice = initialPrice * Math.pow(GROWTH_FACTOR, (total_tokens_sold + amount) / PRICE_INCREMENT_STEP);
 
         // More accurate avg price using logarithmic integral method
         const avgPrice = (maxPrice - minPrice) / Math.log(maxPrice / minPrice);
