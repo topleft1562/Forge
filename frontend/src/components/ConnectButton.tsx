@@ -97,6 +97,12 @@ const sign = async (updatedUser: userInfo) => {
     }
 };
 
+useEffect(() => {
+  if (!publicKey) {
+    logOut(); // Automatically reset user state if wallet disconnects
+  }
+}, [publicKey]);
+
   const logOut = async () => {
     if (typeof disconnect === "function") {
       await disconnect();

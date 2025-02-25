@@ -27,9 +27,7 @@ export default function Page() {
 
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
-  console.log(avatarIMG)
-  console.log(index)
-  console.log(user)
+
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
