@@ -18,12 +18,14 @@ export type TVChartContainerProps = {
     classNames?: {
         container: string;
     };
+    theme?: 'light' | 'dark';
 };
 
 export const TVChartContainer = ({
     name,
     pairIndex,
-    token
+    token,
+    theme = 'dark'
 }: TVChartContainerProps) => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const tvWidgetRef = useRef<IChartingLibraryWidget | null>(null);
@@ -73,8 +75,8 @@ export const TVChartContainer = ({
                 studies_overrides: {},
                 theme: 'dark',
                 loading_screen: {
-                    backgroundColor: '#1E1E1E',
-                    foregroundColor: '#1E1E1E',
+                    backgroundColor: '#141414',
+                    foregroundColor: '#E0FFFF',
                 },
                 // Overrides for both Candle and Area styles.
                 overrides: {
@@ -130,7 +132,7 @@ export const TVChartContainer = ({
                 tvWidgetRef.current.remove();
             }
         };
-    }, [name, pairIndex, token, setIsLoading]);
+    }, [name, pairIndex, token, setIsLoading, theme]);
 
     return (
         <div className="relative mb-[1px] h-[500px] w-full">
