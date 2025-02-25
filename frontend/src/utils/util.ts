@@ -1,9 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { coinInfo, msgInfo, replyInfo, userInfo } from './types';
 import { FEE_PERCENTAGE, GROWTH_FACTOR, INITIAL_PRICE, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, Finality, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 import { BN } from "@coral-xyz/anchor";
 import { useProgram } from "@/contexts/ProgramProvider";
+import { useWallet } from '@solana/wallet-adapter-react';
 
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -245,37 +246,51 @@ export const uploadImage = async (url: string) => {
 };
 
 
-/**
-   * SOL Transfer Function - Uses the Solana Program
-   */
 export const handleSolTransfer = async (fromWallet: string, toWallet: string, amount: number) => {
-    const { program } = useProgram();
-    let sig = ""
     try {
-      const userWallet = new PublicKey(fromWallet);
-      const adminWallet = new PublicKey(toWallet); // Replace with your admin wallet address
+        const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com");
+        const senderPubKey = new PublicKey(fromWallet);
+        const recipientPubKey = new PublicKey(toWallet);
+        const wallet = useWallet();
 
-      const solAmount = new BN(amount); // Convert SOL to lamports
+        const solAmount = amount
 
-      console.log(`Sending ${solAmount.toString()} lamports to ${adminWallet.toString()}`);
+        console.log(`Sending ${solAmount} lamports from ${fromWallet} to ${toWallet}`);
 
-      // Execute the transaction using the Solana program
-      sig = await program.methods
-        .transfer(solAmount)
-        .accounts({
-          sender: userWallet,
-          recipient: adminWallet,
-        })
-        .rpc({
-          skipPreflight: true,
-        });
+        // Create a transaction
+        const transaction = new Transaction().add(
+            SystemProgram.transfer({
+                fromPubkey: senderPubKey,
+                toPubkey: recipientPubKey,
+                lamports: solAmount,
+            })
+        );
 
-      console.log("SOL Transfer Successful:", sig);
+        // Request user's wallet to sign and send the transaction
+        const { sendTransaction } = wallet;
+        const signature = await sendTransaction(transaction, connection);
+
+        console.log("Transaction sent, awaiting confirmation:", signature);
+
+        // ✅ New Method: Use `TransactionConfirmationStrategy`
+        const latestBlockhash = await connection.getLatestBlockhash();
+        await connection.confirmTransaction(
+            {
+                signature,
+                blockhash: latestBlockhash.blockhash,
+                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+            },
+            "confirmed" as Finality // Optional, can use "processed", "confirmed", or "finalized"
+        );
+
+        console.log("SOL Transfer Successful:", signature);
+        return signature;
     } catch (error) {
-      console.error("SOL Transfer Failed:", error);
+        console.error("SOL Transfer Failed:", error);
+        return null;
     }
-    return sig
-  };
+};
+
 
 export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) => {
     const amount = input * 10 ** (isBuy ? 9 : 6);
