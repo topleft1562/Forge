@@ -120,7 +120,7 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
             <div className="space-y-4">
               <div className="bg-[#1E1E1E] rounded-xl p-4">
                 <div className="flex items-center gap-4">
-                  {(coin?.creator as userInfo)?.avatar && (coin?.creator as userInfo).avatar !== 'undefined' ? (
+                  {(coin?.creator as userInfo)?.avatar && (coin?.creator as userInfo).avatar !== "https://gateway.pinata.cloud/ipfs/undefined" ? (
                     <img
                       src={(coin?.creator as userInfo)?.avatar}
                       alt="Token IMG"

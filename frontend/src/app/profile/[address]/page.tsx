@@ -21,6 +21,8 @@ export default function Page() {
   const [isModal, setIsModal] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
+  const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -37,7 +39,7 @@ export default function Page() {
             const img = new Image();
             img.src = response.avatar;
             img.onerror = () => {
-              response.avatar = DEFAULT_AVATAR;
+              response.avatar = avatarIMG;
             };
           }
           setIndex(response || {} as userInfo);
@@ -50,6 +52,7 @@ export default function Page() {
       handleClick();
     }
   }, [pathname]);
+
   useEffect(() => {
     const fetchData = async () => {
       if (option == 4 && param) {
@@ -109,13 +112,13 @@ export default function Page() {
           <div className="flex flex-col sm:flex-row gap-6 items-start">
             {index.avatar !== undefined && (
               <img
-                src={index.avatar || DEFAULT_AVATAR}
+                src={avatarIMG}
                 alt="Profile"
                 className="rounded-xl object-cover w-24 h-24"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = DEFAULT_AVATAR;
+                  target.src = avatarIMG;
                 }}
               />
             )}
@@ -127,12 +130,15 @@ export default function Page() {
                   <span>dev</span>
                 </div>
               </div>
+              {user.wallet === index.wallet &&
               <button 
                 className="px-4 py-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors"
                 onClick={() => setIsModal(true)}
               >
                 Edit profile
               </button>
+              }
+
               <div className="flex gap-6 text-sm">
                 <div className="text-[#888]">Likes received: {0}</div>
                 <div className="text-[#888]">Mentions received: {0}</div>

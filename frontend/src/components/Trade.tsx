@@ -16,7 +16,7 @@ const DEFAULT_AVATAR = '/default-avatar.png';
 
 export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) => {
   const tradeType = trade.holdingStatus;
-  
+  const hasAvatar = trade.holder.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   // Format the amount based on transaction type
   const formattedAmount = tradeType === 0 
     ? formatSOL(trade.amount) 
@@ -47,7 +47,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
 
       <div className="flex items-center space-x-2 px-1 rounded-lg text-white">
   <img
-    src={DEFAULT_AVATAR}
+    src={hasAvatar ? trade.holder.avatar : DEFAULT_AVATAR}
     alt="IMG"
     className="rounded-lg"
     width={32}
@@ -55,7 +55,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
     onError={(e) => {
       const target = e.target as HTMLImageElement;
       target.onerror = null;
-      target.src = DEFAULT_AVATAR;
+      target.src = hasAvatar ? trade.holder.avatar : DEFAULT_AVATAR;
     }}
   />
   {trade.holder?.name ?? "Unknown"}
@@ -101,7 +101,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img
-              src={DEFAULT_AVATAR}
+              src={hasAvatar ? trade.holder.avatar : DEFAULT_AVATAR}
               alt="IMG"
               className="rounded-lg"
               width={32}
@@ -109,7 +109,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.onerror = null;
-                target.src = DEFAULT_AVATAR;
+                target.src = hasAvatar ? trade.holder.avatar : DEFAULT_AVATAR;
               }}
             />
             <div className="text-white">
