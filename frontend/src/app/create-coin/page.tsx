@@ -5,7 +5,7 @@ import { infoAlert, errorAlert, successAlert } from "@/components/ToastGroup";
 import UserContext from "@/context/UserContext";
 import { useSocket } from "@/contexts/SocketContext";
 import { coinInfo } from "@/utils/types";
-import { createNewCoin, uploadImage } from "@/utils/util";
+import { createNewCoin, transferSOL, uploadImage } from "@/utils/util";
 import Link from "next/link";
 import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
@@ -15,6 +15,7 @@ import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { EmojiClickData } from 'emoji-picker-react';
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { useRouter } from "next/navigation";
+import { CREATEFEE } from "@/confgi";
 
 
 export default function CreateCoin() {
@@ -109,6 +110,17 @@ const createCoin = async () => {
         reserveTwo: 0,
         token: '', // This will be set by your backend
     };
+
+    // **Step 1: Transfer SOL to Admin Wallet**
+    const adminWallet = process.env.NEXT_PUBLIC_ADMIN_WALLET!;
+    const txSignature = await transferSOL(user.wallet, adminWallet, CREATEFEE);
+    if (!txSignature) {
+      errorAlert("Payment failed. Please try again.");
+      setIsLoading(false);
+      return;
+    }
+
+    successAlert(`Payment Successful! TX: ${txSignature}`);
 
     const created = await createNewCoin(coin);
     

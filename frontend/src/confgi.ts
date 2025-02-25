@@ -6,3 +6,4 @@ export const GROWTH_FACTOR = 1.0000000035;
 export const FEE_PERCENTAGE = 0.001;
 export const SELL_REDUCTION = 0.99
 export const INITIAL_PRICE = 0.000028;
+export const CREATEFEE = 100_000_000;

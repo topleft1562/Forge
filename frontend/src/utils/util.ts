@@ -1,8 +1,8 @@
 import axios, { AxiosRequestConfig } from 'axios'
-import { ChartTable, coinInfo, msgInfo, replyInfo, userInfo } from './types';
+import { coinInfo, msgInfo, replyInfo, userInfo } from './types';
 import { FEE_PERCENTAGE, GROWTH_FACTOR, INITIAL_PRICE, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
-import { useState } from 'react';
-import { fetchSolPrice } from './marketCap';
+import { Connection, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
+
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const config: AxiosRequestConfig = {
@@ -222,6 +222,41 @@ export const uploadImage = async (url: string) => {
         return false;
     }
 };
+
+/**
+ * Transfer SOL from user wallet to admin wallet
+ */
+export const transferSOL = async (fromWallet: string, toWallet: string, amount: number) => {
+    try {
+        const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT || 'https://api.devnet.solana.com');
+        const fromPublicKey = new PublicKey(fromWallet);
+        const toPublicKey = new PublicKey(toWallet);
+
+        // Create the transaction
+        const transaction = new Transaction().add(
+            SystemProgram.transfer({
+                fromPubkey: fromPublicKey,
+                toPubkey: toPublicKey,
+                lamports: amount, // Amount in lamports (0.1 SOL = 100_000_000 lamports)
+            })
+        );
+
+        // Get the Solana provider (Phantom)
+        const { solana } = window;
+        if (!solana) throw new Error("Solana wallet not found!");
+
+        // Request wallet to sign and send transaction
+        const { signature } = await solana.signAndSendTransaction(transaction);
+        await connection.confirmTransaction(signature, "confirmed");
+
+        console.log(`Transaction successful: ${signature}`);
+        return signature;
+    } catch (error) {
+        console.error("Error transferring SOL:", error);
+        return null;
+    }
+};
+
 
 export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) => {
     const amount = input * 10 ** (isBuy ? 9 : 6);
