@@ -1,6 +1,6 @@
 "use client";
 
-const USE_POLLING = true; // Set to false for production
+const USE_POLLING = false; // Set to false for production
 const POLLING_INTERVAL = 5000; // 5 seconds
 
 import type {
@@ -29,17 +29,20 @@ const channelToSubscription = new Map<number, SubscriptionItem>();
 
 const pollData = async (pairIndex: number) => {
     try {
-        const state = queryClient.getQueryState<Chart>(["charts"]);
-        if (!state?.data) return null;
-        return {
-            price: state.data.closes[pairIndex] || 0,
-            time: Date.now()
-        };
+      // Use the key that includes the pairIndex
+      const data = queryClient.getQueryData<any>(["charts", pairIndex]);
+      if (!data || !data.table || !data.table.length) return null;
+      // Get the most recent bar from the table array
+      const latestBar = data.table[data.table.length - 1];
+      return {
+        price: latestBar.close, // use the latest close price
+        time: Date.now()
+      };
     } catch (error) {
-        console.error("[polling] Error:", error);
-        return null;
+      console.error("[polling] Error:", error);
+      return null;
     }
-};
+  };
 
 function getNextBarTime(barTime: number, resolution: number) {
     const previousSegment = Math.floor(barTime / 1000 / 60 / resolution);
@@ -54,52 +57,57 @@ export function subscribeOnStream(
     onResetCacheNeededCallback: () => void,
     lastBar: Bar,
     pairIndex: number,
-) {
+  ) {
     console.log("[polling] Setting up polling for pair index:", pairIndex);
     
-    const subscriptionItem: SubscriptionItem = {  // Added type annotation here
-        subscriberUID,
-        resolution,
-        lastBar,
-        handlers: [{
-            id: subscriberUID,
-            callback: onRealtimeCallback,
-        }],
-        pairIndex,
+    const subscriptionItem: SubscriptionItem = {
+      subscriberUID,
+      resolution,
+      lastBar,
+      handlers: [{
+        id: subscriberUID,
+        callback: onRealtimeCallback,
+      }],
+      pairIndex,
     };
     
     const pollInterval = setInterval(async () => {
-        const data = await pollData(pairIndex);
-        if (!data) return;
-
-        const currentTime = Math.floor(data.time / 1000) * 1000;
-        const nextBarTime = getNextBarTime(lastBar.time, +resolution);
-
-        let currentBar: Bar;
-        if (currentTime >= nextBarTime) {
-            currentBar = {
-                time: nextBarTime,
-                open: data.price,
-                high: data.price,
-                low: data.price,
-                close: data.price,
-            };
-        } else {
-            currentBar = {
-                ...lastBar,
-                high: Math.max(lastBar.high, data.price),
-                low: Math.min(lastBar.low, data.price),
-                close: data.price,
-            };
-        }
-        
-        console.log("[polling] Updating bar:", currentBar);
-        onRealtimeCallback(currentBar);
+      const data = await pollData(pairIndex);
+      if (!data) return;
+  
+      const currentTime = data.time;
+      // Use the updated lastBar from the subscriptionItem:
+      const nextBarTime = getNextBarTime(subscriptionItem.lastBar.time, +resolution);
+  
+      let currentBar: Bar;
+      if (currentTime >= nextBarTime) {
+        // New candle should be started
+        currentBar = {
+          time: nextBarTime,
+          open: data.price,
+          high: data.price,
+          low: data.price,
+          close: data.price,
+        };
+      } else {
+        // Update the ongoing candle
+        currentBar = {
+          ...subscriptionItem.lastBar,
+          high: Math.max(subscriptionItem.lastBar.high, data.price),
+          low: Math.min(subscriptionItem.lastBar.low, data.price),
+          close: data.price,
+        };
+      }
+      
+      console.log("[polling] Updating bar:", currentBar);
+      onRealtimeCallback(currentBar);
+      // Update the subscription's lastBar
+      subscriptionItem.lastBar = currentBar;
     }, POLLING_INTERVAL);
     
     subscriptionItem.pollInterval = pollInterval;
     channelToSubscription.set(pairIndex, subscriptionItem);
-}
+  }
 
 export function unsubscribeFromStream(subscriberUID: string) {
     console.log("[polling] Unsubscribing from stream:", subscriberUID);

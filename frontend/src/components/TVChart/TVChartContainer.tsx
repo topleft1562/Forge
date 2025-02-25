@@ -5,7 +5,6 @@ import {
     IChartingLibraryWidget, 
     ResolutionString, 
     widget,
-    StudyOverrides 
 } from "@/libraries/charting_library";
 import ReactLoading from "react-loading";
 import { twMerge } from "tailwind-merge";
@@ -28,7 +27,7 @@ export const TVChartContainer = ({
 }: TVChartContainerProps) => {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const tvWidgetRef = useRef<IChartingLibraryWidget | null>(null);
-    const {isLoading, setIsLoading} = useContext(UserContext);
+    const { isLoading, setIsLoading } = useContext(UserContext);
 
     useEffect(() => {
         console.log("Effect triggered:", { name, pairIndex, token });
@@ -77,13 +76,20 @@ export const TVChartContainer = ({
                     backgroundColor: '#1E1E1E',
                     foregroundColor: '#1E1E1E',
                 },
+                // Overrides for both Candle and Area styles.
                 overrides: {
+                    // Candle style (works as before)
                     'mainSeriesProperties.candleStyle.upColor': '#26a69a',
                     'mainSeriesProperties.candleStyle.downColor': '#ef5350',
                     'mainSeriesProperties.candleStyle.borderUpColor': '#26a69a',
                     'mainSeriesProperties.candleStyle.borderDownColor': '#ef5350',
                     'mainSeriesProperties.candleStyle.wickUpColor': '#26a69a',
                     'mainSeriesProperties.candleStyle.wickDownColor': '#ef5350',
+                    // Area style overrides using rgba values.
+                    'mainSeriesProperties.areaStyle.color1': 'rgba(38, 166, 154, 0.2)',
+                    'mainSeriesProperties.areaStyle.color2': 'rgba(38, 166, 154, 0.2)',
+                    'mainSeriesProperties.areaStyle.linecolor': 'rgba(38, 166, 154, 1)',
+                    'mainSeriesProperties.areaStyle.linewidth': 2,
                 },
                 datafeed: getDataFeed({ 
                     pairIndex, 
@@ -103,23 +109,14 @@ export const TVChartContainer = ({
                 const priceScale = chart?.getPanes()[0].getMainSourcePriceScale();
                 priceScale?.setAutoScale(true);
                 
-                // Temporarily disable MA indicators until we fix the type issues
+                // Force the chart to use the Area style.
+                // Uncomment the block below to force the chart type after a short delay.
                 /*
-                chart?.createStudy(
-                    'Moving Average', 
-                    false, 
-                    false, 
-                    [7], 
-                    { 'plot.color': '#2962FF' }
-                );
-                
-                chart?.createStudy(
-                    'Moving Average', 
-                    false, 
-                    false, 
-                    [25], 
-                    { 'plot.color': '#FF6D00' }
-                );
+                setTimeout(() => {
+                    // Change the chart type. (The value 1 is assumed to be Area in your library version.)
+                    chart?.setChartType(1);
+                    chart?.reloadData();
+                }, 100);
                 */
             });
         };
@@ -147,10 +144,7 @@ export const TVChartContainer = ({
                     />
                 </div>
             )}
-            <div
-                ref={chartContainerRef}
-                className={twMerge("h-full w-full")}
-            />
+            <div ref={chartContainerRef} className="h-full w-full" />
         </div>
     );
 };

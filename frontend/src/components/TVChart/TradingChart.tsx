@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Script from "next/script";
 import { ChartingLibraryWidgetOptions, ResolutionString } from "@/libraries/charting_library/charting_library";
 import { coinInfo } from "@/utils/types";
+import { useQuery } from "react-query";
+import { getChartTable } from "@/utils/getChartTable";
 
 interface TradingChartProps {
     param: coinInfo
@@ -22,14 +24,14 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
     const [isScriptReady, setIsScriptReady] = useState(false);
     
     useEffect(() => {
-        // Check if the script is already loaded
+
         if ((window as any).TradingView) {
            // console.log("TradingView already loaded");
             setIsScriptReady(true);
             return;
         }
 
-        // Load the script manually if not loaded
+
         const script = document.createElement('script');
         script.src = '/libraries/charting_library/charting_library.standalone.js';
         script.type = 'text/javascript';
@@ -53,6 +55,31 @@ export const TradingChart: React.FC<TradingChartProps> = ({ param }) => {
         // console.log("TradingChart effect - Script ready status:", isScriptReady);
         // console.log("TradingChart effect - Param:", param);
     }, [isScriptReady, param]);
+
+
+const { data: chartData } = useQuery(
+    ["charts", 10], 
+    async () => {
+
+      const to = Math.floor(Date.now() / 1000);
+      const from = to - 60; 
+      const resolution = "15";
+
+      const range = resolution === "15" ? 1440 : +resolution;
+
+      return await getChartTable({
+        token: param.token,
+        pairIndex: 10,
+        from,
+        to,
+        range,
+      });
+    },
+    {
+      refetchInterval: 10000,
+      enabled: !!param.token, 
+    }
+  );
 
     // Default configuration for the chart
     const defaultProps: Partial<ChartingLibraryWidgetOptions> = {
