@@ -383,6 +383,7 @@ export const initializePoolIx = async (
 export const removeLiquidityIx = async (
   mintToken: PublicKey,
   payer: PublicKey,
+  isCancel: number,
 ) => {
   console.log("Preparing Remove Liquidity Call")
   const ixs: TransactionInstruction[] = [];
@@ -423,6 +424,9 @@ export const removeLiquidityIx = async (
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,  
     };
+    const args = {
+      isCancel: new BN(isCancel)
+    }
     console.log(
       poolPda.toString(),
       globalAccount.toString(),
@@ -431,7 +435,7 @@ export const removeLiquidityIx = async (
       userAta1.toString(),
       payer.toString(),
     )
-    ixs.push(removeLiquidity(acc));
+    ixs.push(removeLiquidity(args,acc));
   } catch (error) {
     console.log("❌ Error adding remove liquidity instruction:", error);
   }

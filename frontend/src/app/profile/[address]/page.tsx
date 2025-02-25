@@ -1,10 +1,11 @@
 "use client";
 import { CoinBlog } from "@/components/CoinBlog";
 import Modal from "@/components/Modal";
+import { infoAlert } from "@/components/ToastGroup";
 import { cluster } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { coinInfo, userInfo } from "@/utils/types";
-import { getCoinsInfo, getCoinsInfoBy, getUser } from "@/utils/util";
+import { getCoinsInfo, getCoinsInfoBy, getUser, updateUser, uploadImage } from "@/utils/util";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -23,6 +24,7 @@ export default function Page() {
 
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
+
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -66,7 +68,14 @@ export default function Page() {
   const handleModalClose = () => {
     setIsModal(false);
   };
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = event.target.value;
+    setIndex((prev) => ({ ...prev, name: newName }));
+    updateUser(user._id, index)
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files && event.target.files[0];
     if (file) {
       // Validate file type
@@ -74,8 +83,14 @@ export default function Page() {
         console.error('Invalid file type');
         return;
       }
-  
-      const url = URL.createObjectURL(file);
+      const url = await uploadImage(imageUrl);
+      if (!url) {
+        throw new Error('Failed to upload image');
+      }
+      
+        infoAlert(`Uploaded Image for ${user.name}`);
+
+      // const url = URL.createObjectURL(file);
       
       // Validate the created URL
       const img = new Image();
@@ -92,6 +107,10 @@ export default function Page() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+     
+      // update mongoose DB
+      setIndex((prev) => ({ ...prev, avatar: url }));
+      updateUser(user._id, index)
     }
   };
 
@@ -195,6 +214,7 @@ export default function Page() {
                   className="w-full bg-[#141414] border border-[#3c3f44] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd] transition-colors"
                   type="text"
                   value={index.name}
+                  onChange={handleNameChange}
                 />
               </div>
               <div className="bg-[#141414] rounded-lg p-4 border border-[#3c3f44]">

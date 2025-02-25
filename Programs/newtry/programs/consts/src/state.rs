@@ -63,6 +63,7 @@ pub trait LiquidityPoolAccount<'info> {
             &mut Signer<'info>,
         ),
         bump: u8,
+        isCancel: u64,
         _authority: &Signer<'info>,
         token_program: &Program<'info, Token>,
         system_program: &Program<'info, System>,
@@ -160,6 +161,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             &mut Signer<'info>,
         ),
         bump: u8,
+        isCancel: u64,
         _authority: &Signer<'info>,
         token_program: &Program<'info, Token>,
         system_program: &Program<'info, System>,
@@ -200,10 +202,14 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
     )?;
 
         msg!("Liquidity Removed From Forge Tokens: {}, SOL: {}", self.reserve_one, self.reserve_two);
-        msg!(
+        if isCancel == 1 {
+            msg!("Canceled Sale: Caller: {}, Mint: {}");
+        } else {
+            msg!(
                 "RemovalData: Caller: {}, Mint: {}, AmountIn: {}, AmountOut: {}, Style: {}, Price: {}, PostReserve1: {}, PostReserve2: {}",
                 _authority.key(), self.token_one, 0, 0, 3, 0, self.reserve_one, self.reserve_two
             );
+        }
         self.reserve_one = 0;
         self.reserve_two = 0;
         self.is_migrated = true;
