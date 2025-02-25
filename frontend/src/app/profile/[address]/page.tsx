@@ -22,6 +22,9 @@ export default function Page() {
   const [isModal, setIsModal] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [newName, setNewName] = useState(user?.name)
+  const [newImage, setNewImage] = useState(user?.avatar)
+
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
   console.log(avatarIMG)
@@ -72,14 +75,14 @@ export default function Page() {
   };
 
   const handleSave= async () => { 
+    setIndex((prev) => ({ ...prev, name: newName }));
+    setIndex((prev) => ({ ...prev, avatar: newImage }));
     updateUser(user._id, index)
     setIsModal(false)
   }
 
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = event.target.value;
-    setIndex((prev) => ({ ...prev, name: newName }));
-    
+    setNewName(event.target.value)
   }
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,9 +117,7 @@ export default function Page() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-     
-      // update mongoose DB
-      setIndex((prev) => ({ ...prev, avatar: url }));
+     setNewImage(url)
     }
   };
 
@@ -232,13 +233,13 @@ export default function Page() {
                 />
               </div>
               <img
-                src={index?.avatar}
+                src={newImage}
                 alt="Profile"
                 className="rounded-xl object-cover w-24 h-24"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = index?.avatar;
+                  target.src = DEFAULT_AVATAR;
                 }}
               />
               <div className="flex justify-end gap-4 mt-6">
