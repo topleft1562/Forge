@@ -69,10 +69,14 @@ export default function Page() {
     setIsModal(false);
   };
 
+  const handleSave= async () => { 
+    updateUser(user._id, index)
+  }
+
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newName = event.target.value;
     setIndex((prev) => ({ ...prev, name: newName }));
-    updateUser(user._id, index)
+    
   }
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +114,6 @@ export default function Page() {
      
       // update mongoose DB
       setIndex((prev) => ({ ...prev, avatar: url }));
-      updateUser(user._id, index)
     }
   };
 
@@ -235,6 +238,7 @@ export default function Page() {
                 <button
                   type="submit"
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white hover:opacity-90 transition-opacity"
+                  onClick={() => handleSave()}
                 >
                   Save
                 </button>
