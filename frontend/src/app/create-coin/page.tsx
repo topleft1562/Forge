@@ -110,9 +110,10 @@ const createCoin = async () => {
         reserveTwo: 0,
         token: '', // This will be set by your backend
     };
-
+/*
     // **Step 1: Transfer SOL to Admin Wallet**
     const adminWallet = process.env.NEXT_PUBLIC_ADMIN_WALLET!;
+    
     const txSignature = await handleSolTransfer(user.wallet, adminWallet, CREATEFEE);
     if (!txSignature) {
       errorAlert("Payment failed. Please try again.");
@@ -121,7 +122,7 @@ const createCoin = async () => {
     }
 
     successAlert(`Payment Successful! TX: ${txSignature}`);
-
+*/
     const created = await createNewCoin(coin);
     
     if (created) {
