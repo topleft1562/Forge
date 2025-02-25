@@ -251,11 +251,14 @@ export const handleSolTransfer = async (fromWallet: string, toWallet: string, am
         const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com");
         const senderPubKey = new PublicKey(fromWallet);
         const recipientPubKey = new PublicKey(toWallet);
-        const wallet = useWallet();
+        const wallet = useWallet(); // Access Phantom Wallet
+
+        if (!wallet.publicKey) {
+            throw new Error("Wallet not connected");
+        }
 
         const solAmount = amount
-
-        console.log(`Sending ${solAmount} lamports from ${fromWallet} to ${toWallet}`);
+        console.log(`Requesting Phantom to send ${solAmount} lamports from ${fromWallet} to ${toWallet}`);
 
         // Create a transaction
         const transaction = new Transaction().add(
@@ -266,21 +269,29 @@ export const handleSolTransfer = async (fromWallet: string, toWallet: string, am
             })
         );
 
-        // Request user's wallet to sign and send the transaction
-        const { sendTransaction } = wallet;
-        const signature = await sendTransaction(transaction, connection);
+        // Get the latest blockhash to ensure the transaction is valid
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
 
-        console.log("Transaction sent, awaiting confirmation:", signature);
+        // Set the blockhash in the transaction
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = senderPubKey;
 
-        // ✅ New Method: Use `TransactionConfirmationStrategy`
-        const latestBlockhash = await connection.getLatestBlockhash();
+        // Request Phantom Wallet to sign the transaction
+        const signedTransaction = await wallet.signTransaction(transaction);
+        console.log("Transaction signed:", signedTransaction);
+
+        // Send the transaction to the blockchain
+        const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+        console.log("Transaction sent:", signature);
+
+        // Confirm the transaction
         await connection.confirmTransaction(
             {
                 signature,
-                blockhash: latestBlockhash.blockhash,
-                lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+                blockhash,
+                lastValidBlockHeight,
             },
-            "confirmed" as Finality // Optional, can use "processed", "confirmed", or "finalized"
+            "confirmed" as Finality
         );
 
         console.log("SOL Transfer Successful:", signature);
@@ -290,6 +301,7 @@ export const handleSolTransfer = async (fromWallet: string, toWallet: string, am
         return null;
     }
 };
+
 
 
 export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) => {
