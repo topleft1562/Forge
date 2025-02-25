@@ -34,8 +34,9 @@ pub mod pump {
 
     pub fn remove_liquidity(
         ctx: Context<RemoveLiquidity>,
+        isCancel: u64,
     ) -> Result<()> {
-        instructions::remove_liquidity(ctx)
+        instructions::remove_liquidity(ctx, isCancel)
     }
 
     pub fn swap(ctx: Context<Swap>, amount: u64, style: u64, minOut: u64) -> Result<()> {
