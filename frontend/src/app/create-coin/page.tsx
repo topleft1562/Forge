@@ -73,6 +73,7 @@ export default function CreateCoin() {
 };
 
 const createCoin = async () => {
+  setIsLoading(true);
   try {
     if (!imageUrl) {
       errorAlert("Please upload an image");
@@ -101,7 +102,7 @@ const createCoin = async () => {
       return;
     }
 
-    setIsLoading(true);
+    
     const url = await uploadImage(imageUrl);
     
     if (!url) {
@@ -120,7 +121,7 @@ const createCoin = async () => {
     };
     // send creation fee
     let signature: TransactionSignature = '';
-    const recipientPubKey = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF")
+    const recipientPubKey = new PublicKey(process.env.ADMINWALLET)
 
     try {
 

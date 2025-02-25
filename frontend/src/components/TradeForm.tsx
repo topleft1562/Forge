@@ -9,6 +9,7 @@ import {
     createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 import { calculateOutPut } from "@/utils/util";
+import { errorAlert, successAlert } from "./ToastGroup";
 
 interface TradingFormProps {
     coin: coinInfo;
@@ -97,8 +98,10 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
             
         } catch (error) {
             console.error("Trade failed:", error);
+            errorAlert(`Trade Failed....`);
         } finally {
             setIsLoading(false);
+            successAlert(`Trade Success!!!`);
         }
     };
 
