@@ -6,7 +6,6 @@ import { PROGRAM_ID } from "../programId"
 export interface AddLiquidityArgs {
   amountOne: BN
   amountTwo: BN
-  creator: PublicKey
 }
 
 export interface AddLiquidityAccounts {
@@ -17,6 +16,7 @@ export interface AddLiquidityAccounts {
   poolTokenAccountOne: PublicKey
   userTokenAccountOne: PublicKey
   user: PublicKey
+  creator: PublicKey
   //rent: PublicKey
   systemProgram: PublicKey
   tokenProgram: PublicKey
@@ -26,7 +26,6 @@ export interface AddLiquidityAccounts {
 export const layout = borsh.struct([
   borsh.u64("amountOne"),
   borsh.u64("amountTwo"),
-  borsh.publicKey("creator")
 ])
 
 export function addLiquidity(
@@ -41,6 +40,7 @@ export function addLiquidity(
     { pubkey: accounts.poolTokenAccountOne, isSigner: false, isWritable: true },
     { pubkey: accounts.userTokenAccountOne, isSigner: false, isWritable: true },
     { pubkey: accounts.user, isSigner: true, isWritable: true },
+    { pubkey: accounts.creator, isSigner: false, isWritable: true },
     { pubkey: accounts.systemProgram, isSigner: false, isWritable: false },
     { pubkey: accounts.tokenProgram, isSigner: false, isWritable: false },
     {
@@ -55,7 +55,6 @@ export function addLiquidity(
     {
       amountOne: args.amountOne,
       amountTwo: args.amountTwo,
-      creator: args.creator,
     },
     buffer
   )

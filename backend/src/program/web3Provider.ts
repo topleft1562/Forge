@@ -85,6 +85,8 @@ export const createLPIx = async (
   const userAta1 = await getAssociatedTokenAddress(
     mintToken, payer
   );
+
+  
   // console.log("User ATA:", userAta1.toBase58());
 
   const acc: AddLiquidityAccounts = {
@@ -94,6 +96,7 @@ export const createLPIx = async (
     poolTokenAccountOne: poolTokenOne,
     userTokenAccountOne: userAta1,
     user: payer,
+    creator,
     tokenProgram: TOKEN_PROGRAM_ID,
     associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
     systemProgram: SystemProgram.programId
@@ -107,12 +110,12 @@ export const createLPIx = async (
     poolTokenAccountOne: acc.poolTokenAccountOne.toBase58(),
     userTokenAccountOne: acc.userTokenAccountOne.toBase58(),
     user: acc.user.toBase58(),
+    creator: acc.creator.toBase58(),
   });
 
   const args: AddLiquidityArgs = {
     amountOne: new anchor.BN(totalSupply),
     amountTwo: new anchor.BN(initialSOL),
-    creator,
   };
   
   console.log("AddLiquidity Args:", {
