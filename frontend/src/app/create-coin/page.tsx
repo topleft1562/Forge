@@ -158,7 +158,7 @@ const createCoin = async () => {
   } catch (error: any) {
       
       console.log('error', `Transaction failed! ${error?.message}`, signature);
-      return;
+      // return;
   }
 
     const created = await createNewCoin(coin);
