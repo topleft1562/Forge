@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js"
 
 export interface PoolReserves {
     reserveOne: number;  // Token amount (6 decimals)
@@ -52,6 +51,8 @@ export interface coinInfo {
     replies?: number,
     description?: string,
     twitter?: string,
+    telegram?: string,
+    website?: string,
     date?: Date,
 }
 export interface msgInfo {

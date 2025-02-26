@@ -13,7 +13,8 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, INITIAL_PRICE, ourFeeToKeep, totalSupply, willMigrateAt } from "../config/config";
+import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, totalSupply } from "../config/config";
+import { fetchSolPrice } from "../utils/calculateTokenPrice";
 
 
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
@@ -72,7 +73,7 @@ export const initializeTx = async () => {
 
 
 // Create Token and add liquidity transaction
-export const createToken = async (data: CoinInfo) => {
+export const createToken = async (data: CoinInfo, creatorWallet: any) => {
     try {
         console.log("Starting token creation for:", data.name);
         const uri = await uploadMetadata(data);
@@ -139,7 +140,10 @@ export const createToken = async (data: CoinInfo) => {
         
             // Now proceed with LP creation
             console.log("Starting LP creation...");
-            const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey);
+    
+            console.log("wallet", creatorWallet)
+         
+            const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey, new PublicKey(creatorWallet));
             const createTx = new Transaction().add(lpTx.ix);
             createTx.feePayer = adminWallet.publicKey;
             createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -259,7 +263,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     }
     console.log(logs)
     let isSwap = false
-    let isRemove
+    let isRemove = false
     processedSignatures.add(logs.signature);
     logs.logs.forEach((log: string) => {
         if (log.includes('RemovalData:')) {
@@ -270,17 +274,25 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         }
     });
 
- if(isSwap || isRemove){
+    if(isSwap || isRemove){
         const parsedData = parseLogs(logs.logs, logs.signature);
-        const tokensSold = totalSupply - parsedData.reserve1
+
+        const launchPrice = parsedData.reserve2 / parsedData.reserve1
+        const solPrice = await fetchSolPrice()
+        const launchMarketCap = ((launchPrice / 1e9)*solPrice)*totalSupply
+        
+        console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
+        
         await setCoinStatus(parsedData);
-    /*
+    
         console.log('Current reserves:', {
             solReserve: parsedData.reserve2 / 1e9,
-            willMigrate: parsedData.reserve2 > willMigrateAt
+            willMigrate: launchMarketCap > marketCapGoal,
+            marketCap: launchMarketCap,
+            Goal: marketCapGoal
         });
-    */
-        if (tokensSold > willMigrateAt && isSwap) {
+    
+        if (launchMarketCap > marketCapGoal && isSwap) {
             console.log('🚀 Migration threshold reached! Moving to Raydium...');
             try {
                 await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
@@ -288,8 +300,28 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
                 console.error('Migration failed:', error);
             }
         }
-    }  
+    }
+  
 });
+
+export const cancelCoin = async(mint: string) => {
+    
+        const removeLiquidityTX = await removeLiquidityIx(new PublicKey(mint), adminKeypair.publicKey, 1);
+        const tx = new Transaction().add(
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
+        );
+        tx.add(removeLiquidityTX.ixs[0])
+        tx.feePayer = adminKeypair.publicKey;
+        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        // ✅ Simulate transaction before sending
+        console.log("🔹 Simulating Transaction...");
+        await simulateTransaction(connection, tx);
+        // ✅ Send transaction with preflight check
+        const sig = await sendAndConfirmTransaction(connection, tx, [adminKeypair], {
+            commitment: "finalized", // Ensures transaction is fully confirmed
+        });
+        console.log("✅ SALE HAS BEEN CANCELED!");
+}
 
 // Remove liquidity pool and Create Raydium Pool
 export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) => {
@@ -306,7 +338,7 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
     const amountOne = r1;    // tokens to raydium
     const amountTwo = r2 - ourFeeToKeep;   // sol to raydium minus fee
     // 🔹 Fetch remove liquidity instructions (returns structured output)
-    const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey);
+    const removeLiquidityTX = await removeLiquidityIx(mint1, adminKeypair.publicKey, 0);
 
     const tx = new Transaction().add(
         ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 })
@@ -392,8 +424,6 @@ function parseLogs(logs: string[], tx: string): ResultType {
     // console.log("✅ Parsed Result:", result);
     return result;
 }
-
-
 
 export interface CoinInfo {
     creator?: Types.ObjectId;

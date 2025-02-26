@@ -6,6 +6,7 @@ import { PROGRAM_ID } from "../programId"
 export interface AddLiquidityArgs {
   amountOne: BN
   amountTwo: BN
+  creator: PublicKey
 }
 
 export interface AddLiquidityAccounts {
@@ -25,6 +26,7 @@ export interface AddLiquidityAccounts {
 export const layout = borsh.struct([
   borsh.u64("amountOne"),
   borsh.u64("amountTwo"),
+  borsh.publicKey("creator")
 ])
 
 export function addLiquidity(
@@ -53,6 +55,7 @@ export function addLiquidity(
     {
       amountOne: args.amountOne,
       amountTwo: args.amountTwo,
+      creator: args.creator,
     },
     buffer
   )

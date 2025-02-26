@@ -8,6 +8,7 @@ use crate::state::{LiquidityPool, LiquidityPoolAccount};
 
 pub fn remove_liquidity(
     ctx: Context<RemoveLiquidity>,
+    isCancel: u64,
 ) -> Result<()> {
     let pool = &mut ctx.accounts.pool;
     let token_one_accounts = (
@@ -26,6 +27,7 @@ pub fn remove_liquidity(
         token_one_accounts,
         token_two_accounts,
         ctx.bumps.global_account,
+        isCancel,
         &ctx.accounts.user,
         &ctx.accounts.token_program,
         &ctx.accounts.system_program,

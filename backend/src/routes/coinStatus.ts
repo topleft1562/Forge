@@ -2,6 +2,7 @@ import CoinStatus from "../models/CoinsStatus";
 import { ResultType } from "../program/web3";
 import Coin from "../models/Coin";
 import User from "../models/User";
+import Feedback from "../models/Feedback"
 
 
 export const setCoinStatus = async (data: ResultType) => {
@@ -60,6 +61,32 @@ export const setCoinStatus = async (data: ResultType) => {
         console.error(`❌ Token not found in MongoDB: [${tokenAddress}]`);
     } else {
         console.log("✅ Updated coin reserves")  //, updateCoin);
+    }
+};
+
+export const deleteCoinMessagesTrades = async (tokenAddress: string) => {
+    const coinId = await Coin.findOne({ token: tokenAddress }).select('_id');
+    // delete coin with this id
+    const deleteCoin = await Coin.deleteOne({_id: coinId})
+    console.log(deleteCoin)
+    if(deleteCoin.acknowledged) {
+        console.log("success")
+    } else {
+        console.log("failed?")
+    }
+    const deleteTrades = await CoinStatus.deleteOne({coinId: coinId})
+    console.log(deleteTrades)
+    if(deleteTrades.acknowledged) {
+        console.log("success")
+    } else {
+        console.log("failed?")
+    }
+    const deleteMsgs = await Feedback.deleteOne({coinId: coinId})
+    console.log(deleteMsgs)
+    if(deleteMsgs.acknowledged) {
+        console.log("success")
+    } else {
+        console.log("failed?")
     }
 };
 

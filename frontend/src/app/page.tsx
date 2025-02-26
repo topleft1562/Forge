@@ -199,7 +199,9 @@ export default function Home() {
                 </div>
             </div>
 
+
             {/* Controls container */}
+
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 px-4 sm:px-0 mb-8 items-center">
                 {/* Left side controls: Live/Migrated Buttons + Search */}
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto items-center">
