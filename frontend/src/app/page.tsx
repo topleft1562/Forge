@@ -199,149 +199,80 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* Tab Buttons for Live and Migrated */}
-            <div className="flex justify-center gap-4 mb-8">
-                <button
-                    className={`px-6 py-2 rounded-lg transition-all duration-300 ${
-                        activeTab === "live"
-                            ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
-                            : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
-                    }`}
-                    onClick={() => setActiveTab("live")}
-                >
-                    Live
-                </button>
-                <button
-                    className={`px-6 py-2 rounded-lg transition-all duration-300 ${
-                        activeTab === "migrated"
-                            ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
-                            : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
-                    }`}
-                    onClick={() => setActiveTab("migrated")}
-                >
-                    Migrated
-                </button>
-                {/*
-        <button
-          className={`px-4 py-2 rounded ${
-            activeTab === "migrated"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
-          onClick={() => simulateBuys()}
-        >
-          simulate buys
-        </button>
-        */}
-            </div>
-
+            {/* Controls container */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 px-4 sm:px-0 mb-8 items-center">
-                {/* Sort Dropdown */}
-                <div ref={dropdownRef} className="w-full sm:w-auto relative">
-                    <button
-                        className="modern-dropdown-btn w-full"
-                        onClick={() => setIsSort(1)}
-                    >
-                        <span>SORT: {dataSort}</span>
-                        <svg
-                            className={`w-4 h-4 transition-transform ${
-                                isSort === 1 ? "rotate-180" : ""
-                            }`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                            />
-                        </svg>
-                    </button>
-
-                    {isSort === 1 && (
-                        <div className="modern-dropdown-menu">
-                            <button
-                                onClick={() =>
-                                    handleSortSelection("forge order")
-                                }
-                                className="modern-dropdown-item"
-                            >
-                                Sort: Forge Order
-                            </button>
-
-                            <button
-                                onClick={() =>
-                                    handleSortSelection("creation time")
-                                }
-                                className="modern-dropdown-item"
-                            >
-                                Sort: Creation Time
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Order Dropdown */}
-                <div ref={dropdownRef1} className="w-full sm:w-auto relative">
-                    <button
-                        className="modern-dropdown-btn w-full"
-                        onClick={() => setIsSort(2)}
-                    >
-                        <span>ORDER: {order.toUpperCase()}</span>
-                        <svg
-                            className={`w-4 h-4 transition-transform ${
-                                isSort === 2 ? "rotate-180" : ""
-                            }`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                            />
-                        </svg>
-                    </button>
-
-                    {isSort === 2 && (
-                        <div className="modern-dropdown-menu">
-                            <button
-                                onClick={() => handleSortSelection("desc")}
-                                className="modern-dropdown-item"
-                            >
-                                Sort: Descending
-                            </button>
-                            <button
-                                onClick={() => handleSortSelection("asc")}
-                                className="modern-dropdown-item"
-                            >
-                                Sort: Ascending
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Search Input */}
-                <div className="w-full sm:w-auto sm:ml-auto max-w-[300px]">
-                    <div className="relative flex items-center">
-                        <input
-                            type="text"
-                            value={token}
-                            placeholder="Search for Token"
-                            onChange={(e) => setToken(e.target.value)}
-                            className="modern-input w-full"
-                        />
+                {/* Left side controls: Live/Migrated Buttons + Search */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto items-center">
+                    {/* Live/Migrated Buttons */}
+                    <div className="flex gap-2 w-full sm:w-auto">
                         <button
-                            className="absolute right-4 text-[#01a8dd] hover:text-[#4088ae] transition-colors"
-                            onClick={searchToken}
+                            className={`px-6 py-2 rounded-lg transition-all duration-300 ${
+                                activeTab === "live"
+                                    ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+                                    : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
+                            }`}
+                            onClick={() => setActiveTab("live")}
                         >
+                            Live
+                        </button>
+                        <button
+                            className={`px-6 py-2 rounded-lg transition-all duration-300 ${
+                                activeTab === "migrated"
+                                    ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+                                    : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
+                            }`}
+                            onClick={() => setActiveTab("migrated")}
+                        >
+                            Migrated
+                        </button>
+                    </div>
+
+                    {/* Search Input */}
+                    <div className="w-full sm:w-auto max-w-[300px]">
+                        <div className="relative flex items-center">
+                            <input
+                                type="text"
+                                value={token}
+                                placeholder="Search for Token"
+                                onChange={(e) => setToken(e.target.value)}
+                                className="modern-input w-full"
+                            />
+                            <button
+                                className="absolute right-4 text-[#01a8dd] hover:text-[#4088ae] transition-colors"
+                                onClick={searchToken}
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right side controls: Sort and Order */}
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto sm:ml-auto items-center">
+                    {/* Sort Dropdown */}
+                    <div ref={dropdownRef} className="w-full sm:w-auto relative">
+                        <button
+                            className="modern-dropdown-btn w-full"
+                            onClick={() => setIsSort(1)}
+                        >
+                            <span>SORT: {dataSort.toUpperCase()}</span>
                             <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5"
+                                className={`w-4 h-4 transition-transform ${
+                                    isSort === 1 ? "rotate-180" : ""
+                                }`}
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -350,20 +281,85 @@ export default function Home() {
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    d="M19 9l-7 7-7-7"
                                 />
                             </svg>
                         </button>
+
+                        {isSort === 1 && (
+                            <div className="modern-dropdown-menu">
+                                <button
+                                    onClick={() =>
+                                        handleSortSelection("forge order")
+                                    }
+                                    className="modern-dropdown-item"
+                                >
+                                    Sort: Forge Order
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        handleSortSelection("creation time")
+                                    }
+                                    className="modern-dropdown-item"
+                                >
+                                    Sort: Creation Time
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Order Dropdown */}
+                    <div ref={dropdownRef1} className="w-full sm:w-auto relative">
+                        <button
+                            className="modern-dropdown-btn w-full"
+                            onClick={() => setIsSort(2)}
+                        >
+                            <span>ORDER: {order.toUpperCase()}</span>
+                            <svg
+                                className={`w-4 h-4 transition-transform ${
+                                    isSort === 2 ? "rotate-180" : ""
+                                }`}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </button>
+
+                        {isSort === 2 && (
+                            <div className="modern-dropdown-menu">
+                                <button
+                                    onClick={() => handleSortSelection("desc")}
+                                    className="modern-dropdown-item"
+                                >
+                                    Sort: Descending
+                                </button>
+                                <button
+                                    onClick={() => handleSortSelection("asc")}
+                                    className="modern-dropdown-item"
+                                >
+                                    Sort: Ascending
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
             {data && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0 max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
                     {data.map((temp, index) => (
                         <div
                             onClick={() => router.push(`/trading/${temp._id}`)}
                             key={index}
+                            className="flex justify-center"
                         >
                             <CoinBlog coin={temp} componentKey="coin" />
                         </div>
