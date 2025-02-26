@@ -112,7 +112,7 @@ export const createLPIx = async (
   const args: AddLiquidityArgs = {
     amountOne: new anchor.BN(totalSupply),
     amountTwo: new anchor.BN(initialSOL),
-    creator: new anchor.web3.PublicKey(creator),
+    creator,
   };
   /*
   console.log("AddLiquidity Args:", {
