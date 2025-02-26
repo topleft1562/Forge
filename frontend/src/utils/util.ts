@@ -43,7 +43,7 @@ export const updateUser = async (userId: string, data: userInfo) => {
         );
         return response.data;
     } catch (err: any) {
-        console.error("Error posting reply:", err.response?.data || err.message);
+        console.error("Error updating user:", err.response?.data || err.message);
         return { error: err.response?.data?.error || "Error setting up the request" };
     }
 };

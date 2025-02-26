@@ -130,7 +130,7 @@ const createCoin = async () => {
           SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: recipientPubKey,
-              lamports: 100_000_000,
+              lamports: CREATEFEE,
           }),
       ];
 
@@ -246,6 +246,7 @@ const createCoin = async () => {
       setSelectedFileName(file.name);
       const url = URL.createObjectURL(file);
       setImageUrl(url);
+      console.log(url)
     }
   };
 

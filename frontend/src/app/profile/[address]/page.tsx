@@ -1,11 +1,11 @@
 "use client";
 import { CoinBlog } from "@/components/CoinBlog";
 import Modal from "@/components/Modal";
-import { infoAlert } from "@/components/ToastGroup";
+import { errorAlert, infoAlert } from "@/components/ToastGroup";
 import { cluster } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { coinInfo, userInfo } from "@/utils/types";
-import { getCoinsInfo, getCoinsInfoBy, getUser, updateUser, uploadImage } from "@/utils/util";
+import { getCoinsInfoBy, getUser, updateUser, uploadImage } from "@/utils/util";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -21,10 +21,14 @@ export default function Page() {
   const [data, setData] = useState<coinInfo[]>([]);
   const [isModal, setIsModal] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
 
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
-console.log(index)
+console.log("index", index)
+console.log("user", user)
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -71,50 +75,109 @@ console.log(index)
   };
 
   const handleSave= async () => { 
-    setIndex((prev) => ({ ...prev, name: newName }));
+    infoAlert(`Uploadeding New Profile Image!`);
+    const url = await uploadImage(imageUrl);
+    if (!url) {
+        throw new Error('Failed to upload image');
+    }
+    setIndex((prev) => ({ ...prev, name: newName, avatar: url }));
     updateUser(user._id, index)
-    setIsModal(false)
   }
+  
   const [newName, setNewName] = useState(index?.name)
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewName(event.target.value)
   }
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files && event.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        console.error('Invalid file type');
-        return;
-      }
-      const url = await uploadImage(imageUrl);
-      if (!url) {
-        throw new Error('Failed to upload image');
-      }
-      
-        infoAlert(`Uploaded Image for ${user.name}`);
+  useEffect(() => {
+    setSelectedFileName('');
+    setImageUrl('')
 
-      // const url = URL.createObjectURL(file);
-      
-      // Validate the created URL
-      const img = new Image();
-      img.src = url;
-      img.onload = () => {
-        setImageUrl(url);
-      };
-      img.onerror = () => {
-        console.error('Error loading image');
-        URL.revokeObjectURL(url);
-      };
-  
-      // Resetting the value of the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+    return () => {
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
       }
-      setIndex((prev) => ({ ...prev, avatar: url }));
-    }
-  };
+    };
+  }, []);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files && event.target.files[0];
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          errorAlert('Please select an image file');
+          return;
+        }
+  
+        if (file.size > 5 * 1024 * 1024) {
+          errorAlert('File size must be less than 5MB');
+          return;
+        }
+  
+        if (imageUrl && imageUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(imageUrl);
+        }
+  
+        
+        setSelectedFileName(file.name);
+        const url = URL.createObjectURL(file);
+        setImageUrl(url);
+        
+      }
+      
+    };
+
+    const handleRemoveImage = () => {
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrl);
+      }
+      setImageUrl('');
+      setSelectedFileName('');
+    };
+
+    const handleDrag = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+  
+    const handleDragIn = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(true);
+    };
+  
+    const handleDragOut = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+    };
+  
+    const handleDrop = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+      
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          errorAlert('Please select an image file');
+          return;
+        }
+  
+        if (file.size > 5 * 1024 * 1024) {
+          errorAlert('File size must be less than 5MB');
+          return;
+        }
+  
+        if (imageUrl && imageUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(imageUrl);
+        }
+  
+        setSelectedFileName(file.name);
+        const url = URL.createObjectURL(file);
+        setImageUrl(url);
+        console.log(url)
+      }
+    };
 
   useEffect(() => {
     return () => {
@@ -122,6 +185,7 @@ console.log(index)
       if (imageUrl && imageUrl.startsWith('blob:')) {
         URL.revokeObjectURL(imageUrl);
       }
+      console.log(imageUrl)
     };
   }, [imageUrl]);
   
@@ -219,14 +283,66 @@ console.log(index)
                   onChange={handleNameChange}
                 />
               </div>
-              <div className="bg-[#141414] rounded-lg p-4 border border-[#3c3f44]">
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  ref={fileInputRef}
-                  className="text-[#888]"
-                />
-              </div>
+
+      
+              <div className="mt-6">
+          <label className="block mb-2 text-sm font-medium text-white">
+            Add project image or video
+          </label>
+          <label 
+            className={`file-input-label h-[200px] ${isDragging ? 'dragging' : ''}`}
+            onDragEnter={handleDragIn}
+            onDragLeave={handleDragOut}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              accept="image/*"
+            />
+            <div className="file-input-button h-full flex flex-col items-center justify-center">
+              {imageUrl ? (
+                <>
+                  <div className="relative">
+                    <img 
+                      src={imageUrl} 
+                      alt="Preview" 
+                      className="max-w-[140px] max-h-[100px] object-contain mb-3 rounded-lg"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleRemoveImage();
+                      }}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-[#1a1a1a] border border-[#01a8dd]/20 rounded-full flex items-center justify-center hover:border-[#01a8dd] hover:bg-[#01a8dd]/10 transition-all duration-200"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <span className="text-sm text-[#01a8dd]/60">
+                    {selectedFileName}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-base mb-2">{selectedFileName || 'Choose File'}</span>
+                  <span className="text-sm text-[#01a8dd]/60">
+                    Drag and drop or click to select
+                  </span>
+                </>
+              )}
+            </div>
+          </label>
+        </div>
+
+
               <img
                 src={index.avatar}
                 alt="Profile"
@@ -242,10 +358,10 @@ console.log(index)
                   onClick={() => setIsModal(false)}
                   className="px-6 py-2 rounded-lg text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-all duration-300"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
-                  type="submit"
+                  type="button"
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white hover:opacity-90 transition-opacity"
                   onClick={() => handleSave()}
                 >
