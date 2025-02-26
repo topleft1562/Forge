@@ -22,12 +22,9 @@ export default function Page() {
   const [isModal, setIsModal] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [newName, setNewName] = useState(user?.name)
-  const [newImage, setNewImage] = useState(user?.avatar)
-
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
-
+console.log(index)
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -44,10 +41,11 @@ export default function Page() {
             const img = new Image();
             img.src = response.avatar;
             img.onerror = () => {
-              response.avatar = avatarIMG;
+              response.avatar = DEFAULT_AVATAR;
             };
           }
           setIndex(response || {} as userInfo);
+          setNewName(response.name)
         } catch (error) {
           console.error("Error fetching user:", error);
           setIndex({} as userInfo);
@@ -74,11 +72,10 @@ export default function Page() {
 
   const handleSave= async () => { 
     setIndex((prev) => ({ ...prev, name: newName }));
-    setIndex((prev) => ({ ...prev, avatar: newImage }));
     updateUser(user._id, index)
     setIsModal(false)
   }
-
+  const [newName, setNewName] = useState(index?.name)
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewName(event.target.value)
   }
@@ -115,7 +112,7 @@ export default function Page() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-     setNewImage(url)
+      setIndex((prev) => ({ ...prev, avatar: url }));
     }
   };
 
@@ -142,7 +139,7 @@ export default function Page() {
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = avatarIMG;
+                  target.src = DEFAULT_AVATAR;
                 }}
               />
             )}
@@ -218,7 +215,7 @@ export default function Page() {
                 <input
                   className="w-full bg-[#141414] border border-[#3c3f44] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd] transition-colors"
                   type="text"
-                  value={index.name}
+                  value={newName}
                   onChange={handleNameChange}
                 />
               </div>
@@ -231,7 +228,7 @@ export default function Page() {
                 />
               </div>
               <img
-                src={newImage}
+                src={index.avatar}
                 alt="Profile"
                 className="rounded-xl object-cover w-24 h-24"
                 onError={(e) => {

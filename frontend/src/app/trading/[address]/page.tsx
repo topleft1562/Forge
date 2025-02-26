@@ -16,10 +16,10 @@ import { formatFullNumber, formatSOL } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
 import { FaXTwitter, FaGlobe } from "react-icons/fa6";
 import { FaTelegramPlane } from "react-icons/fa";
-import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, fetchSolPrice, formatMarketCap, formatTokenGoal } from "@/utils/marketCap";
+import { calculateCurrentPrice, calculateLaunchPrice, calculateMarketCap, formatMarketCap, formatTokenGoal } from "@/utils/marketCap";
 import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
-import { totalSupply, willMigrateAt } from "@/confgi";
+import { SOLGOAL } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { getTokenBalance } from "@/program/web3";
 import { successAlert } from "@/components/ToastGroup";
@@ -34,7 +34,7 @@ export default function Page() {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [showMobileTradeForm, setShowMobileTradeForm] = useState(false);
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-    const [TotalTokensSold, setTarget] = useState(100000)
+    const [TargetMarketCap, setTarget] = useState(0)
     const [launchPrice, setLaunchPrice] = useState<number>(0);
     const [currentPrice, setCurrentPrice] = useState<number>(0);
     const [tokenBal, setTokenBal] = useState<number>(0);
@@ -109,10 +109,9 @@ export default function Page() {
             } catch (err) {
                 console.error("Error updating market cap:", err);
             }
-            const tokensSold = totalSupply - coin?.reserveOne
-            const value = Math.min(100, Math.max(0, (tokensSold / willMigrateAt) * 100));
+            const value = Math.min(100, Math.max(0, (coin?.reserveTwo / SOLGOAL) * 100));
             setProgress(value);
-            const tmc = (willMigrateAt / 1e6)
+            const tmc = (SOLGOAL / 1e9)
             setTarget(tmc)
             const lprice = await calculateLaunchPrice(coin?.reserveOne, coin?.reserveTwo)
             setLaunchPrice(lprice)
@@ -394,7 +393,7 @@ export default function Page() {
 
                                 <div className="space-y-4">
                                     <p className="text-sm text-[#888] leading-relaxed">
-                                        After Selling {formatTokenGoal(TotalTokensSold)} all
+                                        When SOL Collection reaches {formatTokenGoal(TargetMarketCap)} all
                                         liquidity from the bonding curve will be
                                         deposited into Raydium and burned.
                                         Progression increases as buys comes in
