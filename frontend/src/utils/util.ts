@@ -81,8 +81,11 @@ export const createNewCoin = async (data: coinInfo) => {
             description: data.description || '',
             url: data.url,
             twitter: data.twitter || '',  // Optional
+            telegram: data.telegram || '',
+            website: data.website || '',
             reserveOne: 0,
-            reserveTwo: 0
+            reserveTwo: 0,
+            autoMigrate: true
         };
 
         const response = await axios.post(`${BACKEND_URL}/coin/`, coinData, config);

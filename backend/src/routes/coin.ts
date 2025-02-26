@@ -54,9 +54,12 @@ router.post('/', async (req, res) => {
             description: Joi.string().allow('', null),
             url: Joi.string().required(),
             twitter: Joi.string().allow('', null),  // Add this line
+            telegram: Joi.string().allow('', null),
+            website: Joi.string().allow('', null),
             reserveOne: Joi.number().default(0),    // Add this line
             reserveTwo: Joi.number().default(0),    // Add this line
-            token: Joi.string().allow('', null)     // Add this line
+            token: Joi.string().allow('', null),     // Add this line
+            autoMigrate: Joi.boolean().required(),
         });
         // console.log(UserSchema)
         const inputValidation = UserSchema.validate(body);
@@ -72,6 +75,10 @@ router.post('/', async (req, res) => {
             url: req.body.url,
             creator: req.body.creator,
             description: req.body.description,
+            twitter: req.body.twitter,
+            telegram: req.body.telegram,
+            website: req.body.website,
+            autoMigrate: req.data.autoMigrate
             
         },creator.wallet);
 

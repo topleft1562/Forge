@@ -179,6 +179,10 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 lastPrice: (INITIAL_PRICE / 1000).toFixed(15).replace(/0+$/, ''),
                 url,
                 isMigrated: false,
+                twitter: data.twitter,
+                telegram: data.telegram,
+                website: data.website,
+                autoMigrate: data.autoMigrate,
             });
            // console.log("Saving coin to database:", newCoin);
 
@@ -284,15 +288,18 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
         
         await setCoinStatus(parsedData);
-    
+
+        const coin = await Coin.findOne({token: parsedData.mint})
+        console.log("AUTOMIGRATE?:", coin?.autoMigrate)
         console.log('Current reserves:', {
             solReserve: parsedData.reserve2 / 1e9,
-            willMigrate: launchMarketCap > marketCapGoal,
+            Progress: launchMarketCap > marketCapGoal,
+            AutoMigrate: coin.autoMigrate,
             marketCap: launchMarketCap,
             Goal: marketCapGoal
         });
     
-        if (launchMarketCap > marketCapGoal && isSwap) {
+        if (launchMarketCap > marketCapGoal && isSwap && coin.autoMigrate) {
             console.log('🚀 Migration threshold reached! Moving to Raydium...');
             try {
                 await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
@@ -435,6 +442,10 @@ export interface CoinInfo {
     reserve1?: number;
     reserve2?: number;
     lastPrice?: string;
+    twitter?: string;
+    telegram?: string;
+    website?: string;
+    autoMigrate?: boolean
 }
 
 export interface ResultType {

@@ -79,6 +79,7 @@ export default function Page() {
         return () => clearInterval(interval);
     }, [pathname]);
 
+console.log(coin?.twitter, coin?.telegram, coin?.website)
 
     useEffect(() => {
         const updateMarketCap = async () => {
@@ -229,12 +230,30 @@ export default function Page() {
                                             </div>
 
                                             <div className="social-links flex flex-wrap gap-4 pt-2">
-                                                <button 
-                                                    className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
-                                                    title="X/Twitter"
-                                                >
-                                                    <FaXTwitter size={16} />
-                                                </button>
+<Link 
+    href={coin.twitter} 
+    target="_blank" 
+    rel="noopener noreferrer"
+    className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
+>
+    <FaXTwitter size={16} />
+</Link>
+<Link 
+    href={coin.telegram} 
+    target="_blank" 
+    rel="noopener noreferrer"
+    className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
+>
+<FaTelegramPlane size={16} />
+</Link>
+<Link 
+    href={coin.website} 
+    target="_blank" 
+    rel="noopener noreferrer"
+    className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
+>
+                                                    <FaGlobe size={16} />
+                                                </Link>
                                                 <button 
                                                     className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
                                                     title="Telegram"

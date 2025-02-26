@@ -1,4 +1,4 @@
-import { recordInfo } from "@/utils/types";
+import { recordInfo, userInfo } from "@/utils/types";
 import { formatSOL, formatTokenAmount, formatDate } from "@/utils/format";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
@@ -112,8 +112,13 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
                 target.src = hasAvatar ? trade.holder.avatar : DEFAULT_AVATAR;
               }}
             />
+            
             <div className="text-white">
-            {trade.holder?.name ?? "Unknown"}
+              <Link href={`/profile/${(trade?.holder as userInfo)?._id}`}>
+                <div className="hover:border-[#01a8dd]/40 border-b border-transparent transition-colors text-[#01a8dd]/80">
+                {trade.holder?.name ?? "Unknown"}
+                </div>
+              </Link>
             </div>
           </div>
           <p className={`font-medium ${tradeType === 0 ? 'text-[#4BB543]' : 'text-[#FF3B30]'}`}>

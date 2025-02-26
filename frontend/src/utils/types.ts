@@ -54,6 +54,7 @@ export interface coinInfo {
     telegram?: string,
     website?: string,
     date?: Date,
+    autoMigrate?: boolean,
 }
 export interface msgInfo {
     coinId: string | coinInfo,

@@ -27,8 +27,7 @@ export default function Page() {
 
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
-console.log("index", index)
-console.log("user", user)
+
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -216,25 +215,27 @@ console.log("user", user)
             )}
             <div className="space-y-4 flex-1">
               <div className="space-y-1">
-                <h1 className="text-2xl font-medium text-white">@{index.name}</h1>
+                <h1 className="text-2xl font-medium text-white">@{index?.name}</h1>
+                <h1 className="text-2xl font-medium text-white">@{index?.wallet}</h1>
                 <div className="flex gap-4 text-[#888]">
                   <span className="hideFollowers">0 followers</span>
                   
                 </div>
               </div>
-             
+             {index.wallet === user.wallet &&
               <button 
                 className="px-4 py-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors"
                 onClick={() => setIsModal(true)}
               >
                 Edit profile
               </button>
-              
-
+              }
+{/*     does nothing at this point
               <div className="flex gap-6 text-sm">
                 <div className="hideFollowers text-[#888]">Likes received: {0}</div>
                 <div className="hideFollowers text-[#888]">Mentions received: {0}</div>
               </div>
+*/}
             </div>
           </div>
         </div>
@@ -254,9 +255,9 @@ console.log("user", user)
         {/* Tab Navigation */}
         <div className="flex flex-wrap gap-2 justify-center">
           {[
-            { id: 1, label: 'Holdings', show: true },
+            { id: 1, label: 'Holdings', show: false },
             { id: 2, label: 'Replies', show: user.wallet === index.wallet },
-            { id: 3, label: 'Notifications', show: true },
+            { id: 3, label: 'Notifications', show: false },
             { id: 4, label: 'Launches', show: true },
             { id: 5, label: 'Followers', show: false },
             { id: 6, label: 'Following', show: false },

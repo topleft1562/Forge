@@ -1,4 +1,6 @@
 import { msgInfo, userInfo } from "@/utils/types";
+import { getUserInfo } from "@/utils/util";
+import { useEffect, useState } from "react";
 import { FaUserNinja } from "react-icons/fa";
 
 interface MessageFormProps {
@@ -6,15 +8,28 @@ interface MessageFormProps {
 }
 
 export const MessageForm: React.FC<MessageFormProps> = ({ msg }) => {
-  const hasAvatar = (msg.sender as userInfo)?.avatar && (msg.sender as userInfo).avatar !== 'undefined';
+  const [user, setUser] = useState<userInfo>()
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userRaw = await getUserInfo(msg.sender as string);
+        setUser(userRaw);
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    };
 
+    fetchUser();
+  }, [msg.sender]);
+  const hasAvatar = user.avatar && user.avatar !== 'undefined';
+  
   return (
     <div className="bg-[#1E1E1E] rounded-xl p-4">
       <div className="space-y-4">
         <div className="flex items-center gap-4">
           {hasAvatar ? (
             <img
-              src={(msg.sender as userInfo).avatar}
+              src={user?.avatar}
               alt="Avatar"
               className="w-10 h-10 rounded-lg"
             />
@@ -25,7 +40,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ msg }) => {
           )}
           <div className="flex items-center gap-3">
             <span className="text-white font-medium">
-              {(msg.sender as userInfo).name}
+              {user?.name}
             </span>
             {msg.time && (
               <span className="text-[#888]">
