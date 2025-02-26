@@ -98,7 +98,7 @@ export const createLPIx = async (
     associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
     systemProgram: SystemProgram.programId
   };
-  /*
+  
   console.log("AddLiquidity Accounts:", {
     ...acc,
     pool: acc.pool.toBase58(),
@@ -108,18 +108,18 @@ export const createLPIx = async (
     userTokenAccountOne: acc.userTokenAccountOne.toBase58(),
     user: acc.user.toBase58(),
   });
-*/
+
   const args: AddLiquidityArgs = {
     amountOne: new anchor.BN(totalSupply),
     amountTwo: new anchor.BN(initialSOL),
     creator,
   };
-  /*
+  
   console.log("AddLiquidity Args:", {
     amountOne: args.amountOne.toString(),
     amountTwo: args.amountTwo.toString()
   });
-*/
+
   const ix = addLiquidity(args, acc);
   // console.log("AddLiquidity instruction created");
 
