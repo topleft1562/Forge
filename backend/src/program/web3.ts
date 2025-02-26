@@ -73,7 +73,7 @@ export const initializeTx = async () => {
 
 
 // Create Token and add liquidity transaction
-export const createToken = async (data: CoinInfo) => {
+export const createToken = async (data: CoinInfo, creatorWallet: any) => {
     try {
         console.log("Starting token creation for:", data.name);
         const uri = await uploadMetadata(data);
@@ -141,9 +141,9 @@ export const createToken = async (data: CoinInfo) => {
             // Now proceed with LP creation
             console.log("Starting LP creation...");
     
-            console.log("wallet", data.creator.wallet)
+            console.log("wallet", creatorWallet)
          
-            const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey, new PublicKey(data.creator.wallet));
+            const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey, new PublicKey(creatorWallet));
             const createTx = new Transaction().add(lpTx.ix);
             createTx.feePayer = adminWallet.publicKey;
             createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;

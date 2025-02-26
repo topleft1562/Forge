@@ -3,6 +3,7 @@ import Joi from "joi";
 import Coin from "../models/Coin";
 import { cancelCoin, createToken } from "../program/web3";
 import { deleteCoinMessagesTrades } from "./coinStatus";
+import User from "../models/User";
 
 
 
@@ -62,6 +63,7 @@ router.post('/', async (req, res) => {
         if (inputValidation.error) {
             return res.status(400).json({ error: inputValidation.error.details[0].message });
         }
+        const creator = await User.findOne({_id: req.body.creator})
 
         // Create Token with UMI
         const token = await createToken({
@@ -70,7 +72,8 @@ router.post('/', async (req, res) => {
             url: req.body.url,
             creator: req.body.creator,
             description: req.body.description,
-        });
+            
+        },creator.wallet);
 
         console.log("token====", token);
         
