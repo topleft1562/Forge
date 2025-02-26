@@ -221,7 +221,7 @@ export default function Home() {
                 >
                     Migrated
                 </button>
-                {/*
+               
         <button
           className={`px-4 py-2 rounded ${
             activeTab === "migrated"
@@ -232,7 +232,7 @@ export default function Home() {
         >
           simulate buys
         </button>
-        */}
+       
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 px-4 sm:px-0 mb-8 items-center">

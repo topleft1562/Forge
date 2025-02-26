@@ -1,5 +1,4 @@
-export const willMigrateAt = 700_000_000_000_000
-export const SOLGOAL = 100_000_000_000
+export const marketCapGoal = 70_000 
 export const cluster = 'devnet'
 export const totalSupply = 1_000_000_000_000_000 
 export const PRICE_INCREMENT_STEP = 1_000_000;

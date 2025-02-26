@@ -13,7 +13,8 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, INITIAL_PRICE, ourFeeToKeep, totalSupply, willMigrateAt } from "../config/config";
+import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, totalSupply } from "../config/config";
+import { fetchSolPrice } from "../utils/calculateTokenPrice";
 
 
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
@@ -139,7 +140,7 @@ export const createToken = async (data: CoinInfo) => {
         
             // Now proceed with LP creation
             console.log("Starting LP creation...");
-            const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey);
+            const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey, new PublicKey(data.creator));
             const createTx = new Transaction().add(lpTx.ix);
             createTx.feePayer = adminWallet.publicKey;
             createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
@@ -272,15 +273,23 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 
     if(isSwap || isRemove){
         const parsedData = parseLogs(logs.logs, logs.signature);
-        const tokensSold = totalSupply - parsedData.reserve1
+
+        const launchPrice = parsedData.reserve2 / parsedData.reserve1
+        const solPrice = await fetchSolPrice()
+        const launchMarketCap = ((launchPrice / 1e9)*solPrice)*totalSupply
+        
+        console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
+        
         await setCoinStatus(parsedData);
-    /*
+    
         console.log('Current reserves:', {
             solReserve: parsedData.reserve2 / 1e9,
-            willMigrate: parsedData.reserve2 > willMigrateAt
+            willMigrate: launchMarketCap > marketCapGoal,
+            marketCap: launchMarketCap,
+            Goal: marketCapGoal
         });
-    */
-        if (tokensSold > willMigrateAt && isSwap) {
+    
+        if (launchMarketCap > marketCapGoal && isSwap) {
             console.log('🚀 Migration threshold reached! Moving to Raydium...');
             try {
                 await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);

@@ -58,6 +58,7 @@ export const initSdk = async (params?: { loadToken?: boolean }) => {
 export const createLPIx = async (
   mintToken: PublicKey,
   payer: PublicKey,
+  creator: PublicKey,
 ) => {
   console.log("Starting createLPIx with:", {
     mintToken: mintToken.toBase58(),
@@ -110,7 +111,8 @@ export const createLPIx = async (
 */
   const args: AddLiquidityArgs = {
     amountOne: new anchor.BN(totalSupply),
-    amountTwo: new anchor.BN(initialSOL)
+    amountTwo: new anchor.BN(initialSOL),
+    creator: new anchor.web3.PublicKey(creator),
   };
   /*
   console.log("AddLiquidity Args:", {

@@ -298,80 +298,89 @@ export const calculateOutPut = (coin: coinInfo, input: number, isBuy: boolean) =
 };
 
 
-export const calculateOutPutTest = (lastPrice, PI,  amount: number) => {
-    
-
-let amount_out = 0
-let final_price = 0
-
-const current_price = lastPrice
-
-    const fee_amount = amount * FEE_PERCENTAGE;
-    const amount_after_fee = amount - fee_amount
-    
-    // Calculate how many tokens can be bought at current price tier
-    const atPrice = (amount_after_fee / current_price)
-
-    // Adjust price incrementally based on tokens acquired
-    const price_adjustment = ((atPrice / 2) / PRICE_INCREMENT_STEP) * PI;
-    final_price = current_price + price_adjustment;
-    // Compute tokens acquired using adjusted price
-    amount_out = (amount_after_fee / final_price)
-
-    return {amount_out, final_price}
-}
-
-function getAmountsOut(amountIn, reserveIn, reserveOut) {
-    const fee_amount = amountIn * FEE_PERCENTAGE;
-    const amount_after_fee = amountIn - fee_amount
-
-    const pp = reserveIn / reserveOut
-    const amountInWithFee = amount_after_fee * 1000;  // 0.3% fee
-    const numerator = amountInWithFee * reserveOut;
-    const denominator = (reserveIn * 1000) + amountInWithFee;
-    const am = numerator / denominator;
-    return { am, pp}
-}
-
-    
-function calculateTokensBought(initialPrice, growthFactor, tokensPerIncrement, reserveOne, amountIn)
+ 
+function calculateTokensBought(reserveOne: number, reserveTwo: number, input: number, isBuy: boolean)
 { 
+    const amount = input * 10 ** (isBuy ? 9 : 6);
+    let amount_out = 0;
+    let tokens_at_current_price = 0;
+    let final_price = 0;
+    const initialPrice = INITIAL_PRICE;
+
     const total_tokens_sold = totalSupply - reserveOne + 1;
-    // console.log("sold", total_tokens_sold);
 
+    // calculate dex price
+    const dexPrice = reserveTwo / (totalSupply - total_tokens_sold)
     // Calculate min price (current price before buy)
-    const minPrice = initialPrice * Math.pow(growthFactor, total_tokens_sold / tokensPerIncrement);
-    // console.log("minPrice", minPrice);
+    const currentPrice = initialPrice * Math.pow(GROWTH_FACTOR, total_tokens_sold / PRICE_INCREMENT_STEP);
 
-    // Estimate maximum possible tokens that can be bought
-    const maxSold = amountIn / minPrice;
-    // console.log("maxSold", maxSold);
-
-    // Calculate max price after buying all possible tokens
-    const maxPrice = initialPrice * Math.pow(growthFactor, (total_tokens_sold + maxSold) / tokensPerIncrement);
-    // console.log("maxPrice", maxPrice);
-
-    // More accurate avg price using logarithmic integral method
-    const avgPrice = (maxPrice - minPrice) / Math.log(maxPrice / minPrice);
-    // console.log("avgPrice", avgPrice);
-
-    // Calculate total tokens bought
-    const tokensBought = amountIn / avgPrice;
-    // console.log("tokensBought", tokensBought);
-
-    // Ensure avgPrice and nextPrice are consistent
-    const nextPrice = initialPrice * Math.pow(growthFactor, (total_tokens_sold + tokensBought) / tokensPerIncrement);
-    // console.log("nextPrice", nextPrice);
-
-    return { tokensBought, nextPrice };
+    if (isBuy) {
+        let fee_amount = (amount * FEE_PERCENTAGE)
+        let amount_after_fee = amount - fee_amount
+        
+        // dex stlye
+        if(dexPrice > currentPrice) {
+            // Estimate maximum possible tokens that can be bought
+            tokens_at_current_price = (amount_after_fee / dexPrice) / 1e6;
+            const numerator = amount_after_fee * reserveOne;
+            const denominator = (reserveTwo + amount_after_fee);
+            // Output amount the user will receive
+            amount_out = (numerator / denominator) / 1e6;
+            final_price = (reserveTwo + amount_after_fee)/ (totalSupply - (total_tokens_sold + (amount_out * 1e6)))
+        // our style
+        } else {
+            // OUR INITIAL PRICE CURVE
+            // Estimate maximum possible tokens that can be bought
+            const maxTokensOut = amount_after_fee / currentPrice;
+            // Calculate max price after buying all possible tokens
+            const maxPrice = initialPrice * Math.pow(GROWTH_FACTOR, (total_tokens_sold + maxTokensOut) / PRICE_INCREMENT_STEP);
+            // More accurate avg price using logarithmic integral method
+            const avgPrice = (maxPrice - currentPrice) / Math.log(maxPrice / currentPrice);
+            // Calculate total tokens bought
+            amount_out = (amount_after_fee / avgPrice) / 1e6
+            tokens_at_current_price = maxTokensOut / 1e6
+            // added for testing
+            final_price = initialPrice * Math.pow(GROWTH_FACTOR, (total_tokens_sold + (amount_out * 1e6)) / PRICE_INCREMENT_STEP)
+        }
+        
+        // Otherwise do a sell
+    } else {
+        // dex stlye
+        if(dexPrice > currentPrice) {
+            console.log("dexStyle")
+            // Estimate maximum possible tokens that can be bought
+            tokens_at_current_price = (amount * dexPrice * SELL_REDUCTION) / 1e9;
+            const numerator = amount * reserveTwo;
+            const denominator = (reserveOne + amount);
+            // Output amount the user will receive
+            amount_out = (numerator / denominator) / 1e9;
+            final_price = (reserveTwo - amount_out)/ (totalSupply + (total_tokens_sold - (amount * 1e6)))
+            
+        // our style
+        } else {
+            console.log("ourstyle")
+            // Calculate max price before selling the tokens
+            const minPrice = initialPrice * Math.pow(GROWTH_FACTOR, (total_tokens_sold - amount) / PRICE_INCREMENT_STEP);
+            // More accurate avg price using logarithmic integral method
+            const avgPrice = (currentPrice - minPrice) / Math.log(currentPrice / minPrice);
+            // Compute SOL received using adjusted price (sell reduction factor applied)
+            let sol_out = amount * avgPrice * SELL_REDUCTION;
+            tokens_at_current_price = (amount * currentPrice * SELL_REDUCTION) / 1e9
+            // Apply SOL fee (0.1%)
+            // const fee_amount = sol_out * FEE_PERCENTAGE;
+            // amount_out = (sol_out - fee_amount) / 1e9
+            amount_out = sol_out / 1e9
+            final_price = initialPrice * Math.pow(GROWTH_FACTOR, (total_tokens_sold - amount) / PRICE_INCREMENT_STEP)
+            console.log(currentPrice, minPrice, avgPrice, final_price)
+        }
+    }
+    return { amount_out, final_price };
 }
 
 
 export function simulateBuys() {
-    const initialPrice = 0.000028; // Adjusted initial price
-    const growthFactor = 1.0000000035
-    const amountIn = 1_000_000_000; // 1 SOL in lamports
-    const tokensPerIncrement = 1_000_000;
+    
+    const amountBuy = 0.1; // 1 SOL in lamports
     let reserveOne = totalSupply
     const howManyBuys = 100
     const solPrice = 196
@@ -381,68 +390,57 @@ export function simulateBuys() {
     let totalTokensSold = 0.0;
     let totalSOL = 30_000_000.0;
 
-    // oldsetup
-    const iPrice = 0.000095 
-    let PI = 0.00000000000045
 
-    let fPrice = iPrice
-    let totalTokensSold2 = 0.0
-    let reserveTwo = totalSupply
-
-    // nextsetup
-    let reserveTOKEN = totalSupply
-
-    console.log(`  Initial Dex Price: ${(totalSOL / (totalSupply - totalTokensSold)).toFixed(12)}`)
-    console.log(`  Initial Program Price: ${iPrice.toFixed(12)}`)
-    // Simulate 100 buys
+     // buys
     for (let buy = 1; buy <= howManyBuys; buy++) {
         // Calculate tokens bought and final price for this buy
-        totalSOL += amountIn - (amountIn * 0.001)
-        const { tokensBought, nextPrice } = calculateTokensBought(
-            initialPrice, growthFactor, tokensPerIncrement, reserveOne, amountIn
-        );
-        const {amount_out, final_price} = calculateOutPutTest(fPrice, PI, amountIn)
-        const { am, pp } = getAmountsOut(amountIn, totalSOL, reserveTOKEN)
-        console.log(`AmountOut:  ${(am / 1e6).toFixed(2)}`)
-        console.log(`price: ${pp}`)
-        reserveTOKEN -= am
-        // console.log(amount_out, final_price)
+        
+        const { amount_out, final_price } = calculateTokensBought(reserveOne, totalSOL,  amountBuy, true);
 
-        totalTokensSold2 += amount_out
-        reserveTwo -= amount_out
-        fPrice = final_price
+        totalSOL += (amountBuy * 1e9) - ((amountBuy * 1e9) * 0.001)
+        totalTokensSold += amount_out * 1e6
+        reserveOne -= amount_out * 1e6
+        const nextPrice = final_price
 
-
-        // Update total tokens sold and current price
-        totalTokensSold += tokensBought;
-        reserveOne -= tokensBought;
 
         // Print results for this buy Exponential method
         console.log(`Buy ${buy}:`);
-        console.log(`  Tokens Bought: ${(tokensBought / 1e6).toFixed(2)}`);
-        console.log(`  Total Tokens Sold: ${(totalTokensSold / 1e6).toFixed(2)}`);
-        console.log(`  Price of Next Token: ${nextPrice.toFixed(12)} SOL`);
+        console.log(`  Tokens Bought: ${(amount_out).toFixed(2)}`);
+        console.log(`  Total Tokens Sold: ${(totalTokensSold).toFixed(2)}`);
+        console.log(`  Price of Next Token: ${nextPrice.toFixed(9)} SOL`);
         console.log(`  Dex Price: ${totalSOL / (totalSupply - totalTokensSold)}`)
+        console.log((totalSOL / 1e9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
         console.log("-".repeat(40));
+    }
+     // buys
+     const tokensToSell = (totalTokensSold / howManyBuys) / 1e6
+     for (let buy = 1; buy <= howManyBuys; buy++) {
+        // Calculate tokens bought and final price for this buy
+        
+        const { amount_out, final_price } = calculateTokensBought(reserveOne, totalSOL,  tokensToSell, false);
 
-        // Print results for this buy OLD method
-        console.log(`Buy ${buy}:`);
-        console.log(`  Tokens Bought: ${(amount_out / 1e6).toFixed(2)}`);
-        console.log(`  Total Tokens Sold: ${(totalTokensSold2 / 1e6).toFixed(2)}`);
-        console.log(`  Price of Next Token: ${final_price.toFixed(12)} SOL`);
-        console.log(`  Dex Price: ${totalSOL / (totalSupply - totalTokensSold2)}`)
+        totalTokensSold -= tokensToSell * 1e6
+        reserveOne += tokensToSell * 1e6
+        totalSOL -= amount_out * 1e9
+        const nextPrice = final_price
+
+
+        // Print results for this buy Exponential method
+        console.log(`Sell ${buy}:`);
+        console.log(`  SOL Received: ${(amount_out).toFixed(2)}`);
+        console.log(`  Tokens Sold: ${(tokensToSell).toFixed(2)}`);
+        console.log(`  Total Tokens Sold: ${(totalTokensSold).toFixed(2)}`);
+        console.log(`  Price of Next Token: ${nextPrice.toFixed(9)} SOL`);
+        console.log(`  Dex Price: ${totalSOL / (totalSupply - totalTokensSold)}`)
+        console.log((totalSOL / 1e9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
         console.log("-".repeat(40));
-
     }
 
     // Calculate final price based on total supply and reserve1
     const reserve1 = totalSupply - totalTokensSold;
-    const reserve2 = totalSupply - totalTokensSold2
-    const finalPrice = initialPrice * Math.pow(growthFactor, totalTokensSold / tokensPerIncrement);
+    const finalPrice = INITIAL_PRICE * Math.pow(GROWTH_FACTOR, totalTokensSold / PRICE_INCREMENT_STEP);
     const launchPrice = totalSOL / reserve1
-    const launchPrice2 = totalSOL / reserve2
-    const priceMultiplier = finalPrice / initialPrice;
-    const priceMultiplier2 = fPrice / iPrice
+    const priceMultiplier = finalPrice / INITIAL_PRICE;
 
     // Print final price with commas
 console.log("Final Price Calculation:");
@@ -455,15 +453,5 @@ console.log(`  MarketCapAtLaunch $${((launchPrice / 1e9)*solPrice)*totalSupply}`
 console.log((totalSOL / 1e9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
 
 
-
-// Print final price with commas
-console.log("Final Price Calculation:");
-console.log(`  Reserve1 (Total Supply - Total Tokens Sold): ${(reserve2 / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-console.log(`  Tokens Sold: ${(totalTokensSold2 / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-console.log(`  Final Price: ${fPrice.toLocaleString(undefined, { minimumFractionDigits: 12, maximumFractionDigits: 12 })} SOL`);
-console.log(`  Launch Price: ${launchPrice2.toLocaleString(undefined, { minimumFractionDigits: 12, maximumFractionDigits: 12 })}`)
-console.log(`  Price Change Multiplier: ${priceMultiplier2.toFixed(2)}x`);
-console.log(`  MarketCapAtLaunch $${((launchPrice2 / 1e9)*solPrice)*totalSupply}`)
-console.log((totalSOL / 1e9).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))
 }
 

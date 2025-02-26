@@ -76,6 +76,9 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
             const ADMIN_PUBKEY = new PublicKey(
                 "8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF"
             );
+            const CREATOR_PUBKEY = new PublicKey(
+                coin.creator
+            )
 
             // Add the swap instruction
             const txHash = await program.methods
@@ -87,6 +90,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
                 .accounts({
                     mintTokenOne: mint,
                     feeRecipient: ADMIN_PUBKEY,
+                    creatorAccount: CREATOR_PUBKEY,
                     user: userWallet,
                 })
                 .preInstructions(instructions) // Add any preliminary instructions
