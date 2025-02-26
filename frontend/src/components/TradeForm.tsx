@@ -76,8 +76,9 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
             const ADMIN_PUBKEY = new PublicKey(
                 "8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF"
             );
+            const creatorInfo: userInfo = coin.creator as userInfo
             const CREATOR_PUBKEY = new PublicKey(
-                coin.creator
+                creatorInfo.wallet
             )
 
             // Add the swap instruction
