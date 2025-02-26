@@ -140,8 +140,8 @@ export const createToken = async (data: CoinInfo) => {
         
             // Now proceed with LP creation
             console.log("Starting LP creation...");
-            const creatorKey = new PublicKey(data.creator)
-            console.log(creatorKey, data.creator)
+    
+            console.log(data.creator)
          
             const lpTx = await createLPIx(new PublicKey(mint.publicKey), adminKeypair.publicKey, new PublicKey(data.creator));
             const createTx = new Transaction().add(lpTx.ix);
