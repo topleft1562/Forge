@@ -17,31 +17,33 @@ use std::ops::{Add, Div, Mul, Sub};
 pub struct LiquidityPool {
     pub token_one: Pubkey, // 32 bytes
     pub token_two: Pubkey, // 32 bytes
+    pub creator: Pubkey,    // 32 bytes (NEW - Wallet that gets a cut)
     pub total_supply: u64, // 8 bytes
     pub reserve_one: u64,  // 8 bytes
     pub reserve_two: u64,  // 8 bytes
     pub bump: u8,          // 1 byte
     pub is_migrated: bool, // 1 byte
-    pub padding: [u8; 6],  // 7 bytes to make total size 96 bytes
+    pub padding: [u8; 6],  // 6 bytes
 }
 
 impl LiquidityPool {
     pub const POOL_SEED_PREFIX: &'static str = "liquidity_pool";
 
     // Updated ACCOUNT_SIZE: 8 (discriminator) + 32 + 32 + 8 + 8 + 8 + 1 + 7 = 96 bytes
-    pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 8 + 8 + 8 + 1 + 7;
+    pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 1 + 1 + 6;
 
     // Constructor to initialize a LiquidityPool with two tokens and a bump for the PDA
-    pub fn new(token_one: Pubkey, bump: u8) -> Self {
+    pub fn new(token_one: Pubkey, creator: Pubkey, bump: u8) -> Self {
         Self {
             token_one,
-            token_two: Pubkey::default(), // Correctly represents SOL
+            token_two: Pubkey::default(),
+            creator,
             total_supply: 0_u64,
             reserve_one: 0_u64,
             reserve_two: 0_u64,
             bump,
             is_migrated: false,
-            padding: [0; 6], // Initialize padding
+            padding: [0; 6],
         }
     }
 }
@@ -73,6 +75,7 @@ pub trait LiquidityPoolAccount<'info> {
     fn swap(
         &mut self,
         fee_recipient: &AccountInfo<'info>,  // Admin
+        creator_account: &AccountInfo<'info>,
         token_one_accounts: (
             &mut Account<'info, Mint>,
             &mut Account<'info, TokenAccount>,
@@ -219,6 +222,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
    fn swap(
     &mut self,
     fee_recipient: &AccountInfo<'info>,
+    creator_account: &AccountInfo<'info>,
     token_one_accounts: (
         &mut Account<'info, Mint>,
         &mut Account<'info, TokenAccount>,
@@ -290,7 +294,20 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                     },
                     &[&[b"global", &[bump]]],
                 ),
-                fee_amount,
+                fee_amount /2,
+            )?;
+        
+       
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: creator_account.to_account_info(), 
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                fee_amount /2,
             )?;
         }
 

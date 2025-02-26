@@ -23,6 +23,7 @@ pub fn swap(ctx: Context<Swap>, amount: u64, style: u64, minOut: u64) -> Result<
 
     pool.swap(
         &ctx.accounts.fee_recipient,
+        &ctx.accounts.creator_account,
         token_one_accounts,
         token_two_accounts,
         amount,
@@ -53,6 +54,13 @@ pub struct Swap<'info> {
         constraint = fee_recipient.key().to_string() == ADMIN.to_string(),
     )]
     pub fee_recipient: AccountInfo<'info>,
+
+    /// CHECK: this is the cretor fee recipient account
+    #[account(
+        mut,
+        constraint = creator_account.key() == pool.creator,
+    )]
+    pub creator_account: AccountInfo<'info>,
 
     /// CHECK
     #[account(
