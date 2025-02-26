@@ -71,22 +71,25 @@ console.log("user", user)
   }, [option])
 
   const handleModalClose = () => {
+    
     setIsModal(false);
   };
 
   const handleSave= async () => { 
-    infoAlert(`Uploadeding New Profile Image!`);
-    const url = await uploadImage(imageUrl);
-    if (!url) {
-        throw new Error('Failed to upload image');
-    }
-    setIndex((prev) => ({ ...prev, name: newName, avatar: url }));
+    // infoAlert(`Uploadeding New Profile Image!`);
+    // const url = await uploadImage(imageUrl);
+    // if (!url) {
+    //    throw new Error('Failed to upload image');
+   // }
+    // setIndex((prev) => ({ ...prev, name: newName, avatar: url }));
     updateUser(user._id, index)
+    setIsModal(false)
   }
   
   const [newName, setNewName] = useState(index?.name)
   const handleNameChange= async (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewName(event.target.value)
+    setIndex((prev) => ({ ...prev, name: event.target.value }));
   }
 
   useEffect(() => {
@@ -121,7 +124,12 @@ console.log("user", user)
         setSelectedFileName(file.name);
         const url = URL.createObjectURL(file);
         setImageUrl(url);
-        
+        infoAlert(`Uploadeding New Profile Image!`);
+        const url2 = await uploadImage(url);
+        if (!url2) {
+          throw new Error('Failed to upload image');
+        }
+        setIndex((prev) => ({ ...prev, avatar: url2 }));
       }
       
     };
@@ -175,7 +183,6 @@ console.log("user", user)
         setSelectedFileName(file.name);
         const url = URL.createObjectURL(file);
         setImageUrl(url);
-        console.log(url)
       }
     };
 
