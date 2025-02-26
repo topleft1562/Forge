@@ -238,39 +238,55 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
 
             {/* Update pagination styling */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-6">
+              <div className="flex flex-wrap justify-center items-center gap-1 mt-6 px-2 max-w-full">
                 <button
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
+                  className={`min-w-[60px] px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-lg transition-colors ${
                     currentPage === 1 
                       ? 'bg-[#1e1f23] text-[#888] cursor-not-allowed' 
                       : 'bg-[#1e1f23] text-[#01a8dd] hover:bg-[#01a8dd]/10'
                   }`}
                 >
-                  Previous
+                  Prev
                 </button>
 
-                <div className="flex gap-1">
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => paginate(i + 1)}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        currentPage === i + 1 
-                          ? 'bg-[#01a8dd] text-white' 
-                          : 'bg-[#1e1f23] text-[#01a8dd] hover:bg-[#01a8dd]/10'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap justify-center gap-1 mx-1">
+                  {[...Array(totalPages)].map((_, i) => {
+                    if (
+                      i === 0 || 
+                      i === totalPages - 1 || 
+                      i === currentPage - 1 || 
+                      i === currentPage || 
+                      i === currentPage + 1
+                    ) {
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => paginate(i + 1)}
+                          className={`min-w-[32px] px-1 py-1 sm:px-3 sm:py-2 text-sm sm:text-base rounded-lg transition-colors ${
+                            currentPage === i + 1 
+                              ? 'bg-[#01a8dd] text-white' 
+                              : 'bg-[#1e1f23] text-[#01a8dd] hover:bg-[#01a8dd]/10'
+                          }`}
+                        >
+                          {i + 1}
+                        </button>
+                      );
+                    } else if (
+                      i === 1 && currentPage > 3 || 
+                      i === totalPages - 2 && currentPage < totalPages - 2
+                    ) {
+                      return <span key={i} className="px-1 text-[#888]">...</span>;
+                    }
+                    return null;
+                  })}
                 </div>
 
                 <button
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
+                  className={`min-w-[60px] px-2 py-1.5 sm:px-3 sm:py-2 text-sm sm:text-base rounded-lg transition-colors ${
                     currentPage === totalPages 
                       ? 'bg-[#1e1f23] text-[#888] cursor-not-allowed' 
                       : 'bg-[#1e1f23] text-[#01a8dd] hover:bg-[#01a8dd]/10'

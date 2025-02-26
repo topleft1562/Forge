@@ -202,20 +202,20 @@ export default function Home() {
             {/* Tab Buttons for Live and Migrated */}
             <div className="flex justify-center gap-4 mb-8">
                 <button
-                    className={`px-4 py-2 rounded ${
+                    className={`px-6 py-2 rounded-lg transition-all duration-300 ${
                         activeTab === "live"
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-800"
+                            ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+                            : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
                     }`}
                     onClick={() => setActiveTab("live")}
                 >
                     Live
                 </button>
                 <button
-                    className={`px-4 py-2 rounded ${
+                    className={`px-6 py-2 rounded-lg transition-all duration-300 ${
                         activeTab === "migrated"
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-800"
+                            ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+                            : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
                     }`}
                     onClick={() => setActiveTab("migrated")}
                 >
