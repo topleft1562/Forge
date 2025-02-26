@@ -1,11 +1,10 @@
 import express from "express";
-import Joi, { string } from "joi";
+import Joi from "joi";
 import Coin from "../models/Coin";
-import { AuthRequest, auth } from "../middleware/authorization";
-import { createToken, swapTx } from "../program/web3";
-import { Types } from "mongoose";
-import { Keypair, PublicKey } from "@solana/web3.js";
-import CoinStatus from "../models/CoinsStatus";
+import { cancelCoin, createToken } from "../program/web3";
+import { deleteCoinMessagesTrades } from "./coinStatus";
+import User from "../models/User";
+
 
 
 const router = express.Router();
@@ -64,6 +63,7 @@ router.post('/', async (req, res) => {
         if (inputValidation.error) {
             return res.status(400).json({ error: inputValidation.error.details[0].message });
         }
+        const creator = await User.findOne({_id: req.body.creator})
 
         // Create Token with UMI
         const token = await createToken({
@@ -72,7 +72,8 @@ router.post('/', async (req, res) => {
             url: req.body.url,
             creator: req.body.creator,
             description: req.body.description,
-        });
+            
+        },creator.wallet);
 
         console.log("token====", token);
         
@@ -106,6 +107,19 @@ router.post('/:coinId', (req, res) => {
             res.status(200).send(updateCoin)
         })
         .catch(err => res.status(400).json("update is failed!!"));
+})
+
+router.get('/cancel/:tokenAddress', async(req, res) => {
+    try {
+        
+        const tokenAddress = req.params.tokenAddress;
+        await cancelCoin(tokenAddress)
+        await deleteCoinMessagesTrades(tokenAddress)   
+        return res.status(200).send(tokenAddress);
+    } catch (error) {
+        console.error("Error deleteing coins:", error);
+        return res.status(500).send(error);
+    }
 })
 
 export default router;

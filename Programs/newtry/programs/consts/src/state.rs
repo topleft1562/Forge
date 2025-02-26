@@ -17,31 +17,33 @@ use std::ops::{Add, Div, Mul, Sub};
 pub struct LiquidityPool {
     pub token_one: Pubkey, // 32 bytes
     pub token_two: Pubkey, // 32 bytes
+    pub creator: Pubkey,    // 32 bytes (NEW - Wallet that gets a cut)
     pub total_supply: u64, // 8 bytes
     pub reserve_one: u64,  // 8 bytes
     pub reserve_two: u64,  // 8 bytes
     pub bump: u8,          // 1 byte
     pub is_migrated: bool, // 1 byte
-    pub padding: [u8; 6],  // 7 bytes to make total size 96 bytes
+    pub padding: [u8; 6],  // 6 bytes
 }
 
 impl LiquidityPool {
     pub const POOL_SEED_PREFIX: &'static str = "liquidity_pool";
 
     // Updated ACCOUNT_SIZE: 8 (discriminator) + 32 + 32 + 8 + 8 + 8 + 1 + 7 = 96 bytes
-    pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 8 + 8 + 8 + 1 + 7;
+    pub const ACCOUNT_SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 8 + 1 + 1 + 6;
 
     // Constructor to initialize a LiquidityPool with two tokens and a bump for the PDA
-    pub fn new(token_one: Pubkey, bump: u8) -> Self {
+    pub fn new(token_one: Pubkey, creator: Pubkey, bump: u8) -> Self {
         Self {
             token_one,
-            token_two: Pubkey::default(), // Correctly represents SOL
+            token_two: Pubkey::default(),
+            creator,
             total_supply: 0_u64,
             reserve_one: 0_u64,
             reserve_two: 0_u64,
             bump,
             is_migrated: false,
-            padding: [0; 6], // Initialize padding
+            padding: [0; 6],
         }
     }
 }
@@ -63,6 +65,7 @@ pub trait LiquidityPoolAccount<'info> {
             &mut Signer<'info>,
         ),
         bump: u8,
+        isCancel: u64,
         _authority: &Signer<'info>,
         token_program: &Program<'info, Token>,
         system_program: &Program<'info, System>,
@@ -72,6 +75,7 @@ pub trait LiquidityPoolAccount<'info> {
     fn swap(
         &mut self,
         fee_recipient: &AccountInfo<'info>,  // Admin
+        creator_account: &AccountInfo<'info>,
         token_one_accounts: (
             &mut Account<'info, Mint>,
             &mut Account<'info, TokenAccount>,
@@ -160,6 +164,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             &mut Signer<'info>,
         ),
         bump: u8,
+        isCancel: u64,
         _authority: &Signer<'info>,
         token_program: &Program<'info, Token>,
         system_program: &Program<'info, System>,
@@ -200,203 +205,163 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
     )?;
 
         msg!("Liquidity Removed From Forge Tokens: {}, SOL: {}", self.reserve_one, self.reserve_two);
-        msg!(
+        if isCancel == 1 {
+            msg!("Canceled Sale: Caller: {}, Mint: {}");
+        } else {
+            msg!(
                 "RemovalData: Caller: {}, Mint: {}, AmountIn: {}, AmountOut: {}, Style: {}, Price: {}, PostReserve1: {}, PostReserve2: {}",
                 _authority.key(), self.token_one, 0, 0, 3, 0, self.reserve_one, self.reserve_two
             );
+        }
         self.reserve_one = 0;
         self.reserve_two = 0;
         self.is_migrated = true;
         Ok(())
     }
 
-    fn swap(
-        &mut self,
-        fee_recipient: &AccountInfo<'info>,
-        token_one_accounts: (
-            &mut Account<'info, Mint>,
-            &mut Account<'info, TokenAccount>,
-            &mut Account<'info, TokenAccount>,
-        ),
-        token_two_accounts: (
-            &mut Account<'info, Mint>,
-            &mut AccountInfo<'info>,
-            &mut Signer<'info>,
-        ),
-        amount: u64,
-        minOut: u64,
-        style: u64,
-        bump: u8,
-        authority: &Signer<'info>,
-        token_program: &Program<'info, Token>,
-        system_program: &Program<'info, System>,
-    ) -> Result<()> {
-        if amount <= 0 {
-            return err!(CustomError::InvalidAmount);
-        }
-        if self.is_migrated {
-            return err!(CustomError::IsMigrated);
-        }
-
-        let TOTAL_SUPPLY = self.total_supply as u128;
-        let mut amount_out: u64 = 0;
-        let mut final_price: f64 = 0.0;
-
-        if style == 0 {  // SOL to Token swap
-// Apply SOL fee (0.1%)
-        let fee_amount = (amount as f64 * FEE_PERCENTAGE).round() as u64;
-        let amount_after_fee = amount.checked_sub(fee_amount)
-            .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-
-        let reserve_one_u128 = self.reserve_one as u128;
-        let tokens_sold = TOTAL_SUPPLY.saturating_sub(reserve_one_u128) + 1;
-
-        // Calculate the minimum price (current price before buy)
-        let min_price = INITIAL_PRICE * GROWTH_FACTOR.powf(tokens_sold as f64 / PRICE_INCREMENT_STEP as f64);
-
-        // Estimate maximum possible tokens that can be bought
-        let max_sold = (amount_after_fee as f64) / min_price;
-
-        // Calculate max price after buying all possible tokens
-        let max_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold + max_sold as u128) as f64 / PRICE_INCREMENT_STEP as f64);
-
-        // More accurate avg price using logarithmic integral method
-        let avg_price = (max_price - min_price) / (max_price / min_price).ln();
-
-        // Calculate total tokens bought
-        amount_out = (amount_after_fee as f64 / avg_price).floor() as u64;
-
-        // Ensure avgPrice and nextPrice are consistent
-        final_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold + amount_out as u128) as f64 / PRICE_INCREMENT_STEP as f64);
-
-            // Update reserves
-            self.reserve_two = self.reserve_two
-                .checked_add(amount_after_fee)
-                .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-            
-            self.reserve_one = self.reserve_one
-                .checked_sub(amount_out)
-                .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-    
-            // Transfer SOL from user to pool
-            self.transfer_sol_to_pool(
-                token_two_accounts.2,
-                token_two_accounts.1,
-                amount,
-                system_program,
-            )?;
-    
-            // Transfer tokens from pool to user
-            self.transfer_token_from_pool(
-                token_one_accounts.1,
-                token_one_accounts.2,
-                amount_out,
-                token_program,
-                token_two_accounts.1,
-                bump
-            )?;
-    
-            // Transfer SOL fees
-            if fee_amount > 0 {
-                system_program::transfer(
-                    CpiContext::new_with_signer(
-                        system_program.to_account_info(),
-                        system_program::Transfer {
-                            from: token_two_accounts.1.to_account_info(),
-                            to: fee_recipient.to_account_info(),
-                        },
-                        &[&[
-                            b"global",
-                            &[bump],
-                        ]],
-                    ),
-                    fee_amount,
-                )?;
-            }
-        } else {  // Token to SOL swap
-
-        let tokens_sold = TOTAL_SUPPLY.saturating_sub(self.reserve_one as u128) + 1;
-
-        // Calculate current price before the sale
-        let min_price = INITIAL_PRICE * GROWTH_FACTOR.powf(tokens_sold as f64 / PRICE_INCREMENT_STEP as f64);
-
-        // Calculate max price after selling the tokens
-        let max_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold + amount as u128) as f64 / PRICE_INCREMENT_STEP as f64);
-
-        // More accurate avg price using logarithmic integral method
-        let avg_price = (max_price - min_price) / (max_price / min_price).ln();
-
-        // Calculate total SOL received (sell discount factor applied)
-        let sol_out = ((amount as f64) * avg_price * SELL_REDUCTION).floor() as u64;
-
-        // Ensure avgPrice and nextPrice are consistent
-        final_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold - amount as u128) as f64 / PRICE_INCREMENT_STEP as f64);
-    
-        // Apply SOL fee (0.1%)
-        let fee_amount = (sol_out as f64 * FEE_PERCENTAGE).round() as u64;
-        amount_out = sol_out.checked_sub(fee_amount)
-            .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-    
-            // Update reserves
-            self.reserve_two = self.reserve_two
-                .checked_sub(sol_out)
-                .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-            
-            self.reserve_one = self.reserve_one
-                .checked_add(amount)
-                .ok_or(CustomError::OverflowOrUnderflowOccurred)?;
-        
-        // Transfer tokens to pool
-            self.transfer_token_to_pool(
-                token_one_accounts.2,
-                token_one_accounts.1,
-                amount,
-                authority,
-                token_program,
-            )?;
-    
-            // Transfer SOL to user
-            self.transfer_sol_from_pool(
-                token_two_accounts.1,
-                token_two_accounts.2,
-                amount_out,
-                system_program,
-                bump
-            )?;
-    
-            // Transfer SOL fees
-            if fee_amount > 0 {
-                system_program::transfer(
-                    CpiContext::new_with_signer(
-                        system_program.to_account_info(),
-                        system_program::Transfer {
-                            from: token_two_accounts.1.to_account_info(),
-                            to: fee_recipient.to_account_info(),
-                        },
-                        &[&[
-                            b"global",
-                            &[bump],
-                        ]],
-                    ),
-                    fee_amount,
-                )?;
-            }
-            
-         
-        }
-    
-        if amount_out < minOut {
-            return err!(CustomError::LowOutPut);
-        }
-     
-
-        msg!(
-            "SwapData: Caller: {}, Mint: {}, AmountIn: {}, AmountOut: {}, Style: {}, Price: {}, PostReserve1: {}, PostReserve2: {}",
-            authority.key(), self.token_one, amount, amount_out, style, final_price, self.reserve_one, self.reserve_two
-        );
-
-        Ok(())
+   fn swap(
+    &mut self,
+    fee_recipient: &AccountInfo<'info>,
+    creator_account: &AccountInfo<'info>,
+    token_one_accounts: (
+        &mut Account<'info, Mint>,
+        &mut Account<'info, TokenAccount>,
+        &mut Account<'info, TokenAccount>,
+    ),
+    token_two_accounts: (
+        &mut Account<'info, Mint>,
+        &mut AccountInfo<'info>,
+        &mut Signer<'info>,
+    ),
+    amount: u64,
+    min_out: u64,
+    style: u64,
+    bump: u8,
+    authority: &Signer<'info>,
+    token_program: &Program<'info, Token>,
+    system_program: &Program<'info, System>,
+) -> Result<()> {
+    if amount == 0 {
+        return err!(CustomError::InvalidAmount);
     }
+    if self.is_migrated {
+        return err!(CustomError::IsMigrated);
+    }
+
+    let total_supply = self.total_supply as f64;
+    let mut amount_out: u64 = 0;
+    let mut final_price: f64 = 0.0;
+
+    let reserve_one_f64 = self.reserve_one as f64;
+    let reserve_two_f64 = self.reserve_two as f64;
+    let tokens_sold = total_supply - reserve_one_f64 + 1.0;
+
+    // Calculate current price before trade
+    let dex_price = reserve_two_f64 / reserve_one_f64;
+    let current_price = INITIAL_PRICE * GROWTH_FACTOR.powf(tokens_sold / PRICE_INCREMENT_STEP);
+
+    if style == 0 {  // SOL to Token swap
+        let fee_amount = (amount as f64 * FEE_PERCENTAGE).round() as u64;
+        let amount_after_fee = amount.checked_sub(fee_amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        if dex_price > current_price {
+            let numerator = (amount_after_fee as f64) * reserve_one_f64;
+            let denominator = reserve_two_f64 + (amount_after_fee as f64);
+            amount_out = (numerator / denominator) as u64;
+            final_price = (reserve_two_f64 + amount_after_fee as f64) / (total_supply - (tokens_sold + amount_out as f64));
+
+        } else {
+            let max_sold = amount_after_fee as f64 / current_price;
+            let max_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold + max_sold) / PRICE_INCREMENT_STEP);
+            let avg_price = (max_price - current_price) / (max_price / current_price).ln();
+            amount_out = (amount_after_fee as f64 / avg_price) as u64;
+            final_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold + amount_out as f64) / PRICE_INCREMENT_STEP);
+        }
+
+        self.reserve_two = self.reserve_two.checked_add(amount_after_fee).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+        self.reserve_one = self.reserve_one.checked_sub(amount_out).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        self.transfer_sol_to_pool(token_two_accounts.2, token_two_accounts.1, amount, system_program)?;
+        self.transfer_token_from_pool(token_one_accounts.1, token_one_accounts.2, amount_out, token_program, token_two_accounts.1, bump)?;
+
+        if fee_amount > 0 {
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: fee_recipient.to_account_info(),
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                fee_amount /2,
+            )?;
+        
+       
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: creator_account.to_account_info(), 
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                fee_amount /2,
+            )?;
+        }
+
+    } else {  // Token to SOL swap
+        let mut sol_out = 0;
+        if dex_price > current_price {
+            let numerator = (amount as f64) * reserve_two_f64;
+            let denominator = reserve_one_f64 + (amount as f64);
+            sol_out = (numerator / denominator) as u64;
+            final_price = (reserve_two_f64 - sol_out as f64) / (total_supply + (tokens_sold - amount as f64));
+
+        } else {
+            let min_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold - amount as f64) / PRICE_INCREMENT_STEP);
+            let avg_price = (current_price - min_price) / (current_price / min_price).ln();
+            sol_out = ((amount as f64) * avg_price * SELL_REDUCTION) as u64;
+            final_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold - amount as f64) / PRICE_INCREMENT_STEP);
+        }
+
+        let fee_amount = (sol_out as f64 * FEE_PERCENTAGE).round() as u64;
+        amount_out = sol_out.checked_sub(fee_amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        self.reserve_two = self.reserve_two.checked_sub(sol_out).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+        self.reserve_one = self.reserve_one.checked_add(amount).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
+
+        self.transfer_token_to_pool(token_one_accounts.2, token_one_accounts.1, amount, authority, token_program)?;
+        self.transfer_sol_from_pool(token_two_accounts.1, token_two_accounts.2, amount_out, system_program, bump)?;
+
+        if fee_amount > 0 {
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: fee_recipient.to_account_info(),
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                fee_amount,
+            )?;
+        }
+    }
+
+    if amount_out < min_out {
+        return err!(CustomError::LowOutPut);
+    }
+
+    msg!(
+        "SwapData: Caller: {}, Mint: {}, AmountIn: {}, AmountOut: {}, Style: {}, Price: {}, PostReserve1: {}, PostReserve2: {}",
+        authority.key(), self.token_one, amount, amount_out, style, final_price, self.reserve_one, self.reserve_two
+    );
+
+    Ok(())
+}
+
 
     fn transfer_token_from_pool(
         &self,

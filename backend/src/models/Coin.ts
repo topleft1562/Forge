@@ -13,6 +13,8 @@ const coinSchema = new mongoose.Schema({
     isMigrated: { type: Boolean, default: false},
     lastPrice: {type: String},
     url: { type: String, requried: true },
+    twitter: { type: String },
+    website: { type: String },
     date:{type:Date, default:new Date}
 });
 

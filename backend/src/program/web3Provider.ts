@@ -58,6 +58,7 @@ export const initSdk = async (params?: { loadToken?: boolean }) => {
 export const createLPIx = async (
   mintToken: PublicKey,
   payer: PublicKey,
+  creator: PublicKey,
 ) => {
   console.log("Starting createLPIx with:", {
     mintToken: mintToken.toBase58(),
@@ -84,6 +85,8 @@ export const createLPIx = async (
   const userAta1 = await getAssociatedTokenAddress(
     mintToken, payer
   );
+
+  
   // console.log("User ATA:", userAta1.toBase58());
 
   const acc: AddLiquidityAccounts = {
@@ -97,7 +100,7 @@ export const createLPIx = async (
     associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
     systemProgram: SystemProgram.programId
   };
-  /*
+  
   console.log("AddLiquidity Accounts:", {
     ...acc,
     pool: acc.pool.toBase58(),
@@ -107,17 +110,18 @@ export const createLPIx = async (
     userTokenAccountOne: acc.userTokenAccountOne.toBase58(),
     user: acc.user.toBase58(),
   });
-*/
+
   const args: AddLiquidityArgs = {
     amountOne: new anchor.BN(totalSupply),
-    amountTwo: new anchor.BN(initialSOL)
+    amountTwo: new anchor.BN(initialSOL),
+    creator
   };
-  /*
+  
   console.log("AddLiquidity Args:", {
     amountOne: args.amountOne.toString(),
     amountTwo: args.amountTwo.toString()
   });
-*/
+
   const ix = addLiquidity(args, acc);
   // console.log("AddLiquidity instruction created");
 
@@ -383,6 +387,7 @@ export const initializePoolIx = async (
 export const removeLiquidityIx = async (
   mintToken: PublicKey,
   payer: PublicKey,
+  isCancel: number,
 ) => {
   console.log("Preparing Remove Liquidity Call")
   const ixs: TransactionInstruction[] = [];
@@ -423,6 +428,9 @@ export const removeLiquidityIx = async (
       tokenProgram: TOKEN_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,  
     };
+    const args = {
+      isCancel: new BN(isCancel)
+    }
     console.log(
       poolPda.toString(),
       globalAccount.toString(),
@@ -431,7 +439,7 @@ export const removeLiquidityIx = async (
       userAta1.toString(),
       payer.toString(),
     )
-    ixs.push(removeLiquidity(acc));
+    ixs.push(removeLiquidity(args,acc));
   } catch (error) {
     console.log("❌ Error adding remove liquidity instruction:", error);
   }

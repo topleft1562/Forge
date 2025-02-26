@@ -193,11 +193,7 @@ export type Pump = {
       ],
       "args": [
         {
-          "name": "nonce",
-          "type": "u8"
-        },
-        {
-          "name": "initPcAmount",
+          "name": "isCancel",
           "type": "u64"
         }
       ]
@@ -606,11 +602,7 @@ export const IDL: Pump = {
       ],
       "args": [
         {
-          "name": "nonce",
-          "type": "u8"
-        },
-        {
-          "name": "initPcAmount",
+          "name": "isCancel",
           "type": "u64"
         }
       ]

@@ -8,7 +8,6 @@ import base58 from 'bs58';
 import nacl from 'tweetnacl';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import jwt from 'jsonwebtoken';
-import CoinStatus from '../models/CoinsStatus';
 import mongoose from 'mongoose';
 
 
@@ -158,7 +157,7 @@ router.post('/confirm', async (req, res) => {
     await newUser.save().then((user: UserInfo) => res.status(200).send(user))
 });
 
-// GET: Fetch user
+// GET: Fetch all users
 router.get('/', async (req, res) => {
     try {
         const users = await User.find({});
@@ -168,23 +167,32 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET: Fetch all users
+// GET: Fetch a users
 router.get('/:id', async (req, res) => {
-    const coinId = req.params.id;
+    const userId = req.params.id;
     try {
-        const coinTrade = await CoinStatus.findOne({ coinId })
-            .populate('coinId')
-            .populate('record.holder');
-
-        if (!coinTrade) {
-            return res.status(404).send({ message: 'Coin not found' });
+        const user = await User.findOne({ _id: userId })
+   
+        if (!user) {
+            return res.status(404).send({ message: 'User not found' });
         }
 
-        res.status(200).send(coinTrade);
+        res.status(200).send(user);
     } catch (error) {
         res.status(500).send(error);
     }
 });
+
+router.post('/update/:userId', (req, res) => {
+    const { body } = req;
+    const userId = req.params.userId;
+    User.updateOne({ _id: userId }, { $set: body })
+        .then((updateUser) => {
+            console.log(updateUser)
+            res.status(200).send(updateUser)
+        })
+        .catch(err => res.status(400).json("update is failed!!"));
+})
 
 
 export const checkAnonymousUser = async () => {

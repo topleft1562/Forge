@@ -13,8 +13,10 @@ import { IoMdRocket } from "react-icons/io";
 import { IoArrowBack } from "react-icons/io5";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { EmojiClickData } from 'emoji-picker-react';
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionMessage, TransactionSignature, VersionedTransaction } from '@solana/web3.js';
 import { useRouter } from "next/navigation";
+import { ADMINKEY, CREATEFEE } from "@/confgi";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 
 export default function CreateCoin() {
@@ -27,6 +29,8 @@ export default function CreateCoin() {
   const [isDragging, setIsDragging] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const router = useRouter();
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
 
   useEffect(() => {
     if (
@@ -69,6 +73,7 @@ export default function CreateCoin() {
 };
 
 const createCoin = async () => {
+  setIsLoading(true);
   try {
     if (!imageUrl) {
       errorAlert("Please upload an image");
@@ -79,6 +84,11 @@ const createCoin = async () => {
       errorAlert("Name and ticker are required");
       return;
     }
+
+    if (!publicKey) {
+      console.log('error', `Send Transaction: Wallet not connected!`);
+      return;
+  }
 
     if (!user._id || !user.wallet) {
       errorAlert('Please connect your wallet first');
@@ -92,7 +102,7 @@ const createCoin = async () => {
       return;
     }
 
-    setIsLoading(true);
+    
     const url = await uploadImage(imageUrl);
     
     if (!url) {
@@ -109,6 +119,47 @@ const createCoin = async () => {
         reserveTwo: 0,
         token: '', // This will be set by your backend
     };
+    // send creation fee
+    let signature: TransactionSignature = '';
+    const recipientPubKey = new PublicKey(ADMINKEY)
+
+    try {
+
+      // Create instructions to send, in this case a simple transfer
+      const instructions = [
+          SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: recipientPubKey,
+              lamports: CREATEFEE,
+          }),
+      ];
+
+      // Get the lates block hash to use on our transaction and confirmation
+      let latestBlockhash = await connection.getLatestBlockhash()
+
+      // Create a new TransactionMessage with version and compile it to legacy
+      const messageLegacy = new TransactionMessage({
+          payerKey: publicKey,
+          recentBlockhash: latestBlockhash.blockhash,
+          instructions,
+      }).compileToLegacyMessage();
+
+      // Create a new VersionedTransacction which supports legacy and v0
+      const transation = new VersionedTransaction(messageLegacy)
+
+      // Send transaction and await for signature
+      signature = await sendTransaction(transation, connection);
+
+      // Send transaction and await for signature
+      await connection.confirmTransaction({ signature, ...latestBlockhash }, 'confirmed');
+
+      console.log(signature);
+      
+  } catch (error: any) {
+      
+      console.log('error', `Transaction failed! ${error?.message}`, signature);
+      return;
+  }
 
     const created = await createNewCoin(coin);
     
@@ -195,6 +246,7 @@ const createCoin = async () => {
       setSelectedFileName(file.name);
       const url = URL.createObjectURL(file);
       setImageUrl(url);
+      console.log(url)
     }
   };
 

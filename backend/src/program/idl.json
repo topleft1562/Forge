@@ -186,11 +186,7 @@
         ],
         "args": [
           {
-            "name": "nonce",
-            "type": "u8"
-          },
-          {
-            "name": "initPcAmount",
+            "name": "isCancel",
             "type": "u64"
           }
         ]

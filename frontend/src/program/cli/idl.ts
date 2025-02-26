@@ -671,6 +671,10 @@ export type Pump = {
                   writable: true;
               },
               {
+                name: "creatorAccount";
+                writable: true;
+              },
+              {
                   name: "globalAccount";
                   docs: ["CHECK"];
                   writable: true;
@@ -1438,6 +1442,10 @@ export const IDL: Pump = {
               {
                   name: "feeRecipient",
                   writable: true,
+              },
+              {
+                name: "creatorAccount",
+                writable: true,
               },
               {
                   name: "globalAccount",

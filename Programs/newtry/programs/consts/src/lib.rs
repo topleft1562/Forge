@@ -23,10 +23,12 @@ pub mod pump {
         ctx: Context<AddLiquidity>,
         amount_one: u64,
         amount_two: u64,
+        creator: Pubkey,
     ) -> Result<()> {
         let pool = &mut ctx.accounts.pool;
         pool.set_inner(LiquidityPool::new(
             ctx.accounts.mint_token_one.key(),
+            creator,
             ctx.bumps.pool,
         ));
         instructions::add_liquidity::add_liquidity(ctx, amount_one, amount_two)
@@ -34,8 +36,9 @@ pub mod pump {
 
     pub fn remove_liquidity(
         ctx: Context<RemoveLiquidity>,
+        isCancel: u64,
     ) -> Result<()> {
-        instructions::remove_liquidity(ctx)
+        instructions::remove_liquidity(ctx, isCancel)
     }
 
     pub fn swap(ctx: Context<Swap>, amount: u64, style: u64, minOut: u64) -> Result<()> {

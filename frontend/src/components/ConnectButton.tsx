@@ -97,6 +97,7 @@ const sign = async (updatedUser: userInfo) => {
     }
 };
 
+
   const logOut = async () => {
     if (typeof disconnect === "function") {
       await disconnect();
