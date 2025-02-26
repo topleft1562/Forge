@@ -100,13 +100,13 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
                 });
 
             console.log({ txHash });
-            
+            successAlert(`Trade Success!!!`);
         } catch (error) {
             console.error("Trade failed:", error);
             errorAlert(`Trade Failed....`);
+            return
         } finally {
-            setIsLoading(false);
-            successAlert(`Trade Success!!!`);
+            setIsLoading(false);   
         }
     };
 
