@@ -72,7 +72,7 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
   );
 
   return (
-    <div className={`flex w-[380px] items-center justify-center p-4 
+    <div className={`flex w-full sm:w-[380px] items-center justify-center p-4 
       ${componentKey !== "king" ? `
         transition-all duration-300 ease-out
         hover:bg-[#01a8dd]/5 hover:backdrop-blur-sm
@@ -80,29 +80,29 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
         hover:border-[#01a8dd]/10
       ` : ''}`}
     >
-      <img src={coin?.url} alt="image" className="w-32 object-contain px-3" />
-      <div className="flex-1">
+      <img src={coin?.url} alt="image" className="w-24 sm:w-32 object-contain px-2 sm:px-3" />
+      <div className="flex-1 min-w-0">
         {componentKey === "king" ? (
           <>
-            <div className="text-white mb-2">
+            <div className="text-white mb-2 truncate">
               {coin?.name}
               <span className="text-[#888]">
                 &nbsp;&nbsp;&nbsp;{coin?.ticker}
               </span>
             </div>
             
-            <div className="text-lg font-semibold mb-2">
+            <div className="text-base sm:text-lg font-semibold mb-2 flex items-center flex-wrap">
               <MarketCapLabel isKing={true} />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae] truncate">
                 {marketCap}
               </span>
               {coin?.marketcap > 50000 && '👑'}
             </div>
 
-            <div className="flex items-center text-[11px]">
+            <div className="flex items-center text-[11px] truncate">
               <CreatorLabel />
-              <Link href={`/profile/${(coin?.creator as userInfo)?._id}`}>
-                <div className="hover:border-[#01a8dd]/40 border-b border-transparent transition-colors text-[#01a8dd]/80">
+              <Link href={`/profile/${(coin?.creator as userInfo)?._id}`} className="truncate">
+                <div className="hover:border-[#01a8dd]/40 border-b border-transparent transition-colors text-[#01a8dd]/80 truncate">
                   {(coin?.creator as userInfo)?.name}
                 </div>
               </Link>
@@ -110,33 +110,33 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
           </>
         ) : (
           <>
-            <div className="text-white">
+            <div className="text-white truncate">
               {coin?.name}
               <span className="text-[#888]">
                 &nbsp;&nbsp;&nbsp;{coin?.ticker}
               </span>
             </div>
 
-            <div className="text-lg font-semibold">
+            <div className="text-base sm:text-lg font-semibold flex items-center flex-wrap">
               <MarketCapLabel />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae] truncate">
                 {marketCap}
               </span>
               {coin?.marketcap > 50000 && '👑'}
             </div>
 
             {componentKey === "coin" && coin?.description && (
-              <div className="text-[#888] leading-4 line-clamp-2 text-sm mb-2">
+              <div className="text-[#888] leading-4 line-clamp-2 text-xs sm:text-sm mb-2">
                 {coin.description}
               </div>
             )}
 
             <div className="flex justify-between items-center text-[11px] mt-3">
               {componentKey !== "king" && <RepliesLabel />}
-              <div className="flex items-center">
+              <div className="flex items-center truncate">
                 <CreatorLabel />
-                <Link href={`/profile/${(coin?.creator as userInfo)?._id}`}>
-                  <div className="hover:border-[#01a8dd]/40 border-b border-transparent transition-colors text-[#01a8dd]/80">
+                <Link href={`/profile/${(coin?.creator as userInfo)?._id}`} className="truncate">
+                  <div className="hover:border-[#01a8dd]/40 border-b border-transparent transition-colors text-[#01a8dd]/80 truncate">
                     {(coin?.creator as userInfo)?.name}
                   </div>
                 </Link>
