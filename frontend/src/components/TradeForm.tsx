@@ -10,6 +10,7 @@ import {
 } from "@solana/spl-token";
 import { calculateOutPut } from "@/utils/util";
 import { errorAlert, successAlert } from "./ToastGroup";
+import { ADMINKEY } from "@/confgi";
 
 interface TradingFormProps {
     coin: coinInfo;
@@ -92,7 +93,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
                 );
             }
             const ADMIN_PUBKEY = new PublicKey(
-                "8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF"
+                ADMINKEY
             );
             const creatorInfo: userInfo = coin.creator as userInfo
             const CREATOR_PUBKEY = new PublicKey(
