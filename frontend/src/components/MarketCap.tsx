@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { calculateMarketCap, formatMarketCap, calculateLaunchPrice, calculateCurrentPrice, fetchSolPrice, formatTokenGoal } from '@/utils/marketCap';
+import { calculateMarketCap, formatMarketCap, calculateLaunchPrice, calculateCurrentPrice, formatTokenGoal } from '@/utils/marketCap';
 import { marketCapGoal, totalSupply } from '@/confgi';
 
 interface MarketCapProps {

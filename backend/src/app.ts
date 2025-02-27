@@ -12,6 +12,7 @@ import { init } from "./db/dbConncetion";
 import { logger } from "./sockets/logger";
 import corsConfig from "./config/cors";
 import { cluster } from "./config/config";
+import priceRoutes from "./routes/priceRoutes"
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/coin", coinRoutes);
 app.use("/feedback", messageRoutes);
 app.use("/cointrade", coinTradeRoutes);
 app.use("/chart", chartRoutes);
+app.use("/price", priceRoutes)
 
 // Error handling middleware
 app.use(

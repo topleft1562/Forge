@@ -146,6 +146,7 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
             <span className="truncate">{trade.tx}</span>
           </div>
         </Link>
+        
       </div>
     </div>
   );

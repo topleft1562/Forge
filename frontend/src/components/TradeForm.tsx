@@ -2,7 +2,7 @@ import { useProgram } from "@/contexts/ProgramProvider";
 import { coinInfo, userInfo } from "@/utils/types";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BN } from "@coral-xyz/anchor";
 import {
     getAssociatedTokenAddressSync,
@@ -25,6 +25,17 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
     const [isBuy, setIsBuy] = useState<number>(0);
     const [showSlippage, setShowSlippage] = useState<boolean>(false);
     const [slippage, setSlippage] = useState<string>("1");
+
+    // Load slippage from localStorage on mount
+    useEffect(() => {
+        const savedSlippage = localStorage.getItem("userSlippage");
+        if (savedSlippage) {
+            setSlippage(savedSlippage);
+        }
+    }, []);
+
+   
+    
 
     const {amount_out, tokens_at_current_price} = calculateOutPut(coin, parseFloat(sol), isBuy === 0 )
     const slippageToHigh = amount_out < tokens_at_current_price * (1 - (Number(slippage) / 100)) 
@@ -110,10 +121,12 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
         }
     };
 
+    // Save slippage to localStorage whenever it changes
     const handleSlippageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (!isNaN(parseFloat(value)) || value === "") {
             setSlippage(value);
+            localStorage.setItem("userSlippage", value); // Save to localStorage
         }
     };
 

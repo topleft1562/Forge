@@ -14,8 +14,10 @@ const coinSchema = new mongoose.Schema({
     lastPrice: {type: String},
     url: { type: String, requried: true },
     twitter: { type: String },
+    telegram: {type: String },
     website: { type: String },
-    date:{type:Date, default:new Date}
+    date:{type:Date, default:new Date},
+    autoMigrate:{type: Boolean,default: true}
 });
 
 const Coin = mongoose.model('Coin', coinSchema);
