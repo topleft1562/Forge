@@ -14,12 +14,12 @@ export const setCoinStatus = async (data: ResultType) => {
         return;
     }
 
-    // ✅ Get the specific holding
-    const userHolding = user.holdings.find(h => h.coinId.toString() === coin._id.toString());
 
+    const userHolding = user.holdings.find(h => h.coinId.toString() === coin._id.toString());
+    console.log(userHolding)
     let newAmount = userHolding ? userHolding.amount : 0;
 
-    // ✅ Swap type logic
+  
     if (data.swapType === 0) {
         newAmount += data.swapAmountOut;
     } else if (data.swapType === 1) {
@@ -29,24 +29,29 @@ export const setCoinStatus = async (data: ResultType) => {
     console.log(`🔄 Updating user holdings: New Amount = ${newAmount}`);
 
     if (newAmount <= 0) {
-        // ✅ Remove the holding if the amount is zero
         await User.findOneAndUpdate(
             { wallet: data.owner },
-            { $pull: { holdings: { coinId: coin._id } } }, // ✅ Uses the correct coinId
+            { $pull: { holdings: { coinId: coin._id } } },
             { new: true }
         );
         console.log("❌ Holding removed (amount reached 0)");
-    } else {
-        // ✅ Update or add the holding
+    } else if (userHolding) {
         await User.findOneAndUpdate(
             { wallet: data.owner, "holdings.coinId": coin._id },
             { $set: { "holdings.$.amount": newAmount } },
             { new: true, upsert: true }
         );
         console.log("✅ User holding updated:", data.owner);
+    } else {
+        await User.findOneAndUpdate(
+            { wallet: data.owner },
+            { $push: { holdings: { coinId: coin._id, amount: newAmount } } },
+            { new: true }
+        );
+        console.log("🆕 New holding added:", data.owner, coin._id);
     }
 
-    // ✅ Store transaction history in CoinStatus
+  
     const newTx = {
         holder: user._id,
         holdingStatus: data.swapType,
