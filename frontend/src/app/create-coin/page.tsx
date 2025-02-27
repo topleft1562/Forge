@@ -62,7 +62,6 @@ export default function CreateCoin() {
 
   const checkWalletBalance = async (walletAddress: string) => {
     try {
-      const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT || 'https://api.devnet.solana.com');
       const publicKey = new PublicKey(walletAddress);
       const balance = await connection.getBalance(publicKey);
       return balance / LAMPORTS_PER_SOL;

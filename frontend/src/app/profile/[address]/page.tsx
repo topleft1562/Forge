@@ -389,18 +389,17 @@ console.log(index)
             // Launches
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
               {data.map((coin, index) => (
-                <Link key={index} href={`/trading/${coin?.token}`}>
                   <CoinBlog coin={coin} componentKey="coin" />
-                </Link>
+              
               ))}
             </div>
           : option === 1 ? 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
               {index?.holdings.length > 0 && index?.holdings?.map((holding, index) => {
                 return (
-                <Link key={index} href={`/trading/${holding.coinId.token}`}>
+                
                   <CoinBlog coin={holding.coinId} componentKey="coin" />
-                </Link>
+               
                 
               )
               })}

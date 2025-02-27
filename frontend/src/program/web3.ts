@@ -29,7 +29,18 @@ const POOL_SEED_PREFIX = "liquidity_pool"
 // const TEST_MINT = new PublicKey("wkw1s3a2MvzgUqpba74vQL9REruUEigbXWG2oxR2nXr");
 // const feeRecipientAdmin = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
 
-export const connection = new Connection("https://devnet.helius-rpc.com/?api-key=ae50d21e-ae63-43d3-a23f-02cd8c93098c", 'confirmed');
+export const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT);
+export const getSolBalance = async (walletAddress: string) => {
+  try {
+    const publicKey = new PublicKey(walletAddress);
+    const balance = await connection.getBalance(publicKey);
+    
+    return balance
+  } catch (error) {
+    console.error("Error fetching SOL balance:", error);
+    return 0;
+  }
+};
 
 export const getTokenBalance = async (
   walletAddress: string,

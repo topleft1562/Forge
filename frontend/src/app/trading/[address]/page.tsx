@@ -21,7 +21,7 @@ import { ImageModal } from "@/components/ImageModal";
 import { ProgramProvider } from "@/contexts/ProgramProvider";
 import { marketCapGoal } from "@/confgi";
 import UserContext from "@/context/UserContext";
-import { getTokenBalance } from "@/program/web3";
+import { getSolBalance, getTokenBalance } from "@/program/web3";
 import { successAlert } from "@/components/ToastGroup";
 
 export default function Page() {
@@ -38,6 +38,7 @@ export default function Page() {
     const [launchPrice, setLaunchPrice] = useState<number>(0);
     const [currentPrice, setCurrentPrice] = useState<number>(0);
     const [tokenBal, setTokenBal] = useState<number>(0);
+    const [solBal, setSolBal] = useState<number>(0)
     const { user } = useContext(UserContext);
     const [isBuy, setIsBuy] = useState<number>(0);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
@@ -46,10 +47,12 @@ export default function Page() {
     const getBalance = useCallback(async () => {
             try {
                 const balance = await getTokenBalance(user?.wallet, coin?.token);
-                setTokenBal(balance ? balance : 0);
-            } catch (error) {
-                setTokenBal(0);
-            }
+                setTokenBal(balance ?? 0);
+            } catch (error) {setTokenBal(0)}
+            try {
+                const solbalance = await getSolBalance(user?.wallet)
+                setSolBal(solbalance ?? 0)
+            } catch {setSolBal(0)}
         }, [user?.wallet, coin?.token]);
     
         useEffect(() => {
@@ -390,7 +393,7 @@ export default function Page() {
 
                         <div className="w-full lg:w-[32%] space-y-8 hidden lg:block">
                         {!coin?.isMigrated &&
-                            <TradeForm coin={coin} tokenBal={tokenBal} user={user}/>
+                            <TradeForm coin={coin} tokenBal={tokenBal} solBal={solBal} user={user}/>
                         }
                             <div className="bg-[#151515] rounded-xl p-6 space-y-8">
                                 <MarketCap
@@ -455,7 +458,7 @@ export default function Page() {
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4">
-                            <TradeForm coin={coin} tokenBal={tokenBal} user={user}/>
+                            <TradeForm coin={coin} tokenBal={tokenBal} solBal={solBal} user={user}/>
                         </div>
                     </div>
                 </div>

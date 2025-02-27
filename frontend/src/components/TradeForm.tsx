@@ -14,10 +14,11 @@ import { errorAlert, successAlert } from "./ToastGroup";
 interface TradingFormProps {
     coin: coinInfo;
     tokenBal: number;
+    solBal: number;
     user: userInfo;
 }
 
-export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) => {
+export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, user }) => {
     const { program } = useProgram();
     const { connection } = useConnection();
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -36,9 +37,15 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
 
    
     
+// amount_out = ACTUAL AMOUNT THEY WILL RECEIVE
+// tokens_at_current_price = AMOUNT OF TOKENS CALCULATED AT CURRENT PRICE
+// tokenBal = Current TOKEN BALANCE
+// solBal = Current Sol Balance
 
     const {amount_out, tokens_at_current_price} = calculateOutPut(coin, parseFloat(sol), isBuy === 0 )
+    
     const slippageToHigh = amount_out < tokens_at_current_price * (1 - (Number(slippage) / 100)) 
+
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -150,7 +157,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
                     >
                         {isLoading ? "Loading..." : "Buy"}
                     </button>
-{/*
+
                     <div className="flex flex-col">
   <span className="text-[#999]">
     Receive: {amount_out.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
@@ -159,7 +166,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, user }) 
     At Current: {tokens_at_current_price.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
   </span>
 </div>
-*/}
+
 
                     <button
                         className={`px-4 py-2 rounded-lg transition-all duration-300 ${

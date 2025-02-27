@@ -11,13 +11,13 @@ import {
 import BN from 'bn.js'
 import base58 from "bs58"
 import { cluster, initialSOL, totalSupply } from "../config/config"
+import { connection } from "./web3"
 
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
 
 export const owner: Keypair = Keypair.fromSecretKey(privateKey)
-// export const connection = new Connection('<YOUR_RPC_URL>') //<YOUR_RPC_URL>
-export const connection = new Connection(clusterApiUrl(cluster)) //<YOUR_RPC_URL>
+
 export const txVersion = TxVersion.V0 // or TxVersion.LEGACY
 
 const POOL_SEED_PREFIX = "liquidity_pool"

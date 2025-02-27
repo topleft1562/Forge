@@ -35,9 +35,8 @@ export const formatDate = (dateString: string): string => {
 
 export const formatSOL = (amount: string, adjuster = 1e9): string => {
     const num = Number(amount) / adjuster; // Convert from lamports (default: 9 decimals for SOL)
-
-    if (isNaN(num)) return '0';
-
+    
+    if (isNaN(num) || num === 0) return '0';
     // Always show up to 10 decimals if value is very small (< 0.0000000001)
     if (num > 0 && num < 0.0000000001) return num.toFixed(10);
 

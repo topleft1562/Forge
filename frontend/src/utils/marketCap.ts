@@ -92,7 +92,7 @@ export const calculateCurrentPrice = async (
     lastPrice: string,
 ): Promise<number> => {
     // Convert inputs to numbers and handle scientific notation
-    const priceInSol = parseFloat(lastPrice) / 1000;
+    const priceInSol = parseFloat(lastPrice);
     // Get SOL price
     const solPrice = await fetchSolPrice();
 
@@ -108,7 +108,7 @@ export const formatMarketCap = (marketCap: number): string => {
         }
 
         // If value is less than 1, keep up to 12 decimals while removing trailing zeros
-        return `$${value.toFixed(16).replace(/\.?0+$/, '')}${suffix}`;
+        return `$${value.toFixed(10).replace(/\.?0+$/, '')}${suffix}`;
     };
 
     if (marketCap >= 1_000_000_000) return formatNumber(marketCap / 1_000_000_000, 'B');

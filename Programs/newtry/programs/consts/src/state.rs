@@ -281,10 +281,12 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
         self.reserve_two = self.reserve_two.checked_add(amount_after_fee).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
         self.reserve_one = self.reserve_one.checked_sub(amount_out).ok_or(CustomError::OverflowOrUnderflowOccurred)?;
 
-        self.transfer_sol_to_pool(token_two_accounts.2, token_two_accounts.1, amount, system_program)?;
+        self.transfer_sol_to_pool(token_two_accounts.2, token_two_accounts.1, amount_after_fee, system_program)?;
         self.transfer_token_from_pool(token_one_accounts.1, token_one_accounts.2, amount_out, token_program, token_two_accounts.1, bump)?;
 
         if fee_amount > 0 {
+            let feeToCreator = (fee_amount as f64 * 0.2) as u64;
+            let feeToForge = fee_amount - feeToCreator;
             system_program::transfer(
                 CpiContext::new_with_signer(
                     system_program.to_account_info(),
@@ -294,7 +296,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                     },
                     &[&[b"global", &[bump]]],
                 ),
-                fee_amount /2,
+                feeToForge,
             )?;
         
        
@@ -307,7 +309,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                     },
                     &[&[b"global", &[bump]]],
                 ),
-                fee_amount /2,
+                feeToCreator,
             )?;
         }
 
@@ -336,6 +338,8 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
         self.transfer_sol_from_pool(token_two_accounts.1, token_two_accounts.2, amount_out, system_program, bump)?;
 
         if fee_amount > 0 {
+            let feeToCreator = (fee_amount as f64 * 0.2) as u64;
+            let feeToForge = fee_amount - feeToCreator;
             system_program::transfer(
                 CpiContext::new_with_signer(
                     system_program.to_account_info(),
@@ -345,7 +349,20 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
                     },
                     &[&[b"global", &[bump]]],
                 ),
-                fee_amount,
+                feeToForge,
+            )?;
+        
+       
+            system_program::transfer(
+                CpiContext::new_with_signer(
+                    system_program.to_account_info(),
+                    system_program::Transfer {
+                        from: token_two_accounts.1.to_account_info(),
+                        to: creator_account.to_account_info(), 
+                    },
+                    &[&[b"global", &[bump]]],
+                ),
+                feeToCreator,
             )?;
         }
     }

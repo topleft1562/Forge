@@ -175,11 +175,7 @@ export default function Home() {
                     {/* Card container for the "king" coin */}
                     <div className="relative flex justify-center px-4">
                         {king && king._id ? (
-                            <div
-                                onClick={() =>
-                                    router.push(`/trading/${king._id}`)
-                                }
-                            >
+                            
                                 <div className="transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1">
                                     <div className="absolute inset-0 bg-gradient-to-r from-[#01a8dd]/10 to-[#4088ae]/10 rounded-xl blur-xl"></div>
                                     <div className="relative">
@@ -189,7 +185,7 @@ export default function Home() {
                                         />
                                     </div>
                                 </div>
-                            </div>
+                         
                         ) : (
                             <div className="animate-pulse flex space-x-4">
                                 <div className="rounded-xl bg-slate-700/50 h-[200px] w-[400px]"></div>
@@ -358,13 +354,9 @@ export default function Home() {
             {data && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
                     {data.map((temp, index) => (
-                        <div
-                            onClick={() => router.push(`/trading/${temp._id}`)}
-                            key={index}
-                            className="flex justify-center"
-                        >
+                      
                             <CoinBlog coin={temp} componentKey="coin" />
-                        </div>
+                        
                     ))}
                 </div>
             )}
