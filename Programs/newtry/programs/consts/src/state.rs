@@ -317,7 +317,7 @@ impl<'info> LiquidityPoolAccount<'info> for Account<'info, LiquidityPool> {
             let numerator = (amount as f64) * reserve_two_f64;
             let denominator = reserve_one_f64 + (amount as f64);
             sol_out = (numerator / denominator) as u64;
-            final_price = (reserve_two_f64 - sol_out as f64) / (total_supply + (tokens_sold - amount as f64));
+            final_price = (reserve_two_f64 - sol_out as f64) / (total_supply - (tokens_sold - amount as f64));
 
         } else {
             let min_price = INITIAL_PRICE * GROWTH_FACTOR.powf((tokens_sold - amount as f64) / PRICE_INCREMENT_STEP);
