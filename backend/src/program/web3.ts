@@ -301,7 +301,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
             launchPrice: launchPrice,
         });
         const willAutoMigrate = coin?.autoMigrate ?? true
-        /*
+        
         if (launchMarketCap > marketCapGoal && isSwap && willAutoMigrate) {
             console.log('🚀 Migration threshold reached! Moving to Raydium...');
             try {
@@ -310,7 +310,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
                 console.error('Migration failed:', error);
             }
         }
-            */
+            
     }
   
 });
