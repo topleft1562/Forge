@@ -56,6 +56,8 @@ export default function Page() {
       };
   
       handleClick();
+      const interval = setInterval(handleClick, 5000);
+      return () => clearInterval(interval);
     }
   }, [pathname]);
 
@@ -67,6 +69,8 @@ export default function Page() {
       }
     }
     fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, [option])
 
   const handleModalClose = () => {
@@ -242,8 +246,9 @@ export default function Page() {
 
         <div className="bg-[#141414] rounded-lg p-4 text-[#888] break-all">
           <p className="font-mono text-sm">
-            {index.wallet}
+            {index.wallet?.slice(0, 5) + "..." + index.wallet?.slice(-5)}
           </p>
+
           <Link 
             href={`https://solscan.io/account/${index.wallet}?cluster=${cluster}`}
             className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"

@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 // Token amounts (always 6 decimals for pump.fun tokens)
 export const formatTokenAmount = (amount: number | string): string => {
     const num = Number(amount) / 1e6;  // Convert to token units
@@ -60,4 +62,32 @@ export const formatFullNumber = (amount: number | string): string => {
     return num.toLocaleString('en-US', {
         maximumFractionDigits: 2
     });
+};
+
+export const TimeAgo = (date?: Date | string | null): string => {
+    if (!date) return "Just now"; // Handles undefined/null cases
+
+    const createdDate = new Date(date).getTime(); // Convert to timestamp
+    if (isNaN(createdDate)) return "Just now"; // Prevents invalid date errors
+
+    const now = Date.now();
+    const diffInSeconds = Math.floor((now - createdDate) / 1000);
+
+    if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+    }
+
+    if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    }
+
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days} day${days !== 1 ? "s" : ""} ago`;
+};
+
+export const getValidURL = (url?: string) => {
+    if (!url) return "#"; // Prevents broken links
+    return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
 };

@@ -1,3 +1,4 @@
+import { totalSupply } from "@/confgi";
 import { coinInfo, recordInfo, tradeInfo, userInfo } from "@/utils/types";
 import { getCoinTrade } from "@/utils/util";
 import { set } from "@coral-xyz/anchor/dist/cjs/utils/features";
@@ -12,13 +13,13 @@ interface holderInfo {
   totalAmount: number
 }
 export const Holders: React.FC<HolderInfo> = ({ param, coin }) => {
-  const [trades, setTrades] = useState<tradeInfo>({} as tradeInfo);
+  // const [trades, setTrades] = useState<tradeInfo>({} as tradeInfo);
   const [holders, setHolders] = useState<holderInfo[]>([])
   useEffect(() => {
     const fetchData = async () => {
       if (param) {
         const data: tradeInfo = await getCoinTrade(param);
-        setTrades(data)
+        // setTrades(data)
         const agr=holderCalc(data.record);
         setHolders(agr);
         // console.log("trade holder",agr)
@@ -48,12 +49,14 @@ export const Holders: React.FC<HolderInfo> = ({ param, coin }) => {
   return (
     <div className="m-4">
       {holders && holders.map((trade, index) => (
+        trade.totalAmount > 0 &&
         <div key={index} className="flex justify-between text-xl text-white">
           <div>
             {index + 1}. {trade.holder.name}
           </div>
-          <div>{Math.floor(trade.totalAmount/10_000_000_000)/1000}%</div>
+          <div>{((trade.totalAmount / totalSupply) * 100).toFixed(2)}%</div>
         </div>
+        
       ))}
     </div>
   );

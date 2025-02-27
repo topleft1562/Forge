@@ -12,7 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { MarketCap } from "@/components/MarketCap";
-import { formatFullNumber, formatSOL } from "@/utils/format";
+import { formatFullNumber, formatSOL, getValidURL, TimeAgo } from "@/utils/format";
 import { GiThorHammer } from "react-icons/gi";
 import { FaXTwitter, FaGlobe } from "react-icons/fa6";
 import { FaTelegramPlane } from "react-icons/fa";
@@ -41,15 +41,16 @@ export default function Page() {
     const { user } = useContext(UserContext);
     const [isBuy, setIsBuy] = useState<number>(0);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
+    const createdAge = TimeAgo(coin?.date)
 
     const getBalance = useCallback(async () => {
             try {
-                const balance = await getTokenBalance(user.wallet, coin.token);
+                const balance = await getTokenBalance(user?.wallet, coin?.token);
                 setTokenBal(balance ? balance : 0);
             } catch (error) {
                 setTokenBal(0);
             }
-        }, [user.wallet, coin.token]);
+        }, [user?.wallet, coin?.token]);
     
         useEffect(() => {
             const interval = setInterval(() => {
@@ -65,6 +66,7 @@ export default function Page() {
         ? coin?.description
         : coin?.description?.slice(0, 120) + (shouldShowReadMore ? "... " : "");
         // console.log(coin, progress)
+
     useEffect(() => {
         const fetchData = async () => {
             // Split the pathname and extract the last segment
@@ -75,11 +77,9 @@ export default function Page() {
             setCoin(data);
         };
         fetchData();
-        const interval = setInterval(fetchData, 30000);
+        const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, [pathname]);
-
-console.log(coin?.twitter, coin?.telegram, coin?.website)
 
     useEffect(() => {
         const updateMarketCap = async () => {
@@ -123,17 +123,11 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
         };
 
         updateMarketCap();
-        const interval = setInterval(updateMarketCap, 30000);
+        const interval = setInterval(updateMarketCap, 5000);
         return () => clearInterval(interval);
     }, [coin]);
 
-    // Add this function to handle image errors
-    const handleImageError = (
-        e: React.SyntheticEvent<HTMLImageElement, Event>
-    ) => {
-        e.currentTarget.src = "/sol-forge-logo.png";
-    };
-
+    
     // Add this function to get a valid image URL
     const getImageUrl = (url?: string) => {
         if (!url || url.includes("undefined")) {
@@ -222,14 +216,14 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                                                         </svg>
                                                         <span>CA</span>
                                                     </span>
-                                                    <span>Created ago</span>
+                                                    <span>{createdAge}</span>
                                                 </div>
                                             </div>
 
                                             <div className="social-links flex flex-wrap gap-4 pt-2">
                                                 {coin?.twitter &&
 <Link 
-    href={coin?.twitter} 
+    href={getValidURL(coin?.twitter)} 
     target="_blank" 
     rel="noopener noreferrer"
     className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
@@ -239,7 +233,7 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
 }
 {coin?.telegram &&
 <Link 
-    href={coin?.telegram} 
+    href={getValidURL(coin?.telegram)} 
     target="_blank" 
     rel="noopener noreferrer"
     className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
@@ -249,7 +243,7 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
 }
 {coin?.website &&
 <Link 
-    href={coin?.website} 
+    href={getValidURL(coin?.website)}  
     target="_blank" 
     rel="noopener noreferrer"
     className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
@@ -374,7 +368,7 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                                     </div>
                                 </div>
                             </div>
-
+                        {!coin?.isMigrated &&
                             <button
                                 onClick={() => setShowMobileTradeForm(true)}
                                 className="w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity lg:hidden"
@@ -385,7 +379,7 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                             >
                                 Trade Token
                             </button>
-
+                        }
                             <div className="chartHolder bg-[#1a1a1a] rounded-xl p-1">
                                 <TradingChart param={coin}></TradingChart>
                             </div>
@@ -395,8 +389,9 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                         </div>
 
                         <div className="w-full lg:w-[32%] space-y-8 hidden lg:block">
+                        {!coin?.isMigrated &&
                             <TradeForm coin={coin} tokenBal={tokenBal} user={user}/>
-
+                        }
                             <div className="bg-[#151515] rounded-xl p-6 space-y-8">
                                 <MarketCap
                                     reserveOne={coin.reserveOne}
@@ -427,9 +422,11 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                                         <h3 className="text-white font-medium">
                                             Holder Distribution
                                         </h3>
+                                        {/*
                                         <button className="px-3 py-1.5 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] text-sm transition-colors">
                                             Generate Map
                                         </button>
+                                        */}
                                     </div>
                                     <Holders
                                         param={param}
@@ -438,6 +435,7 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>

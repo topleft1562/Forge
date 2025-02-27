@@ -118,6 +118,10 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
 
         {/* Messages */}
         {<div className="space-y-4 max-h-[400px] overflow-y-auto" ref={messageContainerRef} onScroll={handleScroll}>
+        {messages &&
+          messages.slice().reverse().slice(0, visibleCount).map((message, index) => (
+            <MessageForm key={index} msg={message} />
+        ))}
         <div className="bg-[#1E1E1E] rounded-xl p-4">
           <div className="flex items-center gap-4">
             {(coin?.creator as userInfo)?.avatar && (coin?.creator as userInfo).avatar !== "https://gateway.pinata.cloud/ipfs/undefined" ? (
@@ -152,9 +156,7 @@ export const Chatting: React.FC<ChattingProps> = ({ param, coin }) => {
             </div>
           )}
         </div>
-          {messages && messages.slice(0, visibleCount).map((message, index) => (
-            <MessageForm key={index} msg={message} />
-          ))}
+       
         </div>}
 
         {/* Post Reply Button */}
