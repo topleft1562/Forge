@@ -184,7 +184,7 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 website: data.website,
                 autoMigrate: data.autoMigrate,
             });
-           console.log("Saving coin to database:", newCoin);
+           // console.log("Saving coin to database:", newCoin);
 
             const response = await newCoin.save();
             // console.log("Coin saved successfully");
@@ -201,7 +201,6 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                     }
                 ]
             });
-            console.log()
             await newCoinStatus.save();
             // console.log("Coin status saved successfully");
 
@@ -283,7 +282,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
 
         const launchPrice = (parsedData.reserve2 / 1e9) / (parsedData.reserve1 / 1e6)
         const solPrice = await fetchSolPrice()
-        const launchMarketCap = (launchPrice*solPrice)*totalSupply
+        const launchMarketCap = (launchPrice*solPrice)*(totalSupply / 1e6)
         
         console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
         

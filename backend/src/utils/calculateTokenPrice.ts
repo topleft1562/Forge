@@ -2,8 +2,22 @@ export const calculateTokenPrice = (supply: number, reserveBalance: number, cons
     return (reserveBalance * constant) / (supply + 1);
 }
 
+const CACHE_DURATION = 60 * 1000; // 1 minute cache duration
+let priceCache = {
+    price: 0,
+    lastUpdated: 0
+};
+
 export async function fetchSolPrice(): Promise<number> {
     try {
+        const now = Date.now();
+
+        // Return cached value if still valid
+        if (priceCache.price && (now - priceCache.lastUpdated) < CACHE_DURATION) {
+            return priceCache.price;
+        }
+        
+        // Fetch new price
         const response = await fetch(
             'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
             {
@@ -19,10 +33,19 @@ export async function fetchSolPrice(): Promise<number> {
         }
 
         const data = await response.json();
-        return data?.solana?.usd || 0; // ✅ Corrected path to access price
+        const price = data?.solana?.usd || 0;
+        console.log("Fetched New Price", price)
+        // Update cache
+        priceCache = {
+            price,
+            lastUpdated: now
+        };
+
+        return price;
     } catch (error) {
         console.error(`Error fetching SOL price:`, error);
-        return 0; // Fallback value if API call fails
+        return priceCache.price || 0; // Return last known price if available
     }
 }
+
 

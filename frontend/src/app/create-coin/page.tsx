@@ -110,7 +110,6 @@ const createCoin = async () => {
     }
 
     infoAlert(`Uploaded Image for ${newCoin.name}`);
-
     const coin: coinInfo = {
         ...newCoin,
         creator: user._id.toString(),
@@ -160,7 +159,6 @@ const createCoin = async () => {
       console.log('error', `Transaction failed! ${error?.message}`, signature);
       return;
   }
-
     const created = await createNewCoin(coin);
     
     if (created) {
