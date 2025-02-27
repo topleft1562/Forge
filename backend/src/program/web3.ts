@@ -1,5 +1,5 @@
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
-import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity } from "@metaplex-foundation/umi";
+import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity, transactionBuilder } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL, Cluster } from "@solana/web3.js";
 import base58 from "bs58";
@@ -13,8 +13,9 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, totalSupply } from "../config/config";
+import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
+import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 
 
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
@@ -82,18 +83,22 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
         const mint = generateSigner(umi);
         // console.log("Mint address generated:", mint.publicKey);
 
-        const tx = createAndMint(umi, {
-            mint,
-            authority: umi.identity,
-            name: data.name,
-            symbol: data.ticker,
-            uri: data.url,
-            sellerFeeBasisPoints: percentAmount(0),
-            decimals: 6,
-            amount: totalSupply,
-            tokenOwner: userWallet.publicKey,
-            tokenStandard: TokenStandard.Fungible,
-        });
+        const tx = transactionBuilder()
+  .add(setComputeUnitPrice(umi, { microLamports: priorityLamports })) // Add priority fee
+  .add(
+    createAndMint(umi, {
+      mint,
+      authority: umi.identity,
+      name: data.name,
+      symbol: data.ticker,
+      uri: data.url,
+      sellerFeeBasisPoints: percentAmount(0),
+      decimals: 6,
+      amount: totalSupply,
+      tokenOwner: userWallet.publicKey,
+      tokenStandard: TokenStandard.Fungible,
+    })
+  );
 
         const mintTx = await tx.sendAndConfirm(umi);
         console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
