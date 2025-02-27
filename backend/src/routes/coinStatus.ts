@@ -9,9 +9,10 @@ export const setCoinStatus = async (data: ResultType) => {
     const coinId = await Coin.findOne({ token: data.mint }).select('_id');
     const userId = await User.findOne({ wallet: data.owner }).select('_id');
     const userHolding = await User.findOne(
-        { wallet: data.owner, "holdings.coinId": coinId }, // Match user & holding
-        { "holdings.$": 1 } // Select only the matched holding
+        { wallet: data.owner, "holdings.coinId": coinId },
+        { "holdings.$": 1 }
       );
+      console.log(userHolding)
     // const solAmount = data.reserve2 / 1e9; // Convert SOL from lamports (9 decimals)
     // const tokenAmount = data.reserve1 / 1e6; // Convert tokens from raw amount (6 decimals)
 
@@ -47,7 +48,7 @@ export const setCoinStatus = async (data: ResultType) => {
         newAmount = userHolding.amount - data.swapAmount
     }
 
-    
+    console.log(newAmount)
     if(newAmount <= 0) {
         // delete holding
         await User.findOneAndUpdate(
