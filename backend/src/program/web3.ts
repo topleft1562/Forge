@@ -96,8 +96,8 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
         });
 
         const mintTx = await tx.sendAndConfirm(umi);
-        // console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
-        // console.log("Mint transaction:", mintTx);
+        console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
+        console.log("Mint transaction:", mintTx);
 
         await sleep(10000);
         // console.log("Starting LP creation...");

@@ -26,12 +26,13 @@ const POOL_SEED_PREFIX = "liquidity_pool"
 
 let raydium: Raydium | undefined
 export const initSdk = async (params?: { loadToken?: boolean }) => {
+  
   if (raydium) return raydium
   console.log(`connect to rpc ${connection.rpcEndpoint} in ${cluster}`)
   raydium = await Raydium.load({
     owner,
     connection,
-    cluster,
+    cluster: cluster === "mainnet-beta" ? 'mainnet':'devnet',
     disableFeatureCheck: true,
     disableLoadToken: !params?.loadToken,
     blockhashCommitment: 'finalized',
