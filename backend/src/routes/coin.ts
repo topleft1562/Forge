@@ -4,6 +4,7 @@ import Coin from "../models/Coin";
 import { cancelCoin, createToken } from "../program/web3";
 import { deleteCoinMessagesTrades } from "./coinStatus";
 import User from "../models/User";
+import { fetchSolPrice } from "../utils/calculateTokenPrice";
 
 
 
@@ -78,9 +79,9 @@ router.post('/', async (req, res) => {
             twitter: req.body.twitter,
             telegram: req.body.telegram,
             website: req.body.website,
-            autoMigrate: req.data.autoMigrate
+            autoMigrate: req.body.autoMigrate
             
-        },creator.wallet);
+        },creator?.wallet);
 
         console.log("token====", token);
         
@@ -128,5 +129,6 @@ router.get('/cancel/:tokenAddress', async(req, res) => {
         return res.status(500).send(error);
     }
 })
+
 
 export default router;

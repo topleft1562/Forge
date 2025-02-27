@@ -142,16 +142,13 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
         return url;
     };
 
-    const handlTrade = () => {
-        // Implement the trade logic here
-    };
 
     return (
         <ProgramProvider>
             <div className="min-h-screen">
                 <div className="max-w-[1600px] mx-auto px-8">
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        <div className="w-full lg:w-[68%] space-y-8">
+                    <div className="flex flex-col lg:flex-row gap-8 min-h-screen pb-16">
+                        <div className="w-full lg:w-[68%] space-y-8 ">
                             <div className="infoHolder bg-[#1a1a1a] rounded-xl p-6">
                                 <div className="flex flex-col sm:flex-row gap-6">
                                     <div className="shrink-0">
@@ -230,47 +227,42 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
                                             </div>
 
                                             <div className="social-links flex flex-wrap gap-4 pt-2">
+                                                {coin?.twitter &&
 <Link 
-    href={coin.twitter} 
+    href={coin?.twitter} 
     target="_blank" 
     rel="noopener noreferrer"
     className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
 >
     <FaXTwitter size={16} />
 </Link>
+}
+{coin?.telegram &&
 <Link 
-    href={coin.telegram} 
+    href={coin?.telegram} 
     target="_blank" 
     rel="noopener noreferrer"
     className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
 >
 <FaTelegramPlane size={16} />
 </Link>
+}
+{coin?.website &&
 <Link 
-    href={coin.website} 
+    href={coin?.website} 
     target="_blank" 
     rel="noopener noreferrer"
     className="text-[#01a8dd] text-sm hover:text-[#01a8dd]/80 transition-colors flex items-center gap-1 mt-2"
 >
-                                                    <FaGlobe size={16} />
-                                                </Link>
-                                                <button 
-                                                    className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
-                                                    title="Telegram"
-                                                >
-                                                    <FaTelegramPlane size={16} />
-                                                </button>
-                                                <button 
-                                                    className="p-2 rounded-lg bg-[#1E1E1E] text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors tooltip" 
-                                                    title="Website"
-                                                >
-                                                    <FaGlobe size={16} />
-                                                </button>
+    <FaGlobe size={16} />
+</Link>
+}
+                                               
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 min-w-[200px] space-y-2">
+                                    <div className="flex-1 min-w-[200px] space-y-2" >
                                         <div className="space-y-2">
                                             <div className="text-[#888] text-sm leading-relaxed flex flex-wrap items-center gap-1">
                                                 <span>
@@ -414,7 +406,7 @@ console.log(coin?.twitter, coin?.telegram, coin?.website)
 
                                 <div className="space-y-4">
                                     <p className="text-sm text-[#888] leading-relaxed">
-                                        When SOL Collection reaches {formatTokenGoal(TargetMarketCap)} all
+                                        When Market Cap reaches {formatTokenGoal(TargetMarketCap)} all
                                         liquidity from the bonding curve will be
                                         deposited into Raydium and burned.
                                         Progression increases as buys comes in

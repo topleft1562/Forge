@@ -2,30 +2,27 @@ export const calculateTokenPrice = (supply: number, reserveBalance: number, cons
     return (reserveBalance * constant) / (supply + 1);
 }
 
-let cachedSolPrice: number | null = null;
-let lastPriceFetch = 0;
-const PRICE_CACHE_DURATION = 30000; // 30 seconds
-
-export const fetchSolPrice = async (): Promise<number> => {
-    const now = Date.now();
-    
-    // Return cached price if valid
-    if (cachedSolPrice && (now - lastPriceFetch) < PRICE_CACHE_DURATION) {
-        return cachedSolPrice;
-    }
-
+export async function fetchSolPrice(): Promise<number> {
     try {
-        const response = await fetch('/api/solana/price');
+        const response = await fetch(
+            'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
+            {
+                headers: {
+                    'Accept': 'application/json',
+                    // 'X-CG-Pro-API-Key': process.env.COINGECKO_API_KEY, // Add API key if needed
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch price`);
+        }
+
         const data = await response.json();
-        
-        if (data.error) throw new Error(data.error);
-        
-        cachedSolPrice = data.price;
-        lastPriceFetch = now;
-        
-        return data.price;
+        return data?.solana?.usd || 0; // ✅ Corrected path to access price
     } catch (error) {
-        console.error('Error fetching SOL price:', error);
-        return cachedSolPrice || 100; // Fallback to cached price or 100
+        console.error(`Error fetching SOL price:`, error);
+        return 0; // Fallback value if API call fails
     }
-};
+}
+

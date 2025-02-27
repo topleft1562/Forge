@@ -21,6 +21,7 @@ async function fetchSolanaPrice() {
                 }
             }
         );
+        console.log("testing", response)
         
         if (!response.ok) {
             throw new Error('Failed to fetch SOL price');

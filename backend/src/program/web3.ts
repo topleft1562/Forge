@@ -184,7 +184,7 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 website: data.website,
                 autoMigrate: data.autoMigrate,
             });
-           // console.log("Saving coin to database:", newCoin);
+           console.log("Saving coin to database:", newCoin);
 
             const response = await newCoin.save();
             // console.log("Coin saved successfully");
@@ -281,25 +281,29 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if(isSwap || isRemove){
         const parsedData = parseLogs(logs.logs, logs.signature);
 
-        const launchPrice = parsedData.reserve2 / parsedData.reserve1
+        const launchPrice = (parsedData.reserve2 / 1e9) / (parsedData.reserve1 / 1e6)
         const solPrice = await fetchSolPrice()
-        const launchMarketCap = ((launchPrice / 1e9)*solPrice)*totalSupply
+        const launchMarketCap = (launchPrice*solPrice)*totalSupply
         
         console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
         
         await setCoinStatus(parsedData);
 
         const coin = await Coin.findOne({token: parsedData.mint})
+
         console.log("AUTOMIGRATE?:", coin?.autoMigrate)
-        console.log('Current reserves:', {
+        console.log('Current Info:', {
             solReserve: parsedData.reserve2 / 1e9,
             Progress: launchMarketCap > marketCapGoal,
-            AutoMigrate: coin.autoMigrate,
+            AutoMigrate: coin?.autoMigrate|| true,
             marketCap: launchMarketCap,
-            Goal: marketCapGoal
+            Goal: marketCapGoal,
+            solPrice: solPrice,
+            launchPrice: launchPrice,
         });
-    
-        if (launchMarketCap > marketCapGoal && isSwap && coin.autoMigrate) {
+        const willAutoMigrate = coin?.autoMigrate ?? true
+        /*
+        if (launchMarketCap > marketCapGoal && isSwap && willAutoMigrate) {
             console.log('🚀 Migration threshold reached! Moving to Raydium...');
             try {
                 await createRaydium(new PublicKey(parsedData.mint), parsedData.reserve1, parsedData.reserve2);
@@ -307,6 +311,7 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
                 console.error('Migration failed:', error);
             }
         }
+            */
     }
   
 });

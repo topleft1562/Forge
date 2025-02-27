@@ -6,14 +6,14 @@ const PRICE_CACHE_DURATION = 30000; // 30 seconds
 
 export const fetchSolPrice = async (): Promise<number> => {
     const now = Date.now();
-    
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/price`
     // Return cached price if valid
     if (cachedSolPrice && (now - lastPriceFetch) < PRICE_CACHE_DURATION) {
         return cachedSolPrice;
     }
 
     try {
-        const response = await fetch('/api/solana/price');
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.error) throw new Error(data.error);
@@ -66,8 +66,8 @@ export const calculateLaunchPrice = async (
     reserveTwo: number | string
 ): Promise<number> => {
     // Convert inputs to numbers and handle scientific notation
-    const tokenAmount = Number(reserveOne);
-    const solAmount = Number(reserveTwo) / 1e9; // Convert lamports to SOL
+    const tokenAmount = Number(reserveOne) / 1e6
+    const solAmount = Number(reserveTwo) / 1e9
     
     // Validate inputs
     if (isNaN(tokenAmount) || isNaN(solAmount)) {
@@ -80,10 +80,8 @@ export const calculateLaunchPrice = async (
     
     // Get SOL price
     const solPrice = await fetchSolPrice();
-    
     // Calculate price per token in SOL
-    const priceInSol = solAmount / (tokenAmount / 1e6); // Adjust token amount for 6 decimals
-    
+    const priceInSol = solAmount / tokenAmount; // Adjust token amount for 6 decimals
     // Convert to USD
     const priceInUSD = priceInSol * solPrice;
     
@@ -123,11 +121,11 @@ export const formatMarketCap = (marketCap: number): string => {
 export const formatTokenGoal = (marketCap: number): string => {
     const formatNumber = (value: number, suffix: string) => {
         if (value >= 1) {
-            return `${value.toFixed(2)}${suffix} SOL`; // Only show 2 decimals if >= 1
+            return `$${value.toFixed(0)}${suffix}`; // Only show 2 decimals if >= 1
         }
 
         // If value is less than 1, keep up to 12 decimals while removing trailing zeros
-        return `${value.toFixed(16).replace(/\.?0+$/, '')}${suffix} SOL`;
+        return `$${value.toFixed(16).replace(/\.?0+$/, '')}${suffix}`;
     };
 
     if (marketCap >= 1_000_000_000) return formatNumber(marketCap / 1_000_000_000, 'B');

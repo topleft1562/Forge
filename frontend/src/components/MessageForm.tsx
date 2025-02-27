@@ -21,7 +21,7 @@ export const MessageForm: React.FC<MessageFormProps> = ({ msg }) => {
 
     fetchUser();
   }, [msg.sender]);
-  const hasAvatar = user.avatar && user.avatar !== 'undefined';
+  const hasAvatar = user?.avatar && !user?.avatar.includes('undefined');
   
   return (
     <div className="bg-[#1E1E1E] rounded-xl p-4">

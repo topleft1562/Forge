@@ -2,7 +2,7 @@ import { coinInfo, userInfo } from "@/utils/types";
 import { getUserInfo } from "@/utils/util";
 import Link from "next/link";
 import { FC, useEffect, useState } from "react";
-import { calculateMarketCap, formatMarketCap, fetchSolPrice } from "@/utils/marketCap";
+import { calculateMarketCap, formatMarketCap } from "@/utils/marketCap";
 import { GiThorHammer } from "react-icons/gi";
 import { BiSolidComment } from "react-icons/bi";
 
