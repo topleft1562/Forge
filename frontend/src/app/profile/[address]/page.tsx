@@ -17,7 +17,7 @@ export default function Page() {
   const pathname = usePathname();
   const [param, setParam] = useState<string | null>(null);
   const [index, setIndex] = useState<userInfo>({} as userInfo);
-  const [option, setOption] = useState<number>(1);
+  const [option, setOption] = useState<number>(4);
   const [data, setData] = useState<coinInfo[]>([]);
   const [isModal, setIsModal] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -220,7 +220,7 @@ export default function Page() {
             <div className="space-y-4 flex-1">
               <div className="space-y-1">
                 <h1 className="text-2xl font-medium text-white">@{index?.name}</h1>
-                <h1 className="text-2xl font-medium text-white">@{index?.wallet}</h1>
+                <h1 className="text-2xl font-medium text-white">{index?.wallet?.slice(0, 5) + "..." + index?.wallet?.slice(-5)}</h1>
                 <div className="flex gap-4 text-[#888]">
                   <span className="hideFollowers">0 followers</span>
                   
@@ -387,15 +387,15 @@ export default function Page() {
 
         <div>
           {(option == 4) &&
-            <div className="flex justify-center">
-              {
-                data.map((coin, index) => (
-                  <Link key={index} href={`/trading/${coin?.token}`}>
-                    <CoinBlog coin={coin} componentKey="coin" />
-                  </Link>
-                ))
-              }
+            // Launches
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
+              {data.map((coin, index) => (
+                <Link key={index} href={`/trading/${coin?.token}`}>
+                  <CoinBlog coin={coin} componentKey="coin" />
+                </Link>
+              ))}
             </div>
+          
           }
         </div>
       </div>
