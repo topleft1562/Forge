@@ -284,12 +284,12 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
         const solPrice = await fetchSolPrice()
         const launchMarketCap = (launchPrice*solPrice)*(totalSupply / 1e6)
         
-        console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
+        // console.log(`  MarketCapAtLaunch $${launchMarketCap}`)
         
         await setCoinStatus(parsedData);
 
         const coin = await Coin.findOne({token: parsedData.mint})
-
+/*
         console.log("AUTOMIGRATE?:", coin?.autoMigrate)
         console.log('Current Info:', {
             solReserve: parsedData.reserve2 / 1e9,
@@ -300,6 +300,8 @@ connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
             solPrice: solPrice,
             launchPrice: launchPrice,
         });
+        */
+
         const willAutoMigrate = coin?.autoMigrate ?? true
         
         if (launchMarketCap > marketCapGoal && isSwap && willAutoMigrate) {

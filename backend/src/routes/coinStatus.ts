@@ -8,9 +8,14 @@ import Feedback from "../models/Feedback"
 export const setCoinStatus = async (data: ResultType) => {
     const coinId = await Coin.findOne({ token: data.mint }).select('_id');
     const userId = await User.findOne({ wallet: data.owner }).select('_id');
+    const userHolding = await User.findOne(
+        { wallet: data.owner, "holdings.coinId": coinId }, // Match user & holding
+        { "holdings.$": 1 } // Select only the matched holding
+      );
+    // const solAmount = data.reserve2 / 1e9; // Convert SOL from lamports (9 decimals)
+    // const tokenAmount = data.reserve1 / 1e6; // Convert tokens from raw amount (6 decimals)
 
-    const solAmount = data.reserve2 / 1e9; // Convert SOL from lamports (9 decimals)
-    const tokenAmount = data.reserve1 / 1e6; // Convert tokens from raw amount (6 decimals)
+
 
     const newTx = {
         holder: userId?._id,
@@ -21,20 +26,44 @@ export const setCoinStatus = async (data: ResultType) => {
         price: data.price,
         time: new Date() // Add timestamp if required for tracking
     };
-
+/*
     console.log('Price calculation:', {
         solReserve: solAmount,
         tokenReserve: tokenAmount,
         calculatedPrice: data.price
     });
-
+*/
     // Update transaction record
     await CoinStatus.findOneAndUpdate(
         { coinId: coinId?._id },
         { $push: { record: newTx } },
         { new: true, upsert: true }
     );
+    let newAmount = 0
+    if(data.swapType === 0){
+        newAmount = userHolding.amount + data.swapAmountOut
+    }
+    if(data.swapType === 1) {
+        newAmount = userHolding.amount - data.swapAmount
+    }
 
+    
+    if(newAmount <= 0) {
+        // delete holding
+        await User.findOneAndUpdate(
+            { wallet: data.owner },
+            { $pull: { holdings: { coinId: coinId?._id } } }, // Remove the specific holding by coinId
+            { new: true }
+          );
+    } else {
+        const newHolding = { coinId: coinId?._id, amount: newAmount }
+        // update holding amount
+        await User.findOneAndUpdate(
+        { wallet: data.owner },
+        { $push: { holdings: newHolding } },
+        { new: true, runValidators: true }
+      ).populate('holdings.coinId')
+    }
     const tokenAddress = data.mint ? data.mint.trim() : "UNDEFINED";
     console.log("🔍 Querying MongoDB for token:", tokenAddress);
 
