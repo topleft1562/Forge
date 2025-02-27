@@ -7,6 +7,7 @@ import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { WalletContextState, useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { IDL } from "./cli/idl";
 import { Program } from "@coral-xyz/anchor";
+import { ADMINKEY } from "@/confgi";
 
 const POOL_SEED_PREFIX = "liquidity_pool"
 
@@ -27,7 +28,6 @@ const POOL_SEED_PREFIX = "liquidity_pool"
 // Add these constants at the top of the file
 
 // const TEST_MINT = new PublicKey("wkw1s3a2MvzgUqpba74vQL9REruUEigbXWG2oxR2nXr");
-// const feeRecipientAdmin = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
 
 export const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT);
 export const getSolBalance = async (walletAddress: string) => {
@@ -140,7 +140,7 @@ export const swapTx = async (
           minOut: new anchor.BN("9999999999999999999999")
       };
 
-      const ADMIN_PUBKEY = new PublicKey("8Z7UgKvwfwtax7WjMgCGq61mNpLuJqgwY51yUgS1iAdF");
+      const ADMIN_PUBKEY = new PublicKey(ADMINKEY);
 
       const acc: SwapAccounts = {
           pool: poolPda,
