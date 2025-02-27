@@ -1,5 +1,5 @@
 import { coinInfo, userInfo } from "@/utils/types";
-import { getUserInfo } from "@/utils/util";
+import { getMessageByCoin, getUserInfo } from "@/utils/util";
 import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 import { calculateMarketCap, formatMarketCap } from "@/utils/marketCap";
@@ -13,7 +13,10 @@ interface CoinBlogProps {
 
 export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
   const [marketCap, setMarketCap] = useState<string>("0");
+  const [isKing, setIsKing] = useState(false)
   const [error, setError] = useState<string | null>(null);
+  const [ replies, setReplies ] = useState(0)
+  
 
   useEffect(() => {
     const updateMarketCap = async () => {
@@ -25,15 +28,18 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
         
         const mcap = await calculateMarketCap(coin.reserveOne, coin.reserveTwo);
         setMarketCap(formatMarketCap(mcap));
+        setIsKing(mcap > 35000)
         setError(null);
       } catch (err) {
         console.error('Error updating market cap:', err);
         setError('Failed to update market cap');
       }
+      const messages = await getMessageByCoin(coin._id as string)
+      setReplies(messages.length)
     };
 
     updateMarketCap();
-    const interval = setInterval(updateMarketCap, 30000);
+    const interval = setInterval(updateMarketCap, 3000);
     return () => clearInterval(interval);
   }, [coin?.reserveOne, coin?.reserveTwo]);
 
@@ -67,7 +73,7 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
         border border-[#01a8dd]/20">
         Replies
       </span>
-      {coin?.replies || 0}
+      {replies ?? 0}
     </span>
   );
 
@@ -96,7 +102,7 @@ export const CoinBlog: React.FC<CoinBlogProps> = ({ coin, componentKey }) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae] truncate">
                 {marketCap}
               </span>
-              {coin?.marketcap > 50000 && '👑'}
+              {isKing && '👑'}
             </div>
 
             <div className="flex items-center text-[11px] truncate">

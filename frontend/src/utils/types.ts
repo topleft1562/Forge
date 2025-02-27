@@ -21,12 +21,18 @@ export type Chart = {
     lows: number[];
     closes: number[];
   };
-  
+
+export interface holding {
+    _id?: string,
+    coinId: coinInfo,
+    amount: number
+};
 
 export interface userInfo {
     _id?: string,
     name: string,
     wallet: string,
+    holdings?: holding[],
     avatar?: string,
     isLedger?: Boolean,
     signature?: string,

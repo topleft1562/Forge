@@ -168,21 +168,25 @@ router.get('/', async (req, res) => {
     }
 });
 
-// GET: Fetch a users
+// GET: Fetch a user with fully populated holdings & full Coin details
 router.get('/:id', async (req, res) => {
     const userId = req.params.id;
+
     try {
-        const user = await User.findOne({ _id: userId })
-   
+        // ✅ Find the user and fully populate `holdings.coinId`
+        const user = await User.findOne({ _id: userId }).populate('holdings.coinId'); // Fetches full coin details
+
         if (!user) {
-            return res.status(404).send({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found' });
         }
 
-        res.status(200).send(user);
+        res.status(200).json(user);
     } catch (error) {
-        res.status(500).send(error);
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: 'Internal Server Error', error });
     }
 });
+
 
 router.post('/update/:userId', (req, res) => {
     const { body } = req;

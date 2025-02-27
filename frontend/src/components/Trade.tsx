@@ -1,10 +1,9 @@
 import { recordInfo, userInfo } from "@/utils/types";
 import { formatSOL, formatTokenAmount, formatDate } from "@/utils/format";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { FiExternalLink } from 'react-icons/fi';
 import { cluster } from "@/confgi";
-import { calculateCurrentPrice } from "@/utils/marketCap";
 
 interface TradePropsInfo {
   trade: recordInfo;
@@ -58,7 +57,13 @@ export const Trade: React.FC<TradePropsInfo> = ({ trade, ticker = 'tokens' }) =>
       target.src = hasAvatar ? trade.holder.avatar : DEFAULT_AVATAR;
     }}
   />
-  {trade.holder?.name ?? "Unknown"}
+            <div className="text-white">
+              <Link href={`/profile/${(trade?.holder as userInfo)?._id}`}>
+                <div className="hover:border-[#01a8dd]/40 border-b border-transparent transition-colors text-[#01a8dd]/80">
+                {trade.holder?.name ?? "Unknown"}
+                </div>
+              </Link>
+            </div>
 </div>
 
        

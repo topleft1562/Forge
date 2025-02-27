@@ -41,6 +41,7 @@ router.get('/user/:userID', (req, res) => {
     Coin.find({ creator }).populate('creator').then(users => res.status(200).send(users)).catch(err => res.status(400).json('Nothing'))
 })
 
+
 // @route   POST /coin
 // @desc    Create coin
 // @access  Public

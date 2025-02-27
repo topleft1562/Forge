@@ -5,7 +5,7 @@ import { errorAlert, infoAlert } from "@/components/ToastGroup";
 import { cluster } from "@/confgi";
 import UserContext from "@/context/UserContext";
 import { coinInfo, userInfo } from "@/utils/types";
-import { getCoinsInfoBy, getUser, updateUser, uploadImage } from "@/utils/util";
+import { getCoinInfo, getCoinsInfoBy, getUser, updateUser, uploadImage } from "@/utils/util";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -24,10 +24,9 @@ export default function Page() {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-
+console.log(index)
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
-
   useEffect(() => {
     // Extract the last segment of the pathname
     const segments = pathname.split("/");
@@ -260,8 +259,8 @@ export default function Page() {
         {/* Tab Navigation */}
         <div className="flex flex-wrap gap-2 justify-center">
           {[
-            { id: 1, label: 'Holdings', show: false },
-            { id: 2, label: 'Replies', show: user.wallet === index.wallet },
+            { id: 1, label: 'Holdings', show: true },
+            { id: 2, label: 'Replies', show: false /* user.wallet === index.wallet */},
             { id: 3, label: 'Notifications', show: false },
             { id: 4, label: 'Launches', show: true },
             { id: 5, label: 'Followers', show: false },
@@ -386,7 +385,7 @@ export default function Page() {
         </Modal>
 
         <div>
-          {(option == 4) &&
+          {option === 4 ?
             // Launches
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
               {data.map((coin, index) => (
@@ -395,7 +394,18 @@ export default function Page() {
                 </Link>
               ))}
             </div>
-          
+          : option === 1 ? 
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-4 sm:px-0 max-w-[1600px] mx-auto">
+              {index?.holdings.length > 0 && index?.holdings?.map((holding, index) => {
+                return (
+                <Link key={index} href={`/trading/${holding.coinId.token}`}>
+                  <CoinBlog coin={holding.coinId} componentKey="coin" />
+                </Link>
+                
+              )
+              })}
+            </div>
+          : null
           }
         </div>
       </div>
