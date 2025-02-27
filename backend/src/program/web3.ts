@@ -21,6 +21,9 @@ import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
+const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: priorityLamports, // Higher value = Higher priority
+  });
 
 export const connection = new Connection(clusterApiUrl(cluster))
 
@@ -67,7 +70,8 @@ export const initializeTx = async () => {
 
     createTx.feePayer = adminWallet.publicKey;
     createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
-
+    
+    createTx.add(priorityFeeInstruction)
     const txId = await sendAndConfirmTransaction(connection, createTx, [adminKeypair]);
     // console.log("txId:", txId)
 }
@@ -125,6 +129,10 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 initCreateTx.feePayer = adminWallet.publicKey;
                 initCreateTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
                 
+                  
+                  // Add priority fee to transaction
+                  initCreateTx.add(priorityFeeInstruction);
+                
                 const initTxId = await sendAndConfirmTransaction(connection, initCreateTx, [adminKeypair]);
                 console.log("Initial Setup txId:", initTxId);
                 
@@ -152,6 +160,11 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
             const createTx = new Transaction().add(lpTx.ix);
             createTx.feePayer = adminWallet.publicKey;
             createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+           
+              
+              // Add priority fee to transaction
+              createTx.add(priorityFeeInstruction);
 
             // console.log("Simulating transaction before sending...");
             const simulation = await connection.simulateTransaction(createTx);

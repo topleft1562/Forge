@@ -1,12 +1,10 @@
-import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, VersionedTransaction, clusterApiUrl, sendAndConfirmTransaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram} from "@solana/web3.js";
 import { PROGRAM_ID } from "./cli/programId";
-import { AccountType, TOKEN_PROGRAM_ID, getAssociatedTokenAddress , ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, getMint} from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID,  ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount} from "@solana/spl-token";
 import { SwapAccounts, SwapArgs, swap } from "./cli/instructions/swap";
 import * as anchor from "@coral-xyz/anchor"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { WalletContextState, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { IDL } from "./cli/idl";
-import { Program } from "@coral-xyz/anchor";
+import { WalletContextState } from '@solana/wallet-adapter-react';
 import { ADMINKEY } from "@/confgi";
 
 const POOL_SEED_PREFIX = "liquidity_pool"
