@@ -6,7 +6,9 @@ import { AddLiquidityAccounts, AddLiquidityArgs, InitializeAccounts, InitializeP
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token"
 import { 
   Raydium, TxVersion, WSOLMint, FEE_DESTINATION_ID,
-  DEVNET_PROGRAM_ID
+  DEVNET_PROGRAM_ID,
+  OPEN_BOOK_PROGRAM,
+  AMM_V4
 } from '@raydium-io/raydium-sdk-v2'
 import BN from 'bn.js'
 import base58 from "bs58"
@@ -468,8 +470,8 @@ export const createMarket = async (tokenMint: any) => {
     },
     lotSize: 1,
     tickSize: 0.01,
-    // dexProgramId: OPEN_BOOK_PROGRAM,
-    dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
+    dexProgramId: OPEN_BOOK_PROGRAM,
+    // dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
 
     // requestQueueSpace: 5120 + 12, // optional
     // eventQueueSpace: 262144 + 12, // optional
@@ -527,10 +529,12 @@ export const createAmmPool = async (
     const quoteAmount = new BN(amount2);
 
     const { execute, extInfo } = await raydium.liquidity.createPoolV4({
-      programId: DEVNET_PROGRAM_ID.AmmV4, // Devnet AMM V4 program
+      programId: AMM_V4,
+      // programId: DEVNET_PROGRAM_ID.AmmV4, // devnet
       marketInfo: {
         marketId: marketPubkey,
-        programId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // Devnet OpenBook program
+        programId: OPEN_BOOK_PROGRAM,
+        // programId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devent
       },
       baseMintInfo: {
         mint: baseMint,
