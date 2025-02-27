@@ -1,9 +1,14 @@
-import { FC } from "react";
+"use client";
+
+import { FC, useState } from "react";
 import { ConnectButton } from "./ConnectButton";
+import { HowItWorksModal } from "./HowItWorksModal";
 import Link from "next/link";
 import Image from "next/image";
 
 const Header: FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <header className="h-[100px] px-4 sm:px-0 mt-4 sm:mt-0 mb-8">
       <div className="container mx-auto h-full">
@@ -20,9 +25,23 @@ const Header: FC = () => {
               SOL Forge
             </span>
           </Link>
-          <ConnectButton />
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 rounded-lg text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-all duration-300"
+            >
+              How It Works
+            </button>
+            <ConnectButton />
+          </div>
         </div>
       </div>
+
+      <HowItWorksModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </header>
   );
 };
