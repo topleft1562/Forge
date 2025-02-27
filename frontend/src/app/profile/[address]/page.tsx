@@ -24,7 +24,6 @@ export default function Page() {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-console.log(index)
   const hasAvatar = index.avatar !== "https://gateway.pinata.cloud/ipfs/undefined"
   const avatarIMG = hasAvatar ? index.avatar : DEFAULT_AVATAR
   useEffect(() => {
@@ -70,7 +69,7 @@ console.log(index)
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, [option])
+  }, [option, param])
 
   const handleModalClose = () => {
     
@@ -78,12 +77,6 @@ console.log(index)
   };
 
   const handleSave= async () => { 
-    // infoAlert(`Uploadeding New Profile Image!`);
-    // const url = await uploadImage(imageUrl);
-    // if (!url) {
-    //    throw new Error('Failed to upload image');
-   // }
-    // setIndex((prev) => ({ ...prev, name: newName, avatar: url }));
     updateUser(user._id, index)
     setIsModal(false)
   }
