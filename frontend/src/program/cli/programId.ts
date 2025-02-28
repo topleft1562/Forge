@@ -2,7 +2,7 @@ import { PublicKey } from "@solana/web3.js"
 
 // Program ID defined in the provided IDL. Do not edit, it will get overwritten.
 export const PROGRAM_ID_IDL = new PublicKey(
-  "Fa1cQKhbUTXrbVPz4vUksCCwKCLk5FeM71QkqJ1a5gvF"
+  "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH"
 )
 
 // This constant will not get overwritten on subsequent code generations and it's safe to modify it's value.

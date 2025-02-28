@@ -6,30 +6,26 @@ import { CandlePrice, priceFeedInfo } from "./type";
 export async function fetchPriceChartData(pairIndex: number, start: number, end: number, range: number, token: string) {
   logger.info(`  fetching chart data for pairIndex: ${pairIndex}, start: ${start}, end: ${end}, range: ${range}, token: ${token}`);
 
-  // load price histories from DB
+  // Load price histories from DB
   const priceFeeds: priceFeedInfo[] | undefined = await Coin.findOne({ token })
     .then(async (coin) => {
-      const data = await CoinStatus.findOne({ coinId: coin?._id }, { 'record.price': 1, 'record.time': 1 })
-      if (data == undefined) return;
-      return data?.record;
+      if (!coin) return undefined;
+      
+      const data = await CoinStatus.findOne({ coinId: coin._id }, { 'record.price': 1, 'record.time': 1 });
+
+      if (!data || !Array.isArray(data.record)) return undefined;
+
+      return data.record
+        .map(feed => ({
+          price: Number(feed.price) || 0,  // Ensure price is a number
+          time: new Date(feed.time),       // Ensure time is a Date object
+        })) as priceFeedInfo[];  // Explicitly typecast to match type
     });
-    if(priceFeeds== undefined) return;
-    const priceHistory = priceFeeds.map((feed) => {
-    let price = feed.price;
 
-    return {
-      price: price,
-      ts: feed.time.getTime() / 1000,
-    };
-  }).sort((price1, price2) => price1.ts - price2.ts);
+  if (!priceFeeds || priceFeeds.length === 0) return [];
 
-  if (!priceHistory.length) return [];
-
-  let candlePeriod = 60; // 1 min  default
+  let candlePeriod = 60; // Default 1 min
   switch (range) {
-    case 1:
-      // default candle period
-      break;
     case 5:
       candlePeriod = 300; // 5 mins
       break;
@@ -44,28 +40,30 @@ export async function fetchPriceChartData(pairIndex: number, start: number, end:
       break;
   }
 
-  // convert price feed to candle price data
-  let cdStart = Math.floor(priceHistory[0].ts / candlePeriod) * candlePeriod;
-  let cdEnd = Math.floor(priceHistory[priceHistory.length - 1].ts / candlePeriod) * candlePeriod;
+  // Convert price feed to candle price data
+  let cdStart = Math.floor(priceFeeds[0].time.getTime() / 1000 / candlePeriod) * candlePeriod;
+  let cdEnd = Math.floor(priceFeeds[priceFeeds.length - 1].time.getTime() / 1000 / candlePeriod) * candlePeriod;
 
   let cdFeeds: CandlePrice[] = [];
   let pIndex = 0;
-  for (let curCdStart = cdStart; curCdStart <= cdEnd; curCdStart += candlePeriod) {
-    let st = priceHistory[pIndex].price;
-    let hi = priceHistory[pIndex].price;
-    let lo = priceHistory[pIndex].price;
-    let en = priceHistory[pIndex].price;
-    let prevIndex = pIndex;
-    for (; pIndex < priceHistory.length; ) {
-      if (hi < priceHistory[pIndex].price) hi = priceHistory[pIndex].price;
-      if (lo > priceHistory[pIndex].price) lo = priceHistory[pIndex].price;
-      en = priceHistory[pIndex].price;
 
-      // break new candle data starts
-      if (priceHistory[pIndex].ts >= curCdStart + candlePeriod) break;
+  for (let curCdStart = cdStart; curCdStart <= cdEnd; curCdStart += candlePeriod) {
+    let st = priceFeeds[pIndex].price;
+    let hi = priceFeeds[pIndex].price;
+    let lo = priceFeeds[pIndex].price;
+    let en = priceFeeds[pIndex].price;
+    let prevIndex = pIndex;
+
+    for (; pIndex < priceFeeds.length; ) {
+      if (hi < priceFeeds[pIndex].price) hi = priceFeeds[pIndex].price;
+      if (lo > priceFeeds[pIndex].price) lo = priceFeeds[pIndex].price;
+      en = priceFeeds[pIndex].price;
+
+      if (priceFeeds[pIndex].time.getTime() / 1000 >= curCdStart + candlePeriod) break;
       pIndex++;
     }
-    if (prevIndex !== pIndex)
+
+    if (prevIndex !== pIndex) {
       cdFeeds.push({
         open: st,
         high: hi,
@@ -73,6 +71,7 @@ export async function fetchPriceChartData(pairIndex: number, start: number, end:
         close: en,
         time: curCdStart,
       });
+    }
   }
 
   return cdFeeds;

@@ -410,9 +410,9 @@ export type Pump = {
 export const IDL: Pump = {
   "version": "0.1.0",
   "name": "pump",
-  "address": "Fa1cQKhbUTXrbVPz4vUksCCwKCLk5FeM71QkqJ1a5gvF",
+  "address": "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH",
   "metadata": {
-    "address": "Fa1cQKhbUTXrbVPz4vUksCCwKCLk5FeM71QkqJ1a5gvF",
+    "address": "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH",
     "name": "pump",
     "version": "0.1.0",
     "spec": "1.0.0"

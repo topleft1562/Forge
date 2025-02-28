@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+import dotenv from "dotenv";
+
+dotenv.config({ path: `.env.${process.env.APP_ENV || "development"}` });
+
+console.log("Loaded ENV File:", `.env.${process.env.APP_ENV || "development"}`);
+
 const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,

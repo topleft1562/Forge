@@ -29,6 +29,7 @@ export default function Home() {
     const dropdownRef = useRef(null);
     const dropdownRef1 = useRef(null);
 
+
     // Fetch coin data (and sort descending by reserveOne)
     useEffect(() => {
         const fetchData = async () => {

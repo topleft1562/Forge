@@ -7,6 +7,9 @@ import mongoose from 'mongoose';
 import { cluster } from './config/config';
 import { checkAnonymousUser } from './routes/user';
 
+console.log("Loaded ENV File:", `.env.${process.env.NODE_ENV || "development"}`);
+console.log("Database URL:", process.env.RPC_ENDPOINT);
+
 const PORT = process.env.PORT || 3001;
 
 const server = createServer(app);
@@ -74,7 +77,6 @@ process.on('uncaughtException', (error) => {
 });
 
 checkAnonymousUser()
-
 
 // Initialize Socket.IO
 try {
