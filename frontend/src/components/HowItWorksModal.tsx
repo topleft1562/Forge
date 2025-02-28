@@ -1,3 +1,5 @@
+import { marketCapGoal, ourFeeToKeep } from '@/confgi';
+import { formatTokenGoal } from '@/utils/marketCap';
 import React from 'react';
 
 interface HowItWorksModalProps {
@@ -45,13 +47,13 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClos
                             <div className="p-4 rounded-lg bg-[#1a1a1a] border border-[#01a8dd]/10">
                                 <p className="leading-relaxed flex items-start">
                                     <span className="text-[#01a8dd] mr-2">1.</span>
-                                    When enough people buy into a token, it helps the bonding curve as it reaches a market cap of $100k.
+                                    When enough people buy into a token, it helps the bonding curve as it reaches a market cap of {formatTokenGoal(marketCapGoal)}.
                                 </p>
                             </div>
                             <div className="p-4 rounded-lg bg-[#1a1a1a] border border-[#01a8dd]/10">
                                 <p className="leading-relaxed flex items-start">
                                     <span className="text-[#01a8dd] mr-2">2.</span>
-                                    From that, $17k of liquidity is then deposited to Raydium and burned.
+                                    The collected SOL and Tokens are then migrated into Radium liquidity pool.
                                 </p>
                             </div>
                         </div>
@@ -59,6 +61,10 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClos
                         <div className="mt-8 pt-4 border-t border-[#01a8dd]/10">
                             <p className="text-sm text-[#888]/80 italic text-center">
                                 By using the platform you confirm that you are 18 years of age or older.
+                                1% Trade Fees
+                                    :0.2% to Creator
+                                    :0.8% to Forge marketing
+                                5% SOL Migration fee 
                             </p>
                         </div>
                     </div>
