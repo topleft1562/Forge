@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
+import dotenv from "dotenv";
 
-require("dotenv").config({ path: `.env.${process.env.APP_ENV || "development"}` });
+dotenv.config({ path: `.env.${process.env.APP_ENV || "development"}` });
 
 console.log("Loaded ENV File:", `.env.${process.env.APP_ENV || "development"}`);
 
