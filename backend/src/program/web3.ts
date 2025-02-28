@@ -13,7 +13,7 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, totalSupply } from "../config/config";
+import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, RPC_ENDPOINT, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
 import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 
@@ -24,7 +24,7 @@ const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 export const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
     microLamports: priorityLamports, // Higher value = Higher priority
   });
-const rpc = process.env.RPC_ENDPOINT || ""
+const rpc = RPC_ENDPOINT
 export const connection = new Connection(rpc);
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);

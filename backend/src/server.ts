@@ -4,11 +4,11 @@ import socketio from './sockets';
 import { logger } from './sockets/logger';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
-import { cluster } from './config/config';
+import { cluster, RPC_ENDPOINT } from './config/config';
 import { checkAnonymousUser } from './routes/user';
 
 console.log("Loaded ENV File:", `.env.${process.env.NODE_ENV || "development"}`);
-console.log("RPC ENDPOINT:", process.env.RPC_ENDPOINT);
+console.log("RPC ENDPOINT:", RPC_ENDPOINT);
 console.log('MODE', process.env.MODE)
 
 const PORT = process.env.PORT || 3001;
