@@ -1,4 +1,4 @@
-export const ourFeeToKeep = 100_000_000
+export const ourFeeToKeep = 5_000_000_000
 export const marketCapGoal = 50_000
 export const cluster = "mainnet-beta" // "devnet"
 export const INITIAL_PRICE = 0.000028;
