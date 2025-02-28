@@ -4,8 +4,11 @@
  * Note that this is only a type helper and is not the actual IDL. The original
  * IDL can be found at `target/idl/pump.json`.
  */
+
+const programId = process.env.NEXT_PUBLIC_PROGRAM_ID
+
 export type Pump = {
-  address: "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH";
+  address: {programId};
   metadata: {
       name: "pump";
       version: "0.1.0";
@@ -1051,7 +1054,7 @@ export type Pump = {
 };
 
 export const IDL: Pump = {
-  address: "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH",
+  address: {programId},
   metadata: {
       name: "pump",
       version: "0.1.0",

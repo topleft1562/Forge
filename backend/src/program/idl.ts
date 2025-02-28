@@ -1,3 +1,5 @@
+const programId = process.env.PROGRAM_ID ?? "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH"
+
 export type Pump = {
   "version": "0.1.0",
   "name": "pump",
@@ -410,9 +412,9 @@ export type Pump = {
 export const IDL: Pump = {
   "version": "0.1.0",
   "name": "pump",
-  "address": "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH",
+  "address": programId,
   "metadata": {
-    "address": "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH",
+    "address": programId,
     "name": "pump",
     "version": "0.1.0",
     "spec": "1.0.0"
