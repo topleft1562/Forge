@@ -32,7 +32,7 @@ export const initSdk = async (params?: { loadToken?: boolean }) => {
   raydium = await Raydium.load({
     owner,
     connection,
-    cluster: cluster === "mainnet-beta" ? 'mainnet':'devnet',
+    cluster: cluster === "mainnet" ? 'mainnet' : 'devnet',
     disableFeatureCheck: true,
     disableLoadToken: !params?.loadToken,
     blockhashCommitment: 'finalized',
@@ -471,7 +471,7 @@ export const createMarket = async (tokenMint: any) => {
     },
     lotSize: 1,
     tickSize: 0.01,
-    dexProgramId: cluster === "mainnet-beta" ? OPEN_BOOK_PROGRAM : DEVNET_PROGRAM_ID.OPENBOOK_MARKET,
+    dexProgramId: cluster === "mainnet" ? OPEN_BOOK_PROGRAM : DEVNET_PROGRAM_ID.OPENBOOK_MARKET,
     // dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
 
     // requestQueueSpace: 5120 + 12, // optional
@@ -530,11 +530,11 @@ export const createAmmPool = async (
     const quoteAmount = new BN(amount2);
 
     const { execute, extInfo } = await raydium.liquidity.createPoolV4({
-      programId: cluster === "mainnet-beta" ? AMM_V4 : DEVNET_PROGRAM_ID.AmmV4,
+      programId: cluster === "mainnet" ? AMM_V4 : DEVNET_PROGRAM_ID.AmmV4,
       // programId: DEVNET_PROGRAM_ID.AmmV4, // devnet
       marketInfo: {
         marketId: marketPubkey,
-        programId: cluster === "mainnet-beta" ? OPEN_BOOK_PROGRAM : DEVNET_PROGRAM_ID.OPENBOOK_MARKET,
+        programId: cluster === "mainnet" ? OPEN_BOOK_PROGRAM : DEVNET_PROGRAM_ID.OPENBOOK_MARKET,
         // programId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devent
       },
       baseMintInfo: {
@@ -555,7 +555,7 @@ export const createAmmPool = async (
       associatedOnly: false, // Allow non-associated accounts
       txVersion, // Use legacy transactions for compatibility
       // feeDestinationId: FEE_DESTINATION_ID, // Fee receiver for liquidity
-      feeDestinationId: cluster === "mainnet-beta" ? FEE_DESTINATION_ID : DEVNET_PROGRAM_ID.FEE_DESTINATION_ID, // devnet
+      feeDestinationId: cluster === "mainnet" ? FEE_DESTINATION_ID : DEVNET_PROGRAM_ID.FEE_DESTINATION_ID, // devnet
     });
 
     console.log("Executing AMM Pool Transaction...");
