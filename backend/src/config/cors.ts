@@ -6,6 +6,7 @@ interface CorsConfig {
 }
 const sitesThatNeedAccess = [
   "https://silver-train-76jpq9p4jgcp45g-3000.app.github.dev/",
+  "https://forgemain.vercel.app/",
   // add others as needed
 ]
 // const frontendUrl = "*"  // allows everything
