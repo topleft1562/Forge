@@ -1,11 +1,11 @@
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
 import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity, transactionBuilder } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
-import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL, Cluster } from "@solana/web3.js";
+import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionResponse, sendAndConfirmTransaction } from "@solana/web3.js";
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
-import { createAmmPool, createLPIx, createMarket, initializeIx, initializePoolIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
+import { createAmmPool, createLPIx, createMarket, initializeIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { PROGRAM_ID } from "./cli/programId";
@@ -13,7 +13,7 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, totalSupply } from "../config/config";
+import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
 import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 
@@ -24,8 +24,8 @@ const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 export const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
     microLamports: priorityLamports, // Higher value = Higher priority
   });
-
-export const connection = new Connection(clusterApiUrl(cluster))
+const rpc = process.env.RPC_ENDPOINT || ""
+export const connection = new Connection(rpc);
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
 
@@ -33,7 +33,7 @@ export const adminKeypair = web3.Keypair.fromSecretKey(privateKey);
 const adminWallet = new NodeWallet(adminKeypair);
 
 // const umi = createUmi(process.env.PUBLIC_SOLANA_RPC!);
-const umi = createUmi(clusterApiUrl(cluster));
+const umi = createUmi(rpc);
 
 const userWallet = umi.eddsa.createKeypairFromSecretKey(privateKey);
 

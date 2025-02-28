@@ -4,9 +4,10 @@
   "main": "dist/server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node --max-old-space-size=512 dist/server.js",
     "build": "tsc",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "start": "node --max-old-space-size=512 dist/src/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "test": "NODE_ENV=testnet ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
+    "dotenv-flow": "^4.1.0",
     "express": "^4.19.2",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.2",
