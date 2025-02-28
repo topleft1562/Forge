@@ -43,9 +43,9 @@ export default function Page() {
     const [isBuy, setIsBuy] = useState<number>(0);
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const createdAge = TimeAgo(coin?.date)
-
+    
     const getBalance = useCallback(async () => {
-        if(user){
+        if(user?.wallet){
             try {
                 const balance = await getTokenBalance(user?.wallet, coin?.token);
                 setTokenBal(balance ?? 0);

@@ -142,14 +142,6 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
         }
     };
 
-    // Save slippage to localStorage whenever it changes
-    const handleSlippageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        if (!isNaN(parseFloat(value)) || value === "") {
-            setSlippage(value);
-            localStorage.setItem("userSlippage", value); // Save to localStorage
-        }
-    };
 
     return (
         
@@ -195,14 +187,26 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
 
   {/* Overlapping Button */}
   <button
-    className={`absolute top-1/2 -translate-y-1/2 px-4 py-2 rounded-full transition-all duration-300 shadow-lg ${
+    className={`absolute left-4 top-1/2 -translate-y-1/2 px-6 py-2 rounded-full transition-all duration-300 shadow-lg ${
       isBuy === 1
-        ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
+        ? 'text-[#01a8dd] hover:bg-[#01a8dd]/10'
         : "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
     }`}
     onClick={() => swapModes()}
   >
-    {isLoading ? "Loading..." : isBuy === 0 ? "Buy" : "Sell"}
+    {isLoading ? "Loading..." : "Buy"}
+  </button>
+
+  {/* Overlapping Button */}
+  <button
+    className={`absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 rounded-full transition-all duration-300 shadow-lg ${
+      isBuy === 1
+        ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
+        : 'text-[#01a8dd] hover:bg-[#01a8dd]/10'
+    }`}
+    onClick={() => swapModes()}
+  >
+    {isLoading ? "Loading..." : "Sell"}
   </button>
 
   {/* Second output Section */}
@@ -317,7 +321,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
                     isOpen={showSlippageModal}
                     onClose={() => setShowSlippageModal(false)}
                     slippage={slippage}
-                    setSlippage={handleSlippageChange}
+                    setSlippage={setSlippage}
                 />
 
             </div>
