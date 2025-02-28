@@ -11,14 +11,17 @@ import {
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { clusterApiUrl } from "@solana/web3.js";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export const SolanaWalletProvider = ({ children }: { children: ReactNode }) => {
   
-  const network = WalletAdapterNetwork.Mainnet
-  
+  const mainNetwork = WalletAdapterNetwork.Mainnet
+  const testNetwork = WalletAdapterNetwork.Devnet
+
+  const isTest = process.env.NEXT_PUBLIC_CHAIN === 'testnet'
+  const network = isTest ? testNetwork : mainNetwork
+
   const SOLANA_RPC = process.env.NEXT_PUBLIC_RPC_ENDPOINT; // Replace with your custom RPC URL
   const endpoint = useMemo(() => SOLANA_RPC, []);
   
@@ -28,7 +31,7 @@ export const SolanaWalletProvider = ({ children }: { children: ReactNode }) => {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(), // This will now use Devnet
+      new SolflareWalletAdapter({ network: isTest ? testNetwork : undefined }),
       new TorusWalletAdapter(),
       new LedgerWalletAdapter(),
     ],
