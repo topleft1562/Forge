@@ -16,7 +16,7 @@ export const setCoinStatus = async (data: ResultType) => {
 
 
     const userHolding = user.holdings.find(h => h.coinId.toString() === coin._id.toString());
-    console.log(userHolding)
+    // console.log(userHolding)
     let newAmount = userHolding ? userHolding.amount : 0;
 
   

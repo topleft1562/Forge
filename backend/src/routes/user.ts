@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
         if (!user) {
             res.status(404).json({ message: 'User not found' });
         } else {
-            console.log(user)
+           // console.log(user)
             const token = jwt.sign({
                 id: user._id,
                 name: user.name,
