@@ -11,28 +11,30 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({ isOpen, onClos
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
-            <div className="relative">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="relative my-4 w-full max-w-2xl">
                 {/* Background blur effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#01a8dd]/10 to-[#4088ae]/10 rounded-xl blur-xl"></div>
                 
                 {/* Modal content */}
-                <div className="relative bg-[#141414] rounded-xl p-8 max-w-2xl w-full border border-[#01a8dd]/20 shadow-xl">
+                <div className="relative bg-[#141414] rounded-xl p-6 sm:p-8 w-full border border-[#01a8dd]/20 shadow-xl max-h-[90vh] overflow-y-auto">
+                    {/* Close button positioned absolutely in top-right */}
+                    <button 
+                        onClick={onClose}
+                        className="absolute top-2 right-3 text-[#888] hover:text-[#01a8dd] transition-colors text-2xl z-10"
+                    >
+                        ×
+                    </button>
+                    
                     {/* Header with gradient */}
-                    <div className="flex justify-between items-center mb-8">
+                    <div className="flex justify-center items-center mb-6 pt-2">
                         <div className="flex items-center gap-3">
                             <div className="h-[2px] w-8 bg-gradient-to-r from-transparent via-[#01a8dd] to-transparent"></div>
-                            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
+                            <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
                                 How It Works
                             </h2>
                             <div className="h-[2px] w-8 bg-gradient-to-r from-transparent via-[#01a8dd] to-transparent"></div>
                         </div>
-                        <button 
-                            onClick={onClose}
-                            className="text-[#888] hover:text-[#01a8dd] transition-colors text-2xl"
-                        >
-                            ×
-                        </button>
                     </div>
                     
                     {/* Content with styled sections */}
