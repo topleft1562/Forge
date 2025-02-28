@@ -28,7 +28,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
     const [isBuy, setIsBuy] = useState<number>(0);
     const [slippage, setSlippage] = useState<string>("5");
     const [showSlippageModal, setShowSlippageModal] = useState(false);
-
+console.log(tokenBal, solBal)
     // Load slippage from localStorage on mount
     useEffect(() => {
         const savedSlippage = localStorage.getItem("userSlippage");
@@ -169,7 +169,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
   {/* First Input Section */}
   <div className="bg-[#1e1e1e] rounded-lg p-4 w-full">
     <label className="block text-[#888] text-sm mb-2">
-      Balance: {isBuy === 0 ? tokenBal : solBal} {isBuy === 0 ? "SOL" : coin?.ticker}
+      Balance: {isBuy === 0 ? (solBal /1e9).toFixed(4) : (tokenBal / 1e6).toFixed(4)} {isBuy === 0 ? "SOL" : coin?.ticker}
     </label>
     <div className="relative">
       <input
