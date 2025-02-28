@@ -1,5 +1,5 @@
 import { TokenStandard, createAndMint, mplTokenMetadata } from "@metaplex-foundation/mpl-token-metadata";
-import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity } from "@metaplex-foundation/umi";
+import { createSignerFromKeypair, generateSigner, percentAmount, signerIdentity, transactionBuilder } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionResponse, clusterApiUrl, sendAndConfirmTransaction, TransactionInstruction, LAMPORTS_PER_SOL, Cluster } from "@solana/web3.js";
 import base58 from "bs58";
@@ -13,13 +13,17 @@ import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, totalSupply } from "../config/config";
+import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
+import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 
 
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
+export const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+    microLamports: priorityLamports, // Higher value = Higher priority
+  });
 
 export const connection = new Connection(clusterApiUrl(cluster))
 
@@ -66,7 +70,8 @@ export const initializeTx = async () => {
 
     createTx.feePayer = adminWallet.publicKey;
     createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
-
+    
+    createTx.add(priorityFeeInstruction)
     const txId = await sendAndConfirmTransaction(connection, createTx, [adminKeypair]);
     // console.log("txId:", txId)
 }
@@ -82,22 +87,26 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
         const mint = generateSigner(umi);
         // console.log("Mint address generated:", mint.publicKey);
 
-        const tx = createAndMint(umi, {
-            mint,
-            authority: umi.identity,
-            name: data.name,
-            symbol: data.ticker,
-            uri: data.url,
-            sellerFeeBasisPoints: percentAmount(0),
-            decimals: 6,
-            amount: totalSupply,
-            tokenOwner: userWallet.publicKey,
-            tokenStandard: TokenStandard.Fungible,
-        });
+        const tx = transactionBuilder()
+  .add(setComputeUnitPrice(umi, { microLamports: priorityLamports })) // Add priority fee
+  .add(
+    createAndMint(umi, {
+      mint,
+      authority: umi.identity,
+      name: data.name,
+      symbol: data.ticker,
+      uri: data.url,
+      sellerFeeBasisPoints: percentAmount(0),
+      decimals: 6,
+      amount: totalSupply,
+      tokenOwner: userWallet.publicKey,
+      tokenStandard: TokenStandard.Fungible,
+    })
+  );
 
         const mintTx = await tx.sendAndConfirm(umi);
-        // console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
-        // console.log("Mint transaction:", mintTx);
+        console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
+        console.log("Mint transaction:", mintTx);
 
         await sleep(10000);
         // console.log("Starting LP creation...");
@@ -119,6 +128,10 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 const initCreateTx = new Transaction().add(initTx.ix);
                 initCreateTx.feePayer = adminWallet.publicKey;
                 initCreateTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+                
+                  
+                  // Add priority fee to transaction
+                  initCreateTx.add(priorityFeeInstruction);
                 
                 const initTxId = await sendAndConfirmTransaction(connection, initCreateTx, [adminKeypair]);
                 console.log("Initial Setup txId:", initTxId);
@@ -147,6 +160,11 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
             const createTx = new Transaction().add(lpTx.ix);
             createTx.feePayer = adminWallet.publicKey;
             createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+           
+              
+              // Add priority fee to transaction
+              createTx.add(priorityFeeInstruction);
 
             // console.log("Simulating transaction before sending...");
             const simulation = await connection.simulateTransaction(createTx);

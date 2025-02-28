@@ -1,10 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import { coinInfo, msgInfo, replyInfo, userInfo } from './types';
 import { FEE_PERCENTAGE, GROWTH_FACTOR, INITIAL_PRICE, PRICE_INCREMENT_STEP, SELL_REDUCTION, totalSupply } from '@/confgi';
-import { Connection, Finality, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
-import { BN } from "@coral-xyz/anchor";
-import { useProgram } from "@/contexts/ProgramProvider";
-import { useWallet } from '@solana/wallet-adapter-react';
+
 
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;

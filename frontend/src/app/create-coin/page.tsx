@@ -17,6 +17,7 @@ import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionMess
 import { useRouter } from "next/navigation";
 import { ADMINKEY, CREATEFEE } from "@/confgi";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { getSolBalance } from "@/program/web3";
 
 
 export default function CreateCoin() {
@@ -31,6 +32,8 @@ export default function CreateCoin() {
   const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+
+  
 
   useEffect(() => {
     if (
@@ -96,6 +99,7 @@ const createCoin = async () => {
 
     // Check wallet balance
     const balance = await checkWalletBalance(user.wallet);
+    console.log(balance, user.wallet)
     if (balance < 0.1) { // Require 0.1 SOL minimum
       errorAlert('Insufficient SOL balance. You need at least 0.1 SOL to create a token');
       return;

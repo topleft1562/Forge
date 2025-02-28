@@ -1,33 +1,13 @@
-import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SYSVAR_RENT_PUBKEY, Signer, SystemProgram, Transaction, TransactionResponse, VersionedTransaction, clusterApiUrl, sendAndConfirmTransaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram} from "@solana/web3.js";
 import { PROGRAM_ID } from "./cli/programId";
-import { AccountType, TOKEN_PROGRAM_ID, getAssociatedTokenAddress , ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, getMint} from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID,  ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount} from "@solana/spl-token";
 import { SwapAccounts, SwapArgs, swap } from "./cli/instructions/swap";
 import * as anchor from "@coral-xyz/anchor"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { WalletContextState, useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { IDL } from "./cli/idl";
-import { Program } from "@coral-xyz/anchor";
+import { WalletContextState } from '@solana/wallet-adapter-react';
 import { ADMINKEY } from "@/confgi";
 
 const POOL_SEED_PREFIX = "liquidity_pool"
-
-// import adminSecret from "./cli/admin.json";
-// const adminKeypair = anchor.web3.Keypair.fromSecretKey(new Uint8Array(adminSecret));
-// export const ADMIN_PUBKEY = adminKeypair.publicKey;
-
-// ALL TESTED METHODS AND CALLS = NONE GETS RID OF THE RAW CONSTRAINT VIOLATION ON ADMIN PUBLIC KEY
-
-//const adminKeypairData = [192,202,1,191,189,15,15,87,215,185,112,142,148,236,249,150,147,126,123,140,33,131,188,81,62,249,23,195,162,146,97,64,171,110,231,198,183,15,45,89,99,39,132,178,236,132,187,21,21,130,229,36,185,132,45,148,152,96,173,219,141,52,188,6];
-//const adminKeypair = Keypair.fromSecretKey(Uint8Array.from(adminKeypairData));
-
-// const privateKey = base58.decode(process.env.PRIVATE_KEY!);
-
-// export const adminKeypair = web3.Keypair.fromSecretKey(privateKey);
-// const adminWallet = new NodeWallet(adminKeypair);
-
-// Add these constants at the top of the file
-
-// const TEST_MINT = new PublicKey("wkw1s3a2MvzgUqpba74vQL9REruUEigbXWG2oxR2nXr");
 
 export const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT);
 export const getSolBalance = async (walletAddress: string) => {
