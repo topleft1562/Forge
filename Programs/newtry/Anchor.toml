@@ -2,14 +2,20 @@
 seeds = false
 skip-lint = false
 
+[toolchain]
+anchor_version = "0.29.0"
+
 [programs.localnet]
 consts = "Fa1cQKhbUTXrbVPz4vUksCCwKCLk5FeM71QkqJ1a5gvF"
+
+[program.mainnet]
+consts = "FhcQ7zoX7UUrLcNAfEY7joVsmu6jcFrcQWEJ4HY8DEDz"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "mainnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
