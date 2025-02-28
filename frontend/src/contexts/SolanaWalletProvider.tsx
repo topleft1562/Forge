@@ -16,11 +16,9 @@ import { clusterApiUrl } from "@solana/web3.js";
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export const SolanaWalletProvider = ({ children }: { children: ReactNode }) => {
-  // Change to Devnet
-  // const network = WalletAdapterNetwork.Devnet;
+  
   const network = WalletAdapterNetwork.Mainnet
-  // You can either use clusterApiUrl for Devnet
- // const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  
   const SOLANA_RPC = process.env.NEXT_PUBLIC_RPC_ENDPOINT; // Replace with your custom RPC URL
   const endpoint = useMemo(() => SOLANA_RPC, []);
   

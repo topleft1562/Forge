@@ -21,7 +21,7 @@ import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
-const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
+export const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
     microLamports: priorityLamports, // Higher value = Higher priority
   });
 

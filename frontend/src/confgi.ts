@@ -1,5 +1,5 @@
 export const marketCapGoal = 50_000 
-export const cluster = 'mainnet-beta'
+export const cluster = 'mainnet-beta' // "devnet"
 export const totalSupply = 1_000_000_000_000_000 
 export const PRICE_INCREMENT_STEP = 1_000_000;
 export const GROWTH_FACTOR = 1.0000000035;
