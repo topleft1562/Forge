@@ -1,5 +1,4 @@
 import { Connection, PublicKey, SYSVAR_RENT_PUBKEY, SystemProgram} from "@solana/web3.js";
-import { PROGRAM_ID } from "./cli/programId";
 import { TOKEN_PROGRAM_ID,  ASSOCIATED_TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount} from "@solana/spl-token";
 import { SwapAccounts, SwapArgs, swap } from "./cli/instructions/swap";
 import * as anchor from "@coral-xyz/anchor"
@@ -8,6 +7,7 @@ import { WalletContextState } from '@solana/wallet-adapter-react';
 import { ADMINKEY, NEXT_PUBLIC_RPC_ENDPOINT } from "@/confgi";
 
 const POOL_SEED_PREFIX = "liquidity_pool"
+const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || "")
 
 export const connection = new Connection(NEXT_PUBLIC_RPC_ENDPOINT);
 export const getSolBalance = async (walletAddress: string) => {

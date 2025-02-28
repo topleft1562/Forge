@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
 // @access  Public
 router.post('/login', async (req, res) => {
     try {
-        console.log(req.body)
+        // console.log(req.body)
         const { wallet } = req.body;
         const user = await User.findOne({ wallet })
         if (!user) {
@@ -104,7 +104,7 @@ router.post('/confirm', async (req, res) => {
         isLedger: Joi.boolean().optional().required(),
     })
     const inputValidation = UserSchema.validate(body);
-    console.log(inputValidation)
+    // console.log(inputValidation)
     if (inputValidation.error) {
         return res.status(400).json({ error: inputValidation.error.details[0].message })
     }

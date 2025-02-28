@@ -2,10 +2,14 @@ import { createContext, useContext, useMemo } from "react";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { IDL as IDLTEST } from "@/program/cli/idltestnet";
 import { IDL } from "../program/cli/idl";
 
+
+const IDLTOUSE = process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? IDL : IDLTEST
+
 // Define the type for your program's IDL
-type ProgramType = Program<typeof IDL>;
+type ProgramType = Program<typeof IDLTOUSE>;
 
 // Create the context
 const ProgramContext = createContext<{
@@ -15,6 +19,7 @@ const ProgramContext = createContext<{
     program: null,
     error: null,
 });
+
 
 export function ProgramProvider({ children }: { children: React.ReactNode }) {
     const { connection } = useConnection();
@@ -30,7 +35,7 @@ export function ProgramProvider({ children }: { children: React.ReactNode }) {
                 commitment: "confirmed",
             });
 
-            const program = new Program(IDL, provider);
+            const program = new Program(IDLTOUSE, provider);
             return { program, error: null };
         } catch (error) {
             console.log(error);

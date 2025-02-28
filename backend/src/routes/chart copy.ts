@@ -81,7 +81,7 @@ const config: mockInfo = {
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    console.log("config+++")
+    // console.log("config+++")
    
         res.json(config);
 })
@@ -89,7 +89,7 @@ router.get('/', (req, res) => {
 // @desc    Get all created coins
 // @access  Public
 router.get('/config', (req, res) => {
-    console.log("config+++")
+   //  console.log("config+++")
     const config = {
         supports_search: true,
         supports_group_request: false,
@@ -104,7 +104,7 @@ router.get('/config', (req, res) => {
 router.get('/symbols', (req, res) => {
     const symbol = req.query.symbol;
     let symbolStr: string = "";
-    console.log("symbols;;;;;", symbol)
+    // console.log("symbols;;;;;", symbol)
     if (typeof symbol === 'string') {
         symbolStr = symbol;
     } else if (Array.isArray(symbol) && symbol.length > 0) {
@@ -115,7 +115,7 @@ router.get('/symbols', (req, res) => {
         console.error('Invalid symbol format');
     }
     const symbolInfo = mockSymbols[symbolStr];
-    console.log("symbol::++++:::", symbolInfo)
+    // console.log("symbol::++++:::", symbolInfo)
     if (symbolInfo) {
         res.json(symbolInfo);
     } else {
@@ -124,7 +124,7 @@ router.get('/symbols', (req, res) => {
 });
 router.get('/history', (req, res) => {
     const { symbol, resolution, from, to } = req.query;
-    console.log("req.query;;;;;", req.query)
+    // console.log("req.query;;;;;", req.query)
     let symbolStr: string = "";
 
 
@@ -132,7 +132,7 @@ router.get('/history', (req, res) => {
     const cachedData = cache.get(cacheKey);
 
     if (cachedData) {
-        console.log('Serving from cache:', cacheKey);
+        // console.log('Serving from cache:', cacheKey);
         return res.json(cachedData);
     }
 
@@ -146,7 +146,7 @@ router.get('/history', (req, res) => {
         console.error('Invalid symbol format');
     }
     const history = mockHistory[symbolStr];
-    console.log("history::::", history)
+    // console.log("history::::", history)
     if (history) {
         return res.json(history);
     } else {

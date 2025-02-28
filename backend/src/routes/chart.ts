@@ -11,7 +11,7 @@ const router = express.Router();
 // @desc    Get all created coins
 // @access  Public
 router.get('/:pairIndex/:start/:end/:range/:token', async (req, res) => {
-    console.log("config+++")
+    // console.log("config+++")
    const {pairIndex, start, end, range, token}= req.params
    logger.info(`  get charts for pairIndex: ${pairIndex}, start: ${start}, end: ${end}, range: ${range}, token: ${token}`);
    try {
