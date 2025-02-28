@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev:test": "cross-env APP_ENV=testnet next dev",
     "build": "next build",
     "start": "next start",
+    "dev:main": "cross-env APP_ENV=production next dev",
     "lint": "next lint"
   },
   "dependencies": {
@@ -42,6 +43,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8",

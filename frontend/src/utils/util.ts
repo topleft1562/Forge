@@ -5,6 +5,8 @@ import { FEE_PERCENTAGE, GROWTH_FACTOR, INITIAL_PRICE, PRICE_INCREMENT_STEP, SEL
 
 
 export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+console.log(process.env.NEXT_PUBLIC_CHAIN)
+console.log(process.env.NEXT_PUBLIC_BACKEND_URL)
 
 const config: AxiosRequestConfig = {
     headers: {
