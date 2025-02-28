@@ -5,11 +5,11 @@ import { SwapAccounts, SwapArgs, swap } from "./cli/instructions/swap";
 import * as anchor from "@coral-xyz/anchor"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { WalletContextState } from '@solana/wallet-adapter-react';
-import { ADMINKEY } from "@/confgi";
+import { ADMINKEY, NEXT_PUBLIC_RPC_ENDPOINT } from "@/confgi";
 
 const POOL_SEED_PREFIX = "liquidity_pool"
 
-export const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT);
+export const connection = new Connection(NEXT_PUBLIC_RPC_ENDPOINT);
 export const getSolBalance = async (walletAddress: string) => {
   try {
     const publicKey = new PublicKey(walletAddress);
