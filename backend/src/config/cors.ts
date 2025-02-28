@@ -4,8 +4,18 @@ interface CorsConfig {
   credentials: boolean;
   allowedHeaders: string[];
 }
-// const frontendUrl = "https://cautious-space-system-pqg759g6975cw95-3000.app.github.dev";
-const frontendUrl = "*"
+const sitesThatNeedAccess = [
+  "https://silver-train-76jpq9p4jgcp45g-3000.app.github.dev/",
+  // add others as needed
+]
+// const frontendUrl = "*"  // allows everything
+
+const frontendUrl = process.env.MODE === 'local' 
+// set sites available to use backend locally running or testnet
+? ['http://localhost:3000', '*']
+// set sites available to use backend - production LIVE
+: sitesThatNeedAccess
+
 const corsConfig: CorsConfig = {
   origin: frontendUrl,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

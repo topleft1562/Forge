@@ -45,6 +45,7 @@ export default function Page() {
     const createdAge = TimeAgo(coin?.date)
 
     const getBalance = useCallback(async () => {
+        if(user){
             try {
                 const balance = await getTokenBalance(user?.wallet, coin?.token);
                 setTokenBal(balance ?? 0);
@@ -53,15 +54,19 @@ export default function Page() {
                 const solbalance = await getSolBalance(user?.wallet)
                 setSolBal(solbalance ?? 0)
             } catch {setSolBal(0)}
-        }, [user?.wallet, coin?.token]);
+        } else {
+            setTokenBal(0)
+            setSolBal(0)
+        }
+    }, [user, coin]);
     
-        useEffect(() => {
-            const interval = setInterval(() => {
-                getBalance();
-            }, 3000);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            getBalance();
+        }, 3000);
     
-            return () => clearInterval(interval);
-        }, [getBalance]);
+        return () => clearInterval(interval);
+    }, [getBalance]);
 
 
     const shouldShowReadMore = (coin?.description?.length || 0) > 120;

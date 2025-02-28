@@ -19,13 +19,11 @@ const cors_2 = __importDefault(require("./config/cors"));
 const config_1 = require("./config/config");
 const priceRoutes_1 = __importDefault(require("./routes/priceRoutes"));
 const app = (0, express_1.default)();
-// ✅ Move CORS to the top before any routes
 app.use((0, cors_1.default)(cors_2.default));
 app.options("*", (0, cors_1.default)(cors_2.default)); // Enable pre-flight requests
 // Body parser
 app.use(body_parser_1.default.json({ limit: "50mb" }));
 app.use(body_parser_1.default.urlencoded({ extended: true, limit: "50mb" }));
-// ✅ Keep only one Health check endpoint
 app.get("/health", (req, res) => {
     res.status(200).json({
         status: "ok",

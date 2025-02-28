@@ -34,12 +34,15 @@ Railway will auto detect updates to github. and redeploy
 
 Running BackEnd
     Testnet = npm run test
-    mainnet = npm dev
+    mainnet = npm run dev
+    
     production mode
         npm run build
         npm run start
 
 Running front end
-    Testnet =   npm run dev
-    mainnet =   npm run build
-                npm run start
+    Testnet     =   npm run dev:test
+    mainnet     =   npm run dev:main
+
+    production  =   npm run build
+                    npm run start

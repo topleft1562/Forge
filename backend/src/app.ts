@@ -16,7 +16,6 @@ import priceRoutes from "./routes/priceRoutes"
 
 const app = express();
 
-// ✅ Move CORS to the top before any routes
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig)); // Enable pre-flight requests
 
@@ -24,7 +23,6 @@ app.options("*", cors(corsConfig)); // Enable pre-flight requests
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-// ✅ Keep only one Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",

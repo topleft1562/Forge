@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node --max-old-space-size=512 dist/src/server.js",
-    "main": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "test": "NODE_ENV=testnet ts-node-dev --respawn --transpile-only src/server.ts"
+    "main": "MODE=local ts-node-dev --respawn --transpile-only src/server.ts",
+    "test": "NODE_ENV=testnet MODE=local ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [],
   "author": "",

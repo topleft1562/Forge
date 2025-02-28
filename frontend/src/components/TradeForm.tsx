@@ -11,6 +11,7 @@ import {
 import { calculateOutPut } from "@/utils/util";
 import { errorAlert, successAlert } from "./ToastGroup";
 import { ADMINKEY } from "@/confgi";
+import SlippageModal from "./SlippageModal";
 
 interface TradingFormProps {
     coin: coinInfo;
@@ -25,8 +26,8 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [sol, setSol] = useState<string>("0.25");
     const [isBuy, setIsBuy] = useState<number>(0);
-    const [showSlippage, setShowSlippage] = useState<boolean>(false);
-    const [slippage, setSlippage] = useState<string>("1");
+    const [slippage, setSlippage] = useState<string>("5");
+    const [showSlippageModal, setShowSlippageModal] = useState(false);
 
     // Load slippage from localStorage on mount
     useEffect(() => {
@@ -36,6 +37,18 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
         }
     }, []);
 
+    const swapModes = () => {
+        if(isBuy === 0){
+            // goto sell
+            setIsBuy(1)
+            setSol((tokenBal / 10).toFixed(6))
+        } else {
+            // goto buy
+            setIsBuy(0)
+            setSol("0.25")
+        }
+        
+    }
    
     
 // amount_out = ACTUAL AMOUNT THEY WILL RECEIVE
@@ -139,6 +152,7 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
     };
 
     return (
+        
         <div className="relative">
             <div
                 className="relative rounded-xl border border-[#3c3f44] p-[6%]"
@@ -147,108 +161,70 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
                         "radial-gradient(circle, rgba(144, 205, 240, 0.09) 0%, rgb(27, 27, 31) 100%)",
                 }}
             >
-                <div className="flex justify-between mb-6">
-                    <button
-                        className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                            isBuy === 0
-                                ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
-                                : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
-                        }`}
-                        onClick={() => setIsBuy(0)}
-                    >
-                        {isLoading ? "Loading..." : "Buy"}
-                    </button>
+        <div className="space-y-4">
+           
+  
+        <button
+  onClick={() => setShowSlippageModal(true)}
+  className="relative flex items-center gap-1 px-2 py-1 group transition-all rounded-lg border-2 border-transparent hover:border-[#01a8dd] text-sm text-[#01a8dd]/80 hover:text-[#01a8dd] ml-auto"
+>
+  Max Slippage: {slippage}%
+</button>
 
-                    <div className="flex flex-col">
-  <span className="text-[#999]">
-    Receive: {amount_out.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
-  </span>
-  <span className="text-[#999]">
-    At Current: {tokens_at_current_price.toFixed(2)} {isBuy === 1 ? "SOL" : coin?.ticker}
-  </span>
+
+
+<div className="relative flex flex-col items-center gap-4">
+  {/* First Input Section */}
+  <div className="bg-[#1e1e1e] rounded-lg p-4 w-full">
+    <label className="block text-[#888] text-sm mb-2">
+      Balance: {isBuy === 0 ? tokenBal : solBal} {isBuy === 0 ? "SOL" : coin?.ticker}
+    </label>
+    <div className="relative">
+      <input
+        type="text"
+        value={sol}
+        onChange={handleInputChange}
+        className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
+        placeholder={`Enter amount in ${isBuy === 0 ? "SOL" : coin?.ticker || "tokens"}`}
+      />
+      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
+        {isBuy === 0 ? "SOL" : coin?.ticker}
+      </span>
+    </div>
+  </div>
+
+  {/* Overlapping Button */}
+  <button
+    className={`absolute top-1/2 -translate-y-1/2 px-4 py-2 rounded-full transition-all duration-300 shadow-lg ${
+      isBuy === 1
+        ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
+        : "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+    }`}
+    onClick={() => swapModes()}
+  >
+    {isLoading ? "Loading..." : isBuy === 0 ? "Buy" : "Sell"}
+  </button>
+
+  {/* Second output Section */}
+  <div className="bg-[#1e1e1e] rounded-lg p-4 w-full">
+  <label className="block text-[#888] text-sm mb-2">Receive</label>
+  <div className="relative">
+    <div
+      className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
+    >
+      {tokens_at_current_price}
+    </div>
+    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
+      {isBuy === 1 ? "SOL" : coin?.ticker}
+    </span>
+  </div>
 </div>
 
-
-                    <button
-                        className={`px-4 py-2 rounded-lg transition-all duration-300 ${
-                            isBuy === 1
-                                ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
-                                : "text-[#01a8dd] hover:bg-[#01a8dd]/10"
-                        }`}
-                        onClick={() => setIsBuy(1)}
-                    >
-                        {isLoading ? "Loading..." : "Sell"}
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    
-                <div className="flex justify-end">
-            <button
-              onClick={() => setShowSlippage(!showSlippage)}
-              className="text-sm text-[#01a8dd]/80 hover:text-[#01a8dd] transition-colors flex items-center gap-1"
-            >
-              Max Slippage: {slippage}%
-              <svg 
-                className={`w-4 h-4 transition-transform ${showSlippage ? 'rotate-180' : ''}`}
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-
-          {showSlippage && (
-            <div className="animate-fade-in">
-              <label className="block text-[#888] text-sm mb-2">
-                Adjust Max Slippage
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={slippage}
-                  onChange={handleSlippageChange}
-                  className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
-                  placeholder="Enter max slippage %"
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">%</span>
-              </div>
-            </div>
-          )}
-                  
-
-                    <div>
-                        <label className="block text-[#888] text-sm mb-2">
-                            Amount
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={sol}
-                                onChange={handleInputChange}
-                                className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
-                                placeholder={`Enter amount in ${
-                                    isBuy === 0
-                                        ? "SOL"
-                                        : coin?.ticker || "tokens"
-                                }`}
-                            />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
-                                {isBuy === 0 ? "SOL" : coin?.ticker}
-                            </span>
-                        </div>
-                    </div>
+</div>
 
                     {isBuy === 0 ? (
-                        <div className="flex gap-2 flex-wrap">
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("0")}
-                            >
-                                Clear
-                            </button>
+                        <div className="flex gap-2 flex-wrap justify-center">
+                            
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
                                 onClick={() => setSol("0.25")}
@@ -273,9 +249,15 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
                             >
                                 5 SOL
                             </button>
+                            <button
+                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                                onClick={() => setSol((solBal * 1e9).toFixed(6))}
+                            >
+                                Max
+                            </button>
                         </div>
                     ) : (
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex gap-2 flex-wrap justify-center">
                             <button
                                 className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
                                 onClick={() => setSol("0")}
@@ -326,10 +308,18 @@ export const TradeForm: React.FC<TradingFormProps> = ({ coin, tokenBal, solBal, 
         ? "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)"
         : "linear-gradient(9deg, rgb(143, 0, 0) 0%, rgb(249, 138, 138) 100%)"
   }}
->
-  {slippageToHigh ? "Slippage Error" : !user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
-</button>
+                            >
+                        {slippageToHigh ? "Slippage Error" : !user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
+                    </button>
                 </div>
+
+                <SlippageModal
+                    isOpen={showSlippageModal}
+                    onClose={() => setShowSlippageModal(false)}
+                    slippage={slippage}
+                    setSlippage={handleSlippageChange}
+                />
+
             </div>
         </div>
     );
