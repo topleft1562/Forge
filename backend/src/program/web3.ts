@@ -16,12 +16,9 @@ import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, RPC_ENDPO
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
 import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 import { PROGRAM_ID } from "./cli/programId";
-import { PROGRAM_ID as PROGRAM_IDTEST } from "./cli/programIdtest";
 
 
 
-const PROGRAMID = process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? PROGRAM_ID : PROGRAM_IDTEST
-console.log(PROGRAMID)
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
@@ -120,7 +117,7 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
            
             const [globalAccount] = PublicKey.findProgramAddressSync(
                 [Buffer.from("global")],
-                PROGRAMID
+                PROGRAM_ID
               );
             console.log("Global Account:", globalAccount.toBase58());
             const accountInfo = await connection.getAccountInfo(globalAccount);
@@ -278,7 +275,7 @@ export const checkTransactionStatus = async (transactionId: string) => {
 
 const processedSignatures = new Set<string>(); // Track already processed transactions
 
-connection.onLogs(PROGRAMID, async (logs, ctx) => {
+connection.onLogs(PROGRAM_ID, async (logs, ctx) => {
     if (logs.err !== null) {
         return;
     }
