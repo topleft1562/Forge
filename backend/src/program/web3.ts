@@ -15,8 +15,8 @@ import pinataSDK from '@pinata/sdk';
 import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, RPC_ENDPOINT, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
 import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
-import { PROGRAM_ID } from "./cli/programIdtest";
-import { PROGRAM_ID as PROGRAM_IDTEST } from "./cli/programId";
+import { PROGRAM_ID } from "./cli/programId";
+import { PROGRAM_ID as PROGRAM_IDTEST } from "./cli/programIdtest";
 
 
 
@@ -121,7 +121,7 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 [Buffer.from("global")],
                 PROGRAMID
               );
-            // console.log("Global Account:", globalAccount.toBase58());
+            console.log("Global Account:", globalAccount.toBase58());
             const accountInfo = await connection.getAccountInfo(globalAccount);
             
             // First initialize Program config if Needed
