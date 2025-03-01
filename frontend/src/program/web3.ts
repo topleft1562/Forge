@@ -5,9 +5,13 @@ import * as anchor from "@coral-xyz/anchor"
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { ADMINKEY, NEXT_PUBLIC_RPC_ENDPOINT } from "@/confgi";
+import { PROGRAM_ID } from "./cli/programId";
+import { PROGRAM_ID as PROGRAM_IDTEST } from "./cli/programIdtestnet";
 
 const POOL_SEED_PREFIX = "liquidity_pool"
-const PROGRAM_ID = new PublicKey(process.env.PROGRAM_ID || "")
+
+const PROGRAMID = process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? PROGRAM_ID : PROGRAM_IDTEST
+
 
 export const connection = new Connection(NEXT_PUBLIC_RPC_ENDPOINT);
 export const getSolBalance = async (walletAddress: string) => {
@@ -69,11 +73,11 @@ export const swapTx = async (
       // Get PDAs
       const [poolPda] = PublicKey.findProgramAddressSync(
           [Buffer.from(POOL_SEED_PREFIX), mint1.toBuffer()],
-          PROGRAM_ID
+          PROGRAMID
       );
       const [globalAccount] = PublicKey.findProgramAddressSync(
           [Buffer.from("global")],
-          PROGRAM_ID
+          PROGRAMID
       );
 
       // Verify pool
