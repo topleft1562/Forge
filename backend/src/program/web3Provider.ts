@@ -1,5 +1,4 @@
 import * as anchor from "@coral-xyz/anchor"
-import { PROGRAM_ID } from "./cli/programId"
 import { clusterApiUrl, Connection, PublicKey, Keypair, SYSVAR_RENT_PUBKEY, SystemProgram, Transaction, TransactionInstruction, VersionedTransaction, Cluster, } from "@solana/web3.js"
 import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createSyncNativeInstruction } from "@solana/spl-token"
 import { AddLiquidityAccounts, AddLiquidityArgs, InitializeAccounts, InitializePoolAccounts, RemoveLiquidityAccounts, SwapAccounts, SwapArgs, addLiquidity, initialize, initializePool, removeLiquidity, swap } from "./cli/instructions"
@@ -14,7 +13,13 @@ import BN from 'bn.js'
 import base58 from "bs58"
 import { cluster, initialSOL, totalSupply } from "../config/config"
 import { connection, priorityFeeInstruction } from "./web3"
+import { PROGRAM_ID } from "./cli/programId";
+import { PROGRAM_ID as PROGRAM_IDTEST } from "./cli/programIdtest";
 
+
+
+const PROGRAMID = process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? PROGRAM_ID : PROGRAM_IDTEST
+console.log(PROGRAMID)
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
 
@@ -70,13 +75,13 @@ export const createLPIx = async (
 
   const [poolPda] = PublicKey.findProgramAddressSync(
     [Buffer.from(POOL_SEED_PREFIX), mintToken.toBuffer()],
-    PROGRAM_ID
+    PROGRAMID
   );
   // console.log("Pool PDA:", poolPda.toBase58());
 
   const [globalAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("global")],
-    PROGRAM_ID
+    PROGRAMID
   );
   // console.log("Global Account:", globalAccount.toBase58());
 
@@ -138,7 +143,7 @@ export const initializeIx = async (
 
   const [globalAccount] = PublicKey.findProgramAddressSync(
     [Buffer.from("global")],
-    PROGRAM_ID
+    PROGRAMID
   );
   // console.log("Global Account:", globalAccount.toBase58());
 
@@ -173,7 +178,7 @@ export const initializePoolIx = async (
 */
   const [poolPda] = PublicKey.findProgramAddressSync(
     [Buffer.from("liquidity_pool"), mintToken.toBuffer()],
-    PROGRAM_ID
+    PROGRAMID
   );
   console.log("Pool PDA:", poolPda.toBase58());
 
@@ -263,12 +268,12 @@ export const initializePoolIx = async (
 // ) => {
 //     const [poolPda] = PublicKey.findProgramAddressSync(
 //         [Buffer.from("liquidity_pool"), Buffer.from(mintTokenOne > mintTokenTwo ? mintTokenOne.toBase58()+mintTokenTwo.toBase58() :  mintTokenTwo.toBase58()+mintTokenOne.toBase58()) ],
-//         PROGRAM_ID
+//         PROGRAMID
 //     )
 
 //     const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
 //         [Buffer.from("LiqudityProvider"), poolPda.toBuffer(), payer.toBuffer()],
-//         PROGRAM_ID
+//         PROGRAMID
 //     )
 
 //     const poolTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
@@ -308,12 +313,12 @@ export const initializePoolIx = async (
 // ) => {
 //     const [poolPda] = PublicKey.findProgramAddressSync(
 //         [Buffer.from("liquidity_pool"), Buffer.from(mintTokenOne > mintTokenTwo ? mintTokenOne.toBase58()+mintTokenTwo.toBase58() :  mintTokenTwo.toBase58()+mintTokenOne.toBase58()) ],
-//         PROGRAM_ID
+//         PROGRAMID
 //     )
 
 //     const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
 //         [Buffer.from("LiqudityProvider"), poolPda.toBuffer(), payer.toBuffer()],
-//         PROGRAM_ID
+//         PROGRAMID
 //     )
 
 //     const poolTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
@@ -352,12 +357,12 @@ export const initializePoolIx = async (
 // ) => {
 //     const [poolPda] = PublicKey.findProgramAddressSync(
 //         [Buffer.from("liquidity_pool"), Buffer.from(mintTokenOne > mintTokenTwo ? mintTokenOne.toBase58()+mintTokenTwo.toBase58() :  mintTokenTwo.toBase58()+mintTokenOne.toBase58()) ],
-//         PROGRAM_ID
+//         PROGRAMID
 //     )
 
 //     const [dexConfigurationAccount] = PublicKey.findProgramAddressSync(
 //         [Buffer.from("CurveConfiguration")],
-//         PROGRAM_ID
+//         PROGRAMID
 //     )
 
 //     const poolTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
@@ -401,13 +406,13 @@ export const removeLiquidityIx = async (
     // ✅ Compute Pool PDA
     const [poolPda] = PublicKey.findProgramAddressSync(
       [Buffer.from("liquidity_pool"), mintToken.toBuffer()],
-      PROGRAM_ID
+      PROGRAMID
     );
 
     // ✅ Compute Global Account PDA
     const [globalAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("global")],
-      PROGRAM_ID
+      PROGRAMID
     );
 
     // ✅ Get Token Accounts

@@ -21,6 +21,7 @@ import { PROGRAM_ID as PROGRAM_IDTEST } from "./cli/programIdtest";
 
 
 const PROGRAMID = process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? PROGRAM_ID : PROGRAM_IDTEST
+console.log(PROGRAMID)
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
 const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 
