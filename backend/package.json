@@ -4,11 +4,11 @@
   "main": "dist/server.js",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc",
-    "start": "node --max-old-space-size=512 dist/src/server.js",
-    "main": "MODE=local ts-node-dev --respawn --transpile-only src/server.ts",
-    "test": "NODE_ENV=testnet MODE=local ts-node-dev --respawn --transpile-only src/server.ts"
-  },
+  "build": "tsc",
+  "start": "node --max-old-space-size=512 dist/src/server.js",
+  "main": "cross-env MODE=local ts-node-dev --respawn --transpile-only src/server.ts",
+  "test": "cross-env NODE_ENV=testnet MODE=local ts-node-dev --respawn --transpile-only src/server.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -30,7 +30,6 @@
     "bs58": "^5.0.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
-    "dotenv": "^16.4.7",
     "dotenv-flow": "^4.1.0",
     "express": "^4.19.2",
     "joi": "^17.13.1",
@@ -46,7 +45,9 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.7",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.8.2"
   }
 }

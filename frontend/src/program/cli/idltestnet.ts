@@ -8,7 +8,7 @@
 
 
 export type Pump = {
-  address: "AcN1n9AWZPVVuzYzFeJXjSVK5XVUPqZHEjHpeHq9tq1m";
+  address: "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH";
   metadata: {
       name: "pump";
       version: "0.1.0";
@@ -1054,7 +1054,7 @@ export type Pump = {
 };
 
 export const IDL: Pump = {
-  address: "AcN1n9AWZPVVuzYzFeJXjSVK5XVUPqZHEjHpeHq9tq1m",
+  address: "5wAPQCQPif8g6PMAJJUYDxmmRbYzXSFBCHH2NsGGU5xH",
   metadata: {
       name: "pump",
       version: "0.1.0",
