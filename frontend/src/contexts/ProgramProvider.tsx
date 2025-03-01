@@ -3,7 +3,8 @@ import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { IDL } from "../program/cli/idl";
-import { PROGRAM_ID } from "../program/cli/programId";
+
+
 
 // Define the type for your program's IDL
 type ProgramType = Program<typeof IDL>;
@@ -16,6 +17,7 @@ const ProgramContext = createContext<{
     program: null,
     error: null,
 });
+
 
 export function ProgramProvider({ children }: { children: React.ReactNode }) {
     const { connection } = useConnection();

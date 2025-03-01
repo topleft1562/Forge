@@ -47,7 +47,7 @@ router.get('/user/:userID', (req, res) => {
 // @access  Public
 router.post('/', async (req, res) => {
     try {
-        console.log("++++++++Create coin++++++++++", req.body.creator);
+        // console.log("++++++++Create coin++++++++++", req.body.creator);
         const { body } = req;
         const UserSchema = Joi.object().keys({
             creator: Joi.string().required(),
@@ -84,7 +84,7 @@ router.post('/', async (req, res) => {
             
         },creator?.wallet);
 
-        console.log("token====", token);
+        // console.log("token====", token);
         
         if (token === "transaction failed") {
             return res.status(400).json({ error: "Transaction failed" });

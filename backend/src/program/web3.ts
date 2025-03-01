@@ -8,14 +8,15 @@ import Coin from "../models/Coin";
 import { createAmmPool, createLPIx, createMarket, initializeIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
-import { PROGRAM_ID } from "./cli/programId";
 import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, totalSupply } from "../config/config";
+import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, RPC_ENDPOINT, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
 import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
+import { PROGRAM_ID } from "./cli/programId";
+
 
 
 const PINATA_SECRET_API_KEY = process.env.PINATA_SECRET_API_KEY
@@ -24,7 +25,7 @@ const PINATA_GATEWAY_URL = process.env.PINATA_GATEWAY_URL;
 export const priorityFeeInstruction = ComputeBudgetProgram.setComputeUnitPrice({
     microLamports: priorityLamports, // Higher value = Higher priority
   });
-const rpc = process.env.RPC_ENDPOINT || ""
+const rpc = RPC_ENDPOINT
 export const connection = new Connection(rpc);
 
 const privateKey = base58.decode(process.env.PRIVATE_KEY!);
@@ -118,7 +119,7 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 [Buffer.from("global")],
                 PROGRAM_ID
               );
-            // console.log("Global Account:", globalAccount.toBase58());
+            console.log("Global Account:", globalAccount.toBase58());
             const accountInfo = await connection.getAccountInfo(globalAccount);
             
             // First initialize Program config if Needed
