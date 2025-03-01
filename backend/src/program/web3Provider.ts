@@ -7,15 +7,21 @@ import {
   Raydium, TxVersion, WSOLMint, FEE_DESTINATION_ID,
   DEVNET_PROGRAM_ID,
   OPEN_BOOK_PROGRAM,
-  AMM_V4
+  AMM_V4,
+  AmmV4Keys,
+  AmmV5Keys,
+  ApiV3PoolInfoStandardItem,
+  Percent,
+  TokenAmount,
+  toToken,
+  AMM_STABLE
 } from '@raydium-io/raydium-sdk-v2'
 import BN from 'bn.js'
 import base58 from "bs58"
 import { cluster, initialSOL, totalSupply } from "../config/config"
 import { connection, priorityFeeInstruction } from "./web3"
 import { PROGRAM_ID } from "./cli/programId";
-
-
+import Decimal from 'decimal.js'
 
 
 
@@ -29,8 +35,10 @@ const POOL_SEED_PREFIX = "liquidity_pool"
 
 let raydium: Raydium | undefined
 export const initSdk = async (params?: { loadToken?: boolean }) => {
-  
+  // console.log(raydium)
+
   if (raydium) return raydium
+
   console.log(`connect to rpc ${connection.rpcEndpoint} in ${cluster}`)
   raydium = await Raydium.load({
     owner,
@@ -57,7 +65,6 @@ export const initSdk = async (params?: { loadToken?: boolean }) => {
     raydium!.account.updateTokenAccount(await fetchTokenAccountData())
   })
   */
-
   return raydium
 }
 
@@ -194,202 +201,6 @@ export const initializePoolIx = async (
 };
 
 
-
-// export const performTx = async (
-//     address: string,
-//     txId: string,
-// ) => {
-//     try{
-//         console.log("==============")
-
-//         let txInfo;
-//         for(let i=0; ; i++) {
-//             await sleep(2000)
-//             txInfo = await getDataFromSignature(txId, io); 
-
-//             console.log(txInfo)
-//             if (txInfo !== undefined) {
-//                 break;
-//             }
-//             if (i > 30) {
-//                 io.emit("performedTx", address, "Time Out");
-//                 return;
-//             }
-//         }
-
-//     } catch (err) {
-
-//     }
-
-// }
-
-
-// const getDataFromSignature = async (sig: string, io: Server) => {
-
-//     try {
-//         let tx = await connection.getParsedTransaction(sig,'confirmed');
-//         if (tx && tx.meta && !tx.meta.err) {   
-//             let length = tx.transaction.message.instructions.length;
-
-//             for (let i = length; i > 0; i--) {
-//                     const ix = tx.transaction.message.instructions[i-1]  as ParsedInstruction
-
-//                     if (ix.programId.toBase58() === SPL_TOKEN_PROGRAM ) {
-//                         console.log(ix, " =============> ix")
-//                         const srcAcc = await connection.getParsedAccountInfo(new PublicKey(ix.parsed.info.source));
-//                         const destAcc = await connection.getParsedAccountInfo(new PublicKey(ix.parsed.info.destination));
-//                         const src = (srcAcc.value?.data as ParsedAccountData).parsed.info.owner;
-//                         const dest = (destAcc.value?.data as ParsedAccountData).parsed.info.owner;
-//                         const amount = parseInt(ix.parsed.info.amount);
-
-
-//                         break;
-//                     }
-
-//             }
-
-//             return true;
-
-//         }
-
-//     } catch (error) {
-//         console.log("error:", error)
-//     }
-// }
-
-// export const createAddLPIx = (
-//     mintTokenOne: PublicKey,
-//     mintTokenTwo: PublicKey,
-//     payer: PublicKey,
-//     amountOne: anchor.BN,
-//     amountTwo: anchor.BN
-// ) => {
-//     const [poolPda] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("liquidity_pool"), Buffer.from(mintTokenOne > mintTokenTwo ? mintTokenOne.toBase58()+mintTokenTwo.toBase58() :  mintTokenTwo.toBase58()+mintTokenOne.toBase58()) ],
-//         PROGRAM_ID
-//     )
-
-//     const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("LiqudityProvider"), poolPda.toBuffer(), payer.toBuffer()],
-//         PROGRAM_ID
-//     )
-
-//     const poolTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
-//     const poolTokenAccountTwo = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
-//     const userTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, payer); 
-//     const userTokenAccountTwo = getAssociatedTokenAddressSync(mintTokenOne, payer); 
-
-//     const acc: AddLiquidityAccounts = {
-//         pool: poolPda,
-//         liquidityProviderAccount,
-//         mintTokenOne,
-//         mintTokenTwo,
-//         poolTokenAccountOne,
-//         poolTokenAccountTwo,
-//         userTokenAccountOne,
-//         userTokenAccountTwo,
-//         user: payer,
-//         systemProgram: SystemProgram.programId,
-//         tokenProgram:TOKEN_PROGRAM_ID,
-//         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
-//     }
-
-//     const args: AddLiquidityArgs = {
-//         amountOne,
-//         amountTwo
-//     }
-//     const ix = addLiquidity(args, acc);
-
-//     return {ix, acc}
-// }
-
-// export const createRemoveLPIx = (
-//     mintTokenOne: PublicKey,
-//     mintTokenTwo: PublicKey,
-//     payer: PublicKey,
-//     shares: anchor.BN,
-// ) => {
-//     const [poolPda] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("liquidity_pool"), Buffer.from(mintTokenOne > mintTokenTwo ? mintTokenOne.toBase58()+mintTokenTwo.toBase58() :  mintTokenTwo.toBase58()+mintTokenOne.toBase58()) ],
-//         PROGRAM_ID
-//     )
-
-//     const [liquidityProviderAccount] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("LiqudityProvider"), poolPda.toBuffer(), payer.toBuffer()],
-//         PROGRAM_ID
-//     )
-
-//     const poolTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
-//     const poolTokenAccountTwo = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
-//     const userTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, payer); 
-//     const userTokenAccountTwo = getAssociatedTokenAddressSync(mintTokenOne, payer); 
-
-//     const acc: RemoveLiquidityAccounts = {
-//         pool: poolPda,
-//         liquidityProviderAccount,
-//         mintTokenOne,
-//         mintTokenTwo,
-//         poolTokenAccountOne,
-//         poolTokenAccountTwo,
-//         userTokenAccountOne,
-//         userTokenAccountTwo,
-//         user: payer,
-//         systemProgram: SystemProgram.programId,
-//         tokenProgram:TOKEN_PROGRAM_ID,
-//         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
-//     }
-
-//     const args: RemoveLiquidityArgs = {
-//         shares
-//     }
-//     const ix = removeLiquidity(args, acc);
-
-//     return {ix, acc}
-// }
-
-// export const createSwapIx = (
-//     mintTokenOne: PublicKey,
-//     mintTokenTwo: PublicKey,
-//     payer: PublicKey,
-//     amount: anchor.BN,
-// ) => {
-//     const [poolPda] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("liquidity_pool"), Buffer.from(mintTokenOne > mintTokenTwo ? mintTokenOne.toBase58()+mintTokenTwo.toBase58() :  mintTokenTwo.toBase58()+mintTokenOne.toBase58()) ],
-//         PROGRAM_ID
-//     )
-
-//     const [dexConfigurationAccount] = PublicKey.findProgramAddressSync(
-//         [Buffer.from("CurveConfiguration")],
-//         PROGRAM_ID
-//     )
-
-//     const poolTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
-//     const poolTokenAccountTwo = getAssociatedTokenAddressSync(mintTokenOne, poolPda); 
-//     const userTokenAccountOne = getAssociatedTokenAddressSync(mintTokenOne, payer); 
-//     const userTokenAccountTwo = getAssociatedTokenAddressSync(mintTokenOne, payer); 
-
-//     const acc: SwapAccounts = {
-//         dexConfigurationAccount,
-//         pool: poolPda,
-//         mintTokenOne,
-//         mintTokenTwo,
-//         poolTokenAccountOne,
-//         poolTokenAccountTwo,
-//         userTokenAccountOne,
-//         userTokenAccountTwo,
-//         user: payer,
-//         systemProgram: SystemProgram.programId,
-//         tokenProgram:TOKEN_PROGRAM_ID,
-//         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID
-//     }
-
-//     const args: SwapArgs = {
-//         amount
-//     }
-//     const ix = swap(args, acc);
-
-//     return {ix, acc}
-// }
 export const removeLiquidityIx = async (
   mintToken: PublicKey,
   payer: PublicKey,
@@ -454,12 +265,16 @@ export const removeLiquidityIx = async (
 };
 
 
-export const createMarket = async (tokenMint: any) => {
+export const createMarket = async (tokenMint: PublicKey) => {
   console.log("🔹 Creating Raydium Market...");
   const raydium = await initSdk()
 
   // check mint info here: https://api-v3.raydium.io/mint/list
   // or get mint info by api: await raydium.token.getTokenInfo('mint address')
+  const dexPID = cluster === "mainnet" ? OPEN_BOOK_PROGRAM : DEVNET_PROGRAM_ID.OPENBOOK_MARKET
+  console.log("cluster", cluster, dexPID)
+  // const token = await raydium.token.getTokenInfo(tokenMint)
+  console.log("test")
 
   const { execute, extInfo, transactions } = await raydium.marketV2.create({
     baseInfo: {
@@ -474,7 +289,7 @@ export const createMarket = async (tokenMint: any) => {
     },
     lotSize: 1,
     tickSize: 0.01,
-    dexProgramId: cluster === "mainnet" ? OPEN_BOOK_PROGRAM : DEVNET_PROGRAM_ID.OPENBOOK_MARKET,
+    dexProgramId: dexPID,
     // dexProgramId: DEVNET_PROGRAM_ID.OPENBOOK_MARKET, // devnet
 
     // requestQueueSpace: 5120 + 12, // optional
@@ -484,10 +299,11 @@ export const createMarket = async (tokenMint: any) => {
     txVersion,
     // optional: set up priority fee here
     // computeBudgetConfig: {
-    //   units: 600000,
+    //   units: 60000,
     //   microLamports: 46591500,
     // },
   })
+  console.log("Market Address:", extInfo.address.marketId);
 /*
   console.log(
     `create market total ${transactions.length} txs, market info: `,
@@ -500,13 +316,16 @@ export const createMarket = async (tokenMint: any) => {
     )
   )
 */
-
+  console.log("test3")
   try {
   const txIds = await execute({
     // set sequentially to true means tx will be sent when previous one confirmed
     sequentially: true,
   })
-  } catch{console.log("MarketCreation Failed")}
+  } catch (error) {
+    console.log("MarketCreation Failed", error)
+    throw Error("Failed on Market Creation")
+  }
   // console.log('create market txIds:', txIds)
   console.log("Market Address:", extInfo.address.marketId);
 
@@ -532,8 +351,11 @@ export const createAmmPool = async (
     const baseAmount = new BN(amount1);
     const quoteAmount = new BN(amount2);
 
+    const RAYDIUM_AMM_PROGRAM_ID = new PublicKey("7biV4au8rBAmY4ohutXj9RfKYFAnD7Z6VwhLUrG7tXhM");
+
+try {
     const { execute, extInfo } = await raydium.liquidity.createPoolV4({
-      programId: cluster === "mainnet" ? AMM_V4 : DEVNET_PROGRAM_ID.AmmV4,
+      programId: cluster === "mainnet" ? RAYDIUM_AMM_PROGRAM_ID : DEVNET_PROGRAM_ID.AmmV4,
       // programId: DEVNET_PROGRAM_ID.AmmV4, // devnet
       marketInfo: {
         marketId: marketPubkey,
@@ -562,7 +384,8 @@ export const createAmmPool = async (
     });
 
     console.log("Executing AMM Pool Transaction...");
-   
+    console.log("amount1:SOL", amount1, "amount2:Token", amount2)
+    try{
     const txHash = await execute().catch(async (error) => {
       console.error("❌ Transaction failed!", error);
   
@@ -570,7 +393,11 @@ export const createAmmPool = async (
       const txStatus = await connection.getSignatureStatus(error.txid, { searchTransactionHistory: true });
   
       console.log("🔍 Logs:", txStatus?.value?.err);
+   
     });
+  } catch(error) {
+      throw Error(`error: ${error}`)
+  }
 /*
     console.log("✅ AMM Pool Created! Tx Hash:", txHash);
     console.log(
@@ -589,7 +416,95 @@ export const createAmmPool = async (
 
   console.log(extInfo.address.ammId.toBase58())
   return extInfo.address.ammId.toBase58()
+}catch (error){
+    throw Error(`Jesus: ${error}`)
+}
+}
 
+export const addLiquidityRaydium = async (poolId: string, amountSol: number, amountToken: number) => {
+  const raydium = await initSdk()
+
+  // RAY-USDC pool
+  // const poolId = '6UmmUiYoBjSrhakAobJw8BvkmJtDVxaeBtbt7rxWo1mg'
+  let poolKeys: AmmV4Keys | AmmV5Keys | undefined
+  let poolInfo: ApiV3PoolInfoStandardItem
+
+  if (raydium.cluster === 'mainnet') {
+    console.log("ranThis")
+    // note: api doesn't support get devnet pool info, so in devnet else we go rpc method
+    // if you wish to get pool info from rpc, also can modify logic to go rpc method directly
+    const data = await raydium.api.fetchPoolById({ ids: poolId })
+    poolInfo = data[0] as ApiV3PoolInfoStandardItem
+   } else {
+    console.log("this one")
+    // note: getPoolInfoFromRpc method only return required pool data for computing not all detail pool info
+  
+    try{
+      const data = await raydium.liquidity.getPoolInfoFromRpc({ poolId })
+      poolInfo = data.poolInfo
+      poolKeys = data.poolKeys
+    } catch {console.log("Failed")}
+    throw Error("Failed to get poolinfo")
+    
+  }
+
+console.log(poolKeys, poolInfo)
+
+  // if (!isValidAmm(poolInfo.programId)) throw new Error('target pool is not AMM pool')
+
+  const inputAmountSOL = amountSol
+
+  const r = raydium.liquidity.computePairAmount({
+    poolInfo,
+    amount: inputAmountSOL.toString(),
+    baseIn: true,
+    slippage: new Percent(1, 100), // 1%
+  })
+
+
+  const { execute, transaction } = await raydium.liquidity.addLiquidity({
+    poolInfo,
+    poolKeys,
+    amountInA: new TokenAmount(
+      toToken(poolInfo.mintA),
+      new Decimal(inputAmountSOL).mul(10 ** poolInfo.mintA.decimals).toFixed(0)
+    ),
+    amountInB: new TokenAmount(
+      toToken(poolInfo.mintB),
+      new Decimal(r.maxAnotherAmount.toExact()).mul(10 ** poolInfo.mintB.decimals).toFixed(0)
+    ),
+    otherAmountMin: r.minAnotherAmount,
+    fixedSide: 'a',
+    txVersion,
+    // optional: set up priority fee here
+    // computeBudgetConfig: {
+    //   units: 600000,
+    //   microLamports: 46591500,
+    // },
+
+    // optional: add transfer sol to tip account instruction. e.g sent tip to jito
+    // txTipConfig: {
+    //   address: new PublicKey('96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5'),
+    //   amount: new BN(10000000), // 0.01 sol
+    // },
+  })
+
+  console.log(
+    amountToken,
+    new TokenAmount(
+      toToken(poolInfo.mintB),
+      new Decimal(r.maxAnotherAmount.toExact()).mul(10 ** poolInfo.mintB.decimals).toFixed(0)
+      ),
+    amountSol,
+    new TokenAmount(
+      toToken(poolInfo.mintA),
+      new Decimal(inputAmountSOL).mul(10 ** poolInfo.mintA.decimals).toFixed(0)
+    )
+  )
+  // don't want to wait confirm, set sendAndConfirm to false or don't pass any params to execute
+  // const { txId } = await execute({ sendAndConfirm: true })
+  // console.log('liquidity added:', { txId: `https://explorer.solana.com/tx/${txId}` })
+ // process.exit() // if you don't want to end up node execution, comment this line
 }
 
 
@@ -631,3 +546,11 @@ export async function wrapSOLToWSOL(connection: Connection, user: Keypair, amoun
 
 
 export const makeTxVersion = TxVersion.LEGACY; // LEGACY
+
+const VALID_PROGRAM_ID = new Set([
+  AMM_V4.toBase58(),
+  AMM_STABLE.toBase58(),
+  DEVNET_PROGRAM_ID.AmmV4.toBase58(),
+  DEVNET_PROGRAM_ID.AmmStable.toBase58(),
+])
+export const isValidAmm = (id: string) => VALID_PROGRAM_ID.has(id)

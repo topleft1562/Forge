@@ -5,7 +5,7 @@ import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionRe
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
-import { createAmmPool, createLPIx, createMarket, initializeIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
+import { addLiquidityRaydium, createAmmPool, createLPIx, createMarket, initializeIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { setCoinStatus } from "../routes/coinStatus";
@@ -361,6 +361,8 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
 
         // Check wallet balance first
         const balance = await connection.getBalance(adminKeypair.publicKey);
+        console.log("SOLBALANCE:", balance)
+        
         const requiredBalance = 5_000_000_000; // 5 SOL to be safe
         
         if (balance < requiredBalance) {
@@ -390,12 +392,18 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
     });
     console.log("✅ LIQUIDITY REMOVED!");
 
-    await sleep(20000)
-    const marketId = await createMarket(mint1)
-    // const marketId = "483bWr1PkiktzjSfRLqrv9VM6g6tDsSETJf8NruUQdna"
-    wrapSOLToWSOL(connection, adminKeypair, amountTwo )
+    // await sleep(20000)
+    // const marketId = await createMarket(mint1)
+    // console.log("marketid", marketId)
+    console.log("✅ Created Market");
+    const marketId = "7ZgXzftXfC8nfn5E5yP8v3QroVNhKEoxzHZnaX2Bev18"
+    // wrapSOLToWSOL(connection, adminKeypair, amountTwo )
     await sleep(20000)
     const poolAddress = await createAmmPool(mint1, marketId, amountOne, amountTwo)
+    // const poolAddress = "7fDy1SAkRcYx4fEks88HL1V2EPrea92y9zNqjMrU2Lxq"
+    // console.log("poolAddress", poolAddress) 
+    console.log("✅ Created AMM POOL!");
+    await addLiquidityRaydium(poolAddress, amountOne, amountTwo)
     console.log("✅ Migration to Raydium Complete!");
  
 }

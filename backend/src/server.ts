@@ -18,7 +18,7 @@ let io: Server | null = null;
 
 // Graceful shutdown handler
 async function gracefulShutdown(signal: string) {
-  logger.info(`Received ${signal}. Starting graceful shutdown...`);
+  // logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
   // Set a timeout for the entire shutdown process
   const shutdownTimeout = setTimeout(() => {
@@ -29,10 +29,10 @@ async function gracefulShutdown(signal: string) {
   try {
     // Close Socket.IO connections
     if (io) {
-      logger.info('Closing Socket.IO connections...');
+      // logger.info('Closing Socket.IO connections...');
       await new Promise<void>((resolve) => {
         io?.close(() => {
-          logger.info('Socket.IO server closed');
+          // logger.info('Socket.IO server closed');
           resolve();
         });
       });
@@ -41,16 +41,16 @@ async function gracefulShutdown(signal: string) {
     // Close HTTP server
     await new Promise<void>((resolve) => {
       server.close(() => {
-        logger.info('HTTP server closed');
+        // logger.info('HTTP server closed');
         resolve();
       });
     });
 
     // Close MongoDB connection
     if (mongoose.connection.readyState === 1) {
-      logger.info('Closing MongoDB connection...');
+      // logger.info('Closing MongoDB connection...');
       await mongoose.connection.close();
-      logger.info('MongoDB connection closed');
+      // logger.info('MongoDB connection closed');
     }
 
     clearTimeout(shutdownTimeout);
