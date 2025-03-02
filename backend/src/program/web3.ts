@@ -5,14 +5,14 @@ import { ComputeBudgetProgram, Connection, PublicKey, Transaction, TransactionRe
 import base58 from "bs58";
 import { Types } from "mongoose";
 import Coin from "../models/Coin";
-import { createAmmPool, createLPIx, createMarket, initializeIx, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
+import { createLPIx, createPool, deposit, initializeIx, pollForTransactionConfirmation, removeLiquidityIx, wrapSOLToWSOL } from "./web3Provider";
 import { web3 } from "@coral-xyz/anchor";
 import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 import { setCoinStatus } from "../routes/coinStatus";
 import CoinStatus from "../models/CoinsStatus";
 import { simulateTransaction } from "@coral-xyz/anchor/dist/cjs/utils/rpc";
 import pinataSDK from '@pinata/sdk';
-import { INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, RPC_ENDPOINT, totalSupply } from "../config/config";
+import { cluster, INITIAL_PRICE, marketCapGoal, ourFeeToKeep, priorityLamports, RPC_ENDPOINT, totalSupply } from "../config/config";
 import { fetchSolPrice } from "../utils/calculateTokenPrice";
 import { setComputeUnitPrice } from "@metaplex-foundation/mpl-toolbox";
 import { PROGRAM_ID } from "./cli/programId";
@@ -63,26 +63,16 @@ export const uploadMetadata = async (data: CoinInfo): Promise<any> => {
         return error;
     }
 }
-// Initialize Transaction for smart contract
-export const initializeTx = async () => {
-    const initTx = await initializeIx(adminWallet.publicKey);
-    const createTx = new Transaction().add(initTx.ix);
-    // console.log(adminWallet.publicKey.toBase58())
 
-    createTx.feePayer = adminWallet.publicKey;
-    createTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
-    
-    createTx.add(priorityFeeInstruction)
-    const txId = await sendAndConfirmTransaction(connection, createTx, [adminKeypair]);
-    // console.log("txId:", txId)
-}
-
+function wait(seconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+  }
 
 // Create Token and add liquidity transaction
 export const createToken = async (data: CoinInfo, creatorWallet: any) => {
     try {
         console.log("Starting token creation for:", data.name);
-        const uri = await uploadMetadata(data);
+        await uploadMetadata(data);
         // console.log("Metadata uploaded:", uri);
 
         const mint = generateSigner(umi);
@@ -106,14 +96,12 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
   );
 
         const mintTx = await tx.sendAndConfirm(umi);
+        
         console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
         console.log("Mint transaction:", mintTx);
-
-        await sleep(10000);
-        // console.log("Starting LP creation...");
+        wait(6)
 
         try {
-            // console.log("Checking if Program needs initialization...");
            
             const [globalAccount] = PublicKey.findProgramAddressSync(
                 [Buffer.from("global")],
@@ -135,23 +123,18 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                   initCreateTx.add(priorityFeeInstruction);
                 
                 const initTxId = await sendAndConfirmTransaction(connection, initCreateTx, [adminKeypair]);
+                
                 console.log("Initial Setup txId:", initTxId);
                 
-                await sleep(2000);
+            const isConfirmed = await pollForTransactionConfirmation(initTxId);
+            if (isConfirmed) {
+                console.log("Transaction was successfully confirmed.");
+            } else {
+                console.log("Transaction failed.");
+                return
             }
-        /*
-            // Then initialize the pool for this specific token
-            // console.log("Initializing pool for token:", mint.publicKey);
-            const poolInitTx = await initializePoolIx(new PublicKey(mint.publicKey), adminKeypair.publicKey);
-            const poolInitCreateTx = new Transaction().add(poolInitTx.ix);
-            poolInitCreateTx.feePayer = adminWallet.publicKey;
-            poolInitCreateTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-            
-            const poolInitTxId = await sendAndConfirmTransaction(connection, poolInitCreateTx, [adminKeypair]);
-            // console.log("Pool initialization txId:", poolInitTxId);
-        */
-            await sleep(2000);
-        
+            }
+     
             // Now proceed with LP creation
             console.log("Starting LP creation...");
     
@@ -180,6 +163,13 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
                 skipPreflight: true,
                 commitment: 'confirmed'
             });
+            const isConfirmed = await pollForTransactionConfirmation(txId);
+            if (isConfirmed) {
+                console.log("Transaction was successfully confirmed.");
+            } else {
+                console.log("Transaction failed.");
+                return
+            }
             // console.log("LP transaction successful, txId:", txId);
 
             // Database operations
@@ -245,31 +235,6 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
             console.error("Token creation failed with unknown error:", err);
         }
         return "token creation failed"
-    }
-}
-
-// check transaction
-export const checkTransactionStatus = async (transactionId: string) => {
-    try {
-        // Fetch the transaction details using the transaction ID
-        const transactionResponse: TransactionResponse | null = await connection.getTransaction(transactionId);
-
-        // If the transactionResponse is null, the transaction is not found
-        if (transactionResponse === null) {
-            console.log(`Transaction ${transactionId} not found.`);
-            return false;
-        }
-
-        // Check the status of the transaction
-        if (transactionResponse.meta && transactionResponse.meta.err === null) {
-            return true;
-        } else {
-            console.log(`Transaction ${transactionId} failed with error: ${transactionResponse.meta?.err}`);
-            return false
-        }
-    } catch (error) {
-        console.error(`Error fetching transaction ${transactionId}:`, error);
-        return false;
     }
 }
 
@@ -389,19 +354,23 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
         commitment: "finalized", // Ensures transaction is fully confirmed
     });
     console.log("✅ LIQUIDITY REMOVED!");
+    const txSignature = sig;
+    console.log("Transaction ID:", txSignature);
 
-    await sleep(20000)
-    const marketId = await createMarket(mint1)
-    // const marketId = "483bWr1PkiktzjSfRLqrv9VM6g6tDsSETJf8NruUQdna"
-    wrapSOLToWSOL(connection, adminKeypair, amountTwo )
-    await sleep(20000)
-    const poolAddress = await createAmmPool(mint1, marketId, amountOne, amountTwo)
+    // Poll for transaction confirmation status
+    const status = await pollForTransactionConfirmation(txSignature);
+    if(status === false) {
+     console.log("ERROR creating AMM POOL")
+     return
+    }
+
+    await wrapSOLToWSOL(amountTwo)
+    await createPool(mint1, amountTwo, amountOne)
+    if(cluster === 'mainnet'){
+        await deposit(mint1, amountOne)
+    }
     console.log("✅ Migration to Raydium Complete!");
  
-}
-
-function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Get swap(buy and sell)

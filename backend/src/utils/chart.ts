@@ -4,7 +4,7 @@ import { logger } from "../sockets/logger";
 import { CandlePrice, priceFeedInfo } from "./type";
 
 export async function fetchPriceChartData(pairIndex: number, start: number, end: number, range: number, token: string) {
-  logger.info(`  fetching chart data for pairIndex: ${pairIndex}, start: ${start}, end: ${end}, range: ${range}, token: ${token}`);
+  // logger.info(`  fetching chart data for pairIndex: ${pairIndex}, start: ${start}, end: ${end}, range: ${range}, token: ${token}`);
 
   // Load price histories from DB
   const priceFeeds: priceFeedInfo[] | undefined = await Coin.findOne({ token })

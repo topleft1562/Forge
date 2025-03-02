@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/:pairIndex/:start/:end/:range/:token', async (req, res) => {
     // console.log("config+++")
    const {pairIndex, start, end, range, token}= req.params
-   logger.info(`  get charts for pairIndex: ${pairIndex}, start: ${start}, end: ${end}, range: ${range}, token: ${token}`);
+   // logger.info(`  get charts for pairIndex: ${pairIndex}, start: ${start}, end: ${end}, range: ${range}, token: ${token}`);
    try {
      const data = await fetchPriceChartData(parseInt(pairIndex), parseInt(start) * 1000, parseInt(end) * 1000, parseInt(range), token);
      return res.status(200).send({ table: data });

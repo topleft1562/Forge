@@ -17,10 +17,10 @@ const socketio = (server: any): Server => {
     
     io.on('connection', (socket: Socket) => {
       const id = (socket as any).user?.user?.id;
-      logger.info(`New socket connection (${socket.id}) -> ${id}`);
+      // logger.info(`New socket connection (${socket.id}) -> ${id}`);
       
       socket.on('disconnect', (reason) => {
-        logger.info(`Socket disconnected (${socket.id}): ${reason}`);
+        // logger.info(`Socket disconnected (${socket.id}): ${reason}`);
       });
 
       socket.on('error', (error) => {
@@ -28,7 +28,7 @@ const socketio = (server: any): Server => {
       });
     });
 
-    logger.info('Socket.IO server initialized successfully');
+    // logger.info('Socket.IO server initialized successfully');
     return io;
   } catch (error) {
     logger.error('Socket.IO initialization failed:', error);
