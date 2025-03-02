@@ -375,10 +375,6 @@ export const createRaydium = async (mint1: PublicKey, r1: number, r2: number) =>
  
 }
 
-function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // Get swap(buy and sell)
 function parseLogs(logs: string[], tx: string): ResultType {
     // console.log("📜 Raw logs received:", logs);
