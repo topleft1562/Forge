@@ -64,6 +64,10 @@ export const uploadMetadata = async (data: CoinInfo): Promise<any> => {
     }
 }
 
+function wait(seconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+  }
+
 // Create Token and add liquidity transaction
 export const createToken = async (data: CoinInfo, creatorWallet: any) => {
     try {
@@ -95,13 +99,7 @@ export const createToken = async (data: CoinInfo, creatorWallet: any) => {
         
         console.log(userWallet.publicKey, "Successfully minted 1 billion tokens (", mint.publicKey, ")");
         console.log("Mint transaction:", mintTx);
-        const isConfirmed = await pollForTransactionConfirmation(mintTx.signature.toString());
-            if (isConfirmed) {
-                console.log("Transaction was successfully confirmed.");
-            } else {
-                console.log("Transaction failed.");
-                return
-            }
+        wait(6)
 
         try {
            
