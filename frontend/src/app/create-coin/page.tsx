@@ -10,7 +10,7 @@ import Link from "next/link";
 import { ChangeEvent, useContext, useEffect, useState } from "react";
 import { GiThorHammer } from "react-icons/gi";
 import { IoMdRocket } from "react-icons/io";
-import { IoArrowBack } from "react-icons/io5";
+import { IoArrowBack, IoShieldCheckmark } from "react-icons/io5";
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { EmojiClickData } from 'emoji-picker-react';
 import { Connection, LAMPORTS_PER_SOL, PublicKey, SystemProgram, TransactionMessage, TransactionSignature, VersionedTransaction } from '@solana/web3.js';
@@ -38,11 +38,16 @@ const KYCModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
             ×
           </button>
           
-          {/* Header */}
+          {/* Header with shield icon */}
           <div className="flex justify-center items-center mb-6 pt-2">
-            <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
-              Verified Project Benefits
-            </h2>
+            <div className="flex items-center gap-3">
+              <div className="text-[#01a8dd]">
+                <IoShieldCheckmark size={36} className="fill-current" />
+              </div>
+              <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
+                Verified Project Benefits
+              </h2>
+            </div>
           </div>
           
           {/* Content */}
