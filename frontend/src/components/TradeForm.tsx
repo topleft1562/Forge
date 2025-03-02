@@ -154,177 +154,183 @@ console.log(tokenBal, solBal)
                 }}
             >
         <div className="space-y-4">
-           
-  
-        <button
-  onClick={() => setShowSlippageModal(true)}
-  className="relative flex items-center gap-1 px-2 py-1 group transition-all rounded-lg border-2 border-transparent hover:border-[#01a8dd] text-sm text-[#01a8dd]/80 hover:text-[#01a8dd] ml-auto"
->
-  Max Slippage: {slippage}%
-</button>
+            {/* Buy/Sell switcher buttons - positioned at edges */}
+            <div className="flex justify-between gap-4 mb-2">
+                <button
+                    className={`px-6 py-2 rounded-lg transition-all duration-300 shadow-lg ${
+                        isBuy === 0
+                            ? "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
+                            : 'text-[#01a8dd] hover:bg-[#01a8dd]/10'
+                    }`}
+                    onClick={() => {
+                        if (isBuy !== 0) {
+                            setIsBuy(0);
+                            setSol("0.25");
+                        }
+                    }}
+                >
+                    {isLoading ? "Loading..." : "Buy"}
+                </button>
+                
+                <button
+                    className={`px-6 py-2 rounded-lg transition-all duration-300 shadow-lg ${
+                        isBuy === 1
+                            ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
+                            : 'text-[#01a8dd] hover:bg-[#01a8dd]/10'
+                    }`}
+                    onClick={() => {
+                        if (isBuy !== 1) {
+                            setIsBuy(1);
+                            setSol((tokenBal / 10).toFixed(6));
+                        }
+                    }}
+                >
+                    {isLoading ? "Loading..." : "Sell"}
+                </button>
+            </div>
 
+            <button
+                onClick={() => setShowSlippageModal(true)}
+                className="relative flex items-center gap-1 px-2 py-1 group transition-all rounded-lg border-2 border-transparent hover:border-[#01a8dd] text-sm text-[#01a8dd]/80 hover:text-[#01a8dd] ml-auto"
+            >
+                Max Slippage: {slippage}%
+            </button>
 
-
-<div className="relative flex flex-col items-center gap-4">
-  {/* First Input Section */}
-  <div className="bg-[#1e1e1e] rounded-lg p-4 w-full">
-    <label className="block text-[#888] text-sm mb-2">
-      Balance: {isBuy === 0 ? (solBal /1e9).toFixed(4) : (tokenBal / 1e6).toFixed(4)} {isBuy === 0 ? "SOL" : coin?.ticker}
-    </label>
-    <div className="relative">
-      <input
-        type="text"
-        value={sol}
-        onChange={handleInputChange}
-        className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
-        placeholder={`Enter amount in ${isBuy === 0 ? "SOL" : coin?.ticker || "tokens"}`}
-      />
-      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
-        {isBuy === 0 ? "SOL" : coin?.ticker}
-      </span>
-    </div>
-  </div>
-
-  {/* Overlapping Button */}
-  <button
-    className={`absolute left-4 top-1/2 -translate-y-1/2 px-6 py-2 rounded-full transition-all duration-300 shadow-lg ${
-      isBuy === 1
-        ? 'text-[#01a8dd] hover:bg-[#01a8dd]/10'
-        : "bg-gradient-to-r from-[#01a8dd] to-[#4088ae] text-white"
-    }`}
-    onClick={() => swapModes()}
-  >
-    {isLoading ? "Loading..." : "Buy"}
-  </button>
-
-  {/* Overlapping Button */}
-  <button
-    className={`absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 rounded-full transition-all duration-300 shadow-lg ${
-      isBuy === 1
-        ? "bg-gradient-to-r from-[#dd0101] to-[#ae4040] text-white"
-        : 'text-[#01a8dd] hover:bg-[#01a8dd]/10'
-    }`}
-    onClick={() => swapModes()}
-  >
-    {isLoading ? "Loading..." : "Sell"}
-  </button>
-
-  {/* Second output Section */}
-  <div className="bg-[#1e1e1e] rounded-lg p-4 w-full">
-  <label className="block text-[#888] text-sm mb-2">Receive</label>
-  <div className="relative">
-    <div
-      className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
-    >
-      {tokens_at_current_price}
-    </div>
-    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
-      {isBuy === 1 ? "SOL" : coin?.ticker}
-    </span>
-  </div>
-</div>
-
-</div>
-
-                    {isBuy === 0 ? (
-                        <div className="flex gap-2 flex-wrap justify-center">
-                            
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("0.25")}
-                            >
-                                0.25 SOL
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("1")}
-                            >
-                                1 SOL
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("2.5")}
-                            >
-                                2.5 SOL
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("5")}
-                            >
-                                5 SOL
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol((solBal * 1e9).toFixed(6))}
-                            >
-                                Max
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2 flex-wrap justify-center">
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol("0")}
-                            >
-                                Clear
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() =>
-                                    setSol((tokenBal / 10).toFixed(6))
-                                }
-                            >
-                                10%
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() =>
-                                    setSol((tokenBal / 4).toFixed(6))
-                                }
-                            >
-                                25%
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() =>
-                                    setSol((tokenBal / 2).toFixed(6))
-                                }
-                            >
-                                50%
-                            </button>
-                            <button
-                                className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
-                                onClick={() => setSol(tokenBal.toString())}
-                            >
-                                100%
-                            </button>
-                        </div>
-                    )}
-
-<button
-  onClick={handlTrade}
-  disabled={isDisabled}
-  className={`w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity 
-              ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-  style={{
-    backgroundImage:
-      isBuy === 0 
-        ? "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)"
-        : "linear-gradient(9deg, rgb(143, 0, 0) 0%, rgb(249, 138, 138) 100%)"
-  }}
-                            >
-                        {slippageToHigh ? "Slippage Error" : !user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
-                    </button>
+            <div className="relative flex flex-col items-center gap-4">
+                {/* First Input Section */}
+                <div className="rounded-lg p-1 w-full">
+                    <label className="block text-[#888] text-sm mb-2">
+                        Balance: {isBuy === 0 ? (solBal /1e9).toFixed(4) : (tokenBal / 1e6).toFixed(4)} {isBuy === 0 ? "SOL" : coin?.ticker}
+                    </label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={sol}
+                            onChange={handleInputChange}
+                            className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
+                            placeholder={`Enter amount in ${isBuy === 0 ? "SOL" : coin?.ticker || "tokens"}`}
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
+                            {isBuy === 0 ? "SOL" : coin?.ticker}
+                        </span>
+                    </div>
                 </div>
 
-                <SlippageModal
-                    isOpen={showSlippageModal}
-                    onClose={() => setShowSlippageModal(false)}
-                    slippage={slippage}
-                    setSlippage={setSlippage}
-                />
-
+                {/* Second output Section */}
+                <div className="rounded-lg p-1 w-full">
+                    <label className="block text-[#888] text-sm mb-2">Receive</label>
+                    <div className="relative">
+                        <div
+                            className="w-full bg-[#141414] border border-[#01a8dd]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#01a8dd]/40 transition-colors"
+                        >
+                            {tokens_at_current_price}
+                        </div>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888]">
+                            {isBuy === 1 ? "SOL" : coin?.ticker}
+                        </span>
+                    </div>
+                </div>
             </div>
+
+            {isBuy === 0 ? (
+                <div className="flex gap-2 flex-wrap justify-center">
+                    
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol("0.25")}
+                    >
+                        0.25 SOL
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol("1")}
+                    >
+                        1 SOL
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol("2.5")}
+                    >
+                        2.5 SOL
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol("5")}
+                    >
+                        5 SOL
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol((solBal * 1e9).toFixed(6))}
+                    >
+                        Max
+                    </button>
+                </div>
+            ) : (
+                <div className="flex gap-2 flex-wrap justify-center">
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol("0")}
+                    >
+                        Clear
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() =>
+                            setSol((tokenBal / 10).toFixed(6))
+                        }
+                    >
+                        10%
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() =>
+                            setSol((tokenBal / 4).toFixed(6))
+                        }
+                    >
+                        25%
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() =>
+                            setSol((tokenBal / 2).toFixed(6))
+                        }
+                    >
+                        50%
+                    </button>
+                    <button
+                        className="px-3 py-2 rounded-lg bg-[#141414] text-[#01a8dd] hover:bg-[#01a8dd]/10 transition-colors text-sm"
+                        onClick={() => setSol(tokenBal.toString())}
+                    >
+                        100%
+                    </button>
+                </div>
+            )}
+
+            <button
+                onClick={handlTrade}
+                disabled={isDisabled}
+                className={`w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity 
+                            ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                style={{
+                    backgroundImage:
+                        isBuy === 0 
+                            ? "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)"
+                            : "linear-gradient(9deg, rgb(143, 0, 0) 0%, rgb(249, 138, 138) 100%)"
+                }}
+            >
+                {slippageToHigh ? "Slippage Error" : !user._id ? 'No User!' : coin.isMigrated ? "Migrated" : isBuy === 0 ? "Buy Token" : "Sell Token"}
+            </button>
         </div>
+
+        <SlippageModal
+            isOpen={showSlippageModal}
+            onClose={() => setShowSlippageModal(false)}
+            slippage={slippage}
+            setSlippage={setSlippage}
+        />
+
+    </div>
+</div>
     );
 };
