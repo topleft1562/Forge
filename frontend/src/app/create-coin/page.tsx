@@ -19,6 +19,56 @@ import { ADMINKEY, CREATEFEE } from "@/confgi";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { getSolBalance } from "@/program/web3";
 
+const KYCModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="relative my-4 w-full max-w-md">
+        {/* Background blur effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#01a8dd]/10 to-[#4088ae]/10 rounded-xl blur-xl"></div>
+        
+        {/* Modal content */}
+        <div className="relative bg-[#141414] rounded-xl p-6 sm:p-8 w-full border border-[#01a8dd]/20 shadow-xl">
+          {/* Close button */}
+          <button 
+            onClick={onClose}
+            className="absolute top-2 right-3 text-[#888] hover:text-[#01a8dd] transition-colors text-2xl"
+          >
+            ×
+          </button>
+          
+          {/* Header */}
+          <div className="flex justify-center items-center mb-6 pt-2">
+            <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#01a8dd] to-[#4088ae]">
+              Verified Project Benefits
+            </h2>
+          </div>
+          
+          {/* Content */}
+          <div className="text-[#888] mb-8">
+            <p className="leading-relaxed">
+              To enhance the credibility and trustworthiness of your project, we invite you to initiate your launch through SolForge with our integrated KYC verification process. Please begin by submitting your application through our Telegram channel, where our expert team is available to assist you and facilitate your application.
+            </p>
+          </div>
+          
+          {/* Button */}
+          <a 
+            href="https://t.me/sol_Forge_exchange" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block w-full py-3 rounded-lg text-white font-medium hover:opacity-90 transition-opacity text-center"
+            style={{
+              backgroundImage: "linear-gradient(9deg, rgb(0, 104, 143) 0%, rgb(138, 212, 249) 100%)"
+            }}
+          >
+            Submit KYC Application on Telegram
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function CreateCoin() {
   const { user, imageUrl, setImageUrl, isCreated, setIsCreated } = useContext(UserContext);
@@ -29,6 +79,7 @@ export default function CreateCoin() {
   const [selectedFileName, setSelectedFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showKYCModal, setShowKYCModal] = useState(false);
   const router = useRouter();
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
@@ -428,13 +479,21 @@ const createCoin = async () => {
             </div>
           </label>
         </div>
-        <div className="flex justify-center mt-5">
+        <div className="flex justify-center gap-4 mt-5">
           <button
             onClick={() => setVisible(!visible)}
             className="social-toggle-button"
           >
             <span>{visible ? 'Hide Socials' : 'Add Socials'}</span>
             {visible ? '−' : '+'} 
+          </button>
+          
+          <button
+            onClick={() => setShowKYCModal(true)}
+            className="social-toggle-button"
+          >
+            <span>KYC Option</span>
+            +
           </button>
         </div>
         {visible && (
@@ -495,6 +554,11 @@ const createCoin = async () => {
 
         </div>
       </div>
+      
+      <KYCModal 
+        isOpen={showKYCModal}
+        onClose={() => setShowKYCModal(false)}
+      />
     </div>
   );
 }
