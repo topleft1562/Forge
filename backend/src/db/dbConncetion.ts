@@ -11,12 +11,12 @@ export const init = async (): Promise<void> => {
 
     // If already connected, return early
     if (mongoose.connection.readyState === mongoose.ConnectionStates.connected) {
-      logger.info('MongoDB already connected');
+      // logger.info('MongoDB already connected');
       return;
     }
 
     await mongoose.connect(DB_CONNECTION);
-    logger.info('MongoDB database connected successfully');
+    // logger.info('MongoDB database connected successfully');
 
   } catch (error) {
     logger.error('MongoDB connection error:', error);

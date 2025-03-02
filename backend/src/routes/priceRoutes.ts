@@ -1,6 +1,7 @@
 import express from 'express';
 import { fetchSolPrice } from '../utils/calculateTokenPrice';
 
+
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -13,4 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+
+
 export default router;
+
